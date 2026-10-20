@@ -57,7 +57,7 @@ The attempt lasted3.80seconds. The compilation event shows one attributable even
 
 Profile, canary, approved-spec, frozen16-file test/fixture map and collector checks passed; operator checkout was clean after execution. No app/build/test/model payload, implementation/test-writer worker, new release TCB, listener, provider request, install, release, tag or push occurred. There is no new test pass count. Existing implementation Go persists, blocked by guard then named-record qualification. First normal-user release-TCB execution remains separately unapproved.
 
-Driver recommendation: reassess the isolation design in prose before proposing more execution. Both the strict startup prerequisite and the attempted resource observer remain unqualified. No next experiment or alternative permission contract is proposed or authorized by this result. Preserve the current approved specification/hash until any concrete revision is reviewed and explicitly approved. This is a diagnosis limit, not permission to weaken the guard or reopen P119.
+This diagnosis result itself authorized no alternative contract. P216 subsequently authorized autonomous design/review of the [read-policy amendment](../proposals/release-guard-amendment.md); [its result](release-guard-amendment.md) records three rounds and pending material approval at P231. Both original strict startup and reporting observation remain unqualified. No new payload/profile execution or P119 reopening followed. Original specification/hash is preserved.
 
 ## Sessions, evidence and cost
 
