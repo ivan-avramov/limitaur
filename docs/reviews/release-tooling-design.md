@@ -1,6 +1,6 @@
 # P73 release tooling: design review
 
-Status: four design rounds complete, including the operator-approved additional round at P174. Fourth-round corrections are NOT RE-REVIEWED; no convergence/clearance claimed. Recommend the scoped implementation Go below. No implementation, application builds/tests, live checks, installation, tag or push occurred. The first unguarded execution of newly implemented release tooling requires separate frozen-code approval.
+Status: scoped implementation Go approved at P185 (“go”). The baseline guard pilot subsequently failed before payload/test/worker execution; see [pilot checkpoint](release-tooling-pilot.md). Go remains valid but qualification is incomplete. A specific startup-only diagnostic read exception is pending at P191. First normal-user execution of new TCB code remains separately unapproved. Historical four-round design record follows; no convergence/clearance claimed.
 
 Operator authorized specification and cold design review at P155: “proceed as proposed.” The approval does not authorize implementation. Recovered baseline was clean main at `9f650acd8883a92095371c2bf01a2bd803025eca`. Recover actual HEAD after this documentation checkpoint for the next phase.
 
@@ -95,3 +95,7 @@ Claude fourth call includes an auxiliary Haiku 5.5 usage bucket and two reported
 Current proposed specification SHA256: `34f97eae0e87f62c7c50db8140ddf2f644419270643cd37641ac5f58d06a5f76`; immutable copy: specification-after-round4-not-rereviewed.md in the external review directory.
 
 Closing discussion P184, next P185. Proposed scoped implementation Go remains unanswered. No fifth round was dispatched; all fourth-round findings have dispositions, and the code-level proof/execution gates are explicitly pending. This documentation checkpoint does not authorize implementation or first normal-user TCB execution.
+
+## Scoped Go and pilot outcome
+
+Operator “go” at P185 approved scoped implementation on `46e34e4`. The required guard startup pilot failed; no implementer or independent test-writer was dispatched. [Measured result and proposed diagnostic](release-tooling-pilot.md). No app/build/test code or new release TCB executed. Source acceptance remains P119, unchanged. Go is not revoked; payload work remains behind its failed prerequisite. No permission broadening or push occurred. P191 diagnostic approval is separate from future frozen-TCB execution approval.
