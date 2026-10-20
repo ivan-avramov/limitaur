@@ -1,5 +1,5 @@
 {
-  "status": "Three strict rounds complete; final corrections not re-reviewed; implementation not authorized.",
+  "status": "Four rounds complete; post-round4 corrections not re-reviewed; scoped implementation Go pending, first normal-user TCB execution separately gated.",
   "findings": [
     {
       "id": "D01",
@@ -480,6 +480,200 @@
       "disposition": "adopted",
       "topic": "Embedded loader overrides",
       "reason": "Reject LC_DYLD_ENVIRONMENT and lazy loads; enumerate inspected dependency/load-dylinker command policy. Add independent override fixture.",
+      "reReviewed": false
+    },
+    {
+      "id": "D52",
+      "raisedBy": [
+        "astra4:P1",
+        "opus4:B1"
+      ],
+      "disposition": "adapted",
+      "topic": "Trusted parent and first-execution gate",
+      "reason": "Identify release-check.py/release_support.py/release_supervisor.py as normal-user TCB, separate from guarded payloads. No nesting. Implementation Go does not authorize first unguarded TCB execution: require frozen diff/hash and operator execution approval, then synthetic smoke, then conditional source acceptance/commit. VM/account alternative not adopted; active-host scope retained.",
+      "reReviewed": false
+    },
+    {
+      "id": "D53",
+      "raisedBy": [
+        "astra4:P1",
+        "opus4:B2"
+      ],
+      "disposition": "adapted",
+      "topic": "Narrow independent test contract",
+      "reason": "Choose narrower option: independent validators, real descriptor boundaries, startup/CLI and read-only verify negatives. Do not promise a positive prepare lifecycle through Services.run. Positive lifecycle/probes/publication are separately approved supervisor/driver checks.",
+      "reReviewed": false
+    },
+    {
+      "id": "D54",
+      "raisedBy": [
+        "astra4:P2",
+        "opus4:M1"
+      ],
+      "disposition": "adopted",
+      "topic": "Two recipe records and precise probes",
+      "reason": "Replace one profile hash/set with build and diagnostics records and exact launch bindings. Distinct hashes; direct read/write-open, TCP connect, AF_UNIX connect, scratch write probes, diagnostic protected-executable write-open probe. These are syscall observations, not broker containment.",
+      "reReviewed": false
+    },
+    {
+      "id": "D55",
+      "raisedBy": [
+        "astra4:P3"
+      ],
+      "disposition": "adopted",
+      "topic": "Lazy-load-info payload",
+      "reason": "Verify command in installed SDK loader.h and primary Apple header; dyld inspection uses lazy-load callback/payload. Reject LC_LAZY_LOAD_DYLIB_INFO, unknown command/encoding fails closed; independent negative fixture required.",
+      "reReviewed": false
+    },
+    {
+      "id": "D56",
+      "raisedBy": [
+        "astra4:P4",
+        "opus4:M5"
+      ],
+      "disposition": "adopted",
+      "topic": "Relocation-safe rpaths",
+      "reason": "Choose exact three strings /usr/lib/swift/@loader_path/@executable_path. Remove broader in-app rule, including absolute work paths. Reverse earlier D45 allowance once because of concrete relocation defect; keep decision, do not oscillate on hypothetical backend output.",
+      "reReviewed": false
+    },
+    {
+      "id": "D57",
+      "raisedBy": [
+        "astra4:P5"
+      ],
+      "disposition": "adapted",
+      "topic": "Integration field ownership",
+      "reason": "Specify result exact keys productionBundle/codex/claude and credentialPath only nested under each provider. Decline redundant root field. Existing fixture matches intended schema; unexpected root credentialPath and missing provider field are explicit negative vectors.",
+      "reReviewed": false
+    },
+    {
+      "id": "D58",
+      "raisedBy": [
+        "opus4:M1"
+      ],
+      "disposition": "adapted",
+      "topic": "IPC limits and AF_UNIX",
+      "reason": "Measure explicit AF_UNIX connect denial, bind recipes, rename broad fields to exact direct operations. Do not add real Keychain/Mach-service queries or home preference scans. Retain disclosed absence of broker containment; operator Go must see that boundary.",
+      "reReviewed": false
+    },
+    {
+      "id": "D59",
+      "raisedBy": [
+        "opus4:M2"
+      ],
+      "disposition": "adopted",
+      "topic": "Git parser differential",
+      "reason": "After metadata preflight use fixed no-pager config --file .git/config --no-includes --null --list before canonical-key allowlist. Cover casing, escaping, continuations and legacy syntax. Do not add speculative include.path override.",
+      "reReviewed": false
+    },
+    {
+      "id": "D60",
+      "raisedBy": [
+        "opus4:M3"
+      ],
+      "disposition": "adopted",
+      "topic": "R2 experiment ownership",
+      "reason": "Driver-run source-acceptance builds, outside seven prepare suites/900s cap,1800s/build fresh scratch. Candidate/profile hash-bound report outside repo; routine prepare checks its actual VERSION agreement, not a fictitious R2 rerun.",
+      "reReviewed": false
+    },
+    {
+      "id": "D61",
+      "raisedBy": [
+        "opus4:M4"
+      ],
+      "disposition": "adopted",
+      "topic": "Function-owned reasons",
+      "reason": "validate_evidence emits missing_evidence/gates_failed or raises typed structural/identity/scan errors; verify owns native/development/changelog policy. Indicator count mismatch is gates_failed. Add data vectors with rebind rules.",
+      "reReviewed": false
+    },
+    {
+      "id": "D62",
+      "raisedBy": [
+        "opus4:m1"
+      ],
+      "disposition": "adapted",
+      "topic": "Native record qualification",
+      "reason": "Set explicit no-color/SF-symbol env and qualify actual output after Go. Historical summary72 with71 individually matching rows: no inference about test execution, no P119 reopening. Freeze only after a fresh named-record pilot accounts for complete inventory.",
+      "reReviewed": false
+    },
+    {
+      "id": "D63",
+      "raisedBy": [
+        "opus4:m2"
+      ],
+      "disposition": "adopted",
+      "topic": "Canonical scratch and Darwin destinations",
+      "reason": "Resolve internal private roots; reject public /tmp,/var aliases per no-symlink policy. Record actual confstr cache/temp behavior in pilot; no automatic write broadening.",
+      "reReviewed": false
+    },
+    {
+      "id": "D64",
+      "raisedBy": [
+        "opus4:m3"
+      ],
+      "disposition": "adopted",
+      "topic": "Freeze provenance/current identity",
+      "reason": "State historical9f650ac map is byte-identical at current3e2b6b1, verified this turn; recover actual HEAD after docs commit.",
+      "reReviewed": false
+    },
+    {
+      "id": "D65",
+      "raisedBy": [
+        "opus4:m4"
+      ],
+      "disposition": "adopted",
+      "topic": "Outcome report self-reference",
+      "reason": "Keep release outcomes outside current checkout; in-repo later summaries describe predecessor source and invalidate readiness for new HEAD until new prepare.",
+      "reReviewed": false
+    },
+    {
+      "id": "D66",
+      "raisedBy": [
+        "opus4:m5"
+      ],
+      "disposition": "adopted",
+      "topic": "Path-based signature caveat",
+      "reason": "State codesign uses paths under quiescent private dirs and before/after rebinding; do not claim descriptor confinement inside codesign.",
+      "reReviewed": false
+    },
+    {
+      "id": "D67",
+      "raisedBy": [
+        "opus4:m6"
+      ],
+      "disposition": "adopted",
+      "topic": "Interpreter selection",
+      "reason": "Use explicit absolute trusted Python3.11+ path; narrow recorded home tool-install exception only if needed, not home-root access.",
+      "reReviewed": false
+    },
+    {
+      "id": "D68",
+      "raisedBy": [
+        "driver4:R3"
+      ],
+      "disposition": "adopted",
+      "topic": "Preserve count persistence",
+      "reason": "Restrict no-config-write acceptance to new version/About actions. Existing count action persistence remains accepted P119 behavior.",
+      "reReviewed": false
+    },
+    {
+      "id": "D69",
+      "raisedBy": [
+        "driver4:cache"
+      ],
+      "disposition": "clarified",
+      "topic": "Actual fixed cache contract",
+      "reason": "Environment cache roots are preregistered; no -Xswiftc/-Xcc flags actually occur in fixed argv. Correct earlier D42/report phrasing; pilot must measure environment behavior, no silent flag additions.",
+      "reReviewed": false
+    },
+    {
+      "id": "D70",
+      "raisedBy": [
+        "driver4:records"
+      ],
+      "disposition": "corrected",
+      "topic": "Historical named-output overstatement",
+      "reason": "Earlier material overstated72 distinct native pass lines. Read-only inspection finds71 matching lines and summary72. Correct provenance and require new parser qualification without inferring P119 failure.",
       "reReviewed": false
     }
   ]

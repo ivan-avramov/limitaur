@@ -1,6 +1,6 @@
 # P73 release tooling: design review
 
-Status: design phase complete through three strict rounds; final corrections NOT RE-REVIEWED. Recommend one focused additional design-review round before Go; neither that extension nor implementation is authorized. No implementation, builds, app tests, live checks, tag, installation, push or publication. A documentation-only checkpoint is committed under the operator standing commit rule; it is not implementation acceptance. P119 remains complete at ab8b5e6 with its recorded 133 passing tests.
+Status: four design rounds complete, including the operator-approved additional round at P174. Fourth-round corrections are NOT RE-REVIEWED; no convergence/clearance claimed. Recommend the scoped implementation Go below. No implementation, application builds/tests, live checks, installation, tag or push occurred. The first unguarded execution of newly implemented release tooling requires separate frozen-code approval.
 
 Operator authorized specification and cold design review at P155: “proceed as proposed.” The approval does not authorize implementation. Recovered baseline was clean main at `9f650acd8883a92095371c2bf01a2bd803025eca`. Recover actual HEAD after this documentation checkpoint for the next phase.
 
@@ -35,11 +35,11 @@ Design reviewers: fresh GPT-6-Astra Codex CLI and Claude Opus normal CLI, same s
 
 Proposed post-Go cast: Sonnet implementation; GPT-6.1-Sol candidate-blind tests with same-session Phase B; Astra+Opus final opinion panel. All start fresh; no substitutions without disclosure. Source/code execution is driver-run under separately probed role guards, never inside the authenticated helper CLI. OpenAI reviewer/test-writer share designer vendor; Anthropic implementation/review pair share vendor. Designer runtime model/session are not exposed here, so exact same-model relations are unverified. Cross-vendor review reduces vendor correlation, not common industry blind spots.
 
-Strict mode: three rounds collected, six fresh reviewer sessions returned valid findings. No round ended without adopted major changes, so convergence is NOT established. All findings have recorded driver dispositions; final adopted changes address remaining required design edits but have not received a fresh review. The material is not represented as independently cleared. No implementer or test-writer session started.
+Historical checkpoint before the approved extension: three rounds collected, six fresh reviewer sessions returned valid findings. No round ended without adopted major changes, so convergence is NOT established. All findings have recorded driver dispositions; final adopted changes address remaining required design edits but have not received a fresh review. The material is not represented as independently cleared. No implementer or test-writer session started.
 
-Final corrections include: default-deny file reads and real-home denial with synthetic Foundation home; fixed supervisor ownership to avoid nested sandbox application; explicit command deadlines/module-cache paths; exact Git configuration allowlist and lazy-fetch denial; configuration/info-exclude identity; full app-tree checks and final plist/signature revalidation; embedded dyld environment rejection; precise module naming/schema decisions. These are substantive boundary changes, not merely prose cleanup. I recommend an extra focused review before asking for implementation Go.
+Final corrections include: default-deny file reads and real-home denial with synthetic Foundation home; fixed supervisor ownership to avoid nested sandbox application; explicit command deadlines/module-cache paths; exact Git configuration allowlist and lazy-fetch denial; configuration/info-exclude identity; full app-tree checks and final plist/signature revalidation; embedded dyld environment rejection; precise module naming/schema decisions. These are substantive boundary changes, not merely prose cleanup. That recommendation was authorized and the additional round is recorded below.
 
-The proposed extra round uses fresh Astra/Opus, read-only sealed+web material, the final affected specification sections and verified baseline facts. It targets supervisor/nesting, file/network probe attribution and stated IPC limits, safe Git/no-fetch/config identity, final bundle/loader binding, and executable blind-test interfaces. It performs no code/build/test/live/credential operations. A frozen proposed brief is prepared outside the repository, not dispatched. The installed strict-mode three-round cap is why extension needs an explicit operator decision.
+The operator approved the extra focused round at P174 with “proceed”. Fresh Astra/Opus received the same frozen specification and invented fixtures; presentation status/history was removed without altering normative clauses. Both returned complete findings. Its raw brief/snapshot/outputs are preserved outside the repo. The one-round extension is complete; no further design round or implementation dispatch is authorized.
 
 ## Remaining release gates
 
@@ -60,4 +60,38 @@ Claude reported equivalent list-price costs, not an invoice: total 2.2082253 USD
 
 [four-eyes 0.6.0] outcome: stopped at design checkpoint pending operator decision; strict (architecture/evidence boundary). Designer: current Codex desktop session, model/session unreported. Design review: six returned sessions above, three rounds, no convergence claim. Implementer/test-writer/change-review: not dispatched. Tests frozen: existing 16-file map recorded, no new tests authored. Go:none. Commit word: no implementation acceptance; design documents committed under standing rule. Implementation commit:none. Push:none. Normal runtime auth retained, no credential seeds/copies or model execution state exported. Code-execution guard/pilot:not run; do not infer activation from the written profiles/proposal.
 
-Final proposed specification SHA256: `00a09b1059e9f916ef1b676e236ab4cbc7bf89bb660c7405520496ff2dce6cbe`. Final post-round3 material is frozen as specification-final-not-rereviewed.md outside the repo. No later specification edit is hidden as reviewed.
+Prior post-round3 specification SHA256 `00a09b1059e9f916ef1b676e236ab4cbc7bf89bb660c7405520496ff2dce6cbe` was the fourth dispatch input. New post-round 4 material is explicitly not re-reviewed.
+
+## Fourth round and proposed scoped Go
+
+Astra returned five major findings; Opus returned two blockers, five majors and six minors. These are reviewer severities; the ledger records driver adaptations/dispositions. The supervisor/test seam blockers were valid. The revised contract identifies the parent TCB and stops claiming it is guarded; it narrows independent tests and introduces an approval of frozen TCB bytes before their first normal-user smoke. Full source acceptance/commit remains conditional on that smoke passing. This is a proposed workflow variation requiring Go, not permission inferred from the design-review approval.
+
+Build/diagnostic recipes now have separate hashes/probes and fixed launch bindings. Probes describe direct file opens, TCP/AF_UNIX connects and protected-executable opens, not all brokered network/filesystem actions. No Keychain/IPC isolation or real broker/preference probe is claimed. The prior declined broader isolation request remains visible above; it is not panel agreement.
+
+The rpath rule is exact and relocation-safe. LC_LAZY_LOAD_DYLIB_INFO rejection is supported by the installed SDK/Apple primary sources. Integration requires credentialPath only under each provider, not an extra root value. Canonical Git config listing closes the parser-differential ambiguity. Reason ownership, R2 driver-build ownership, absolute interpreter and path-based codesign limits are explicit. Updated invented guard/schema/reason vectors are not executable test results.
+
+Driver correction: the saved accepted native summary is 72, but the proposed anchored extractor finds 71 individual records. Earlier material overstated the individual-row count. This is an instrumentation qualification gap for the new tooling, not evidence of an unrun/failed test and not a reopening of P119. A fresh guarded baseline record pilot must qualify all named tests before independent Phase A dispatch. Existing 133 accepted tests are preserved; none reran here.
+
+Proposed Go sequence:
+
+1. Recover actual clean HEAD. Driver runs a disposable baseline guard/backend/native-record pilot using independently prepared guard infrastructure, without importing new release-tooling TCB code. Stop on failed guard/record qualification; no permission broadening, count relaxation or frozen-test edits. A default backend failure stays a release gate; native development remains explicitly limited.
+2. Freeze the qualified test interface, then GPT-6.1-Sol writes candidate-blind tests from baseline/spec. Sonnet implements in a separate copy; frozen test maps/collector remain immutable. Model CLIs use normal login and no repository-code execution tools. Driver runs payloads under the qualified recipe profiles.
+3. Continue the same independent test-writer for Phase B; Astra+Opus review the frozen candidate and sensitive TCB hunks. One standard fresh-worker remediation if required; further fixes require the skill's decision point. Record every outcome truthfully.
+4. Present exact TCB diff/hash map plus reviews and guarded-test results. Operator approval is required before its first normal-user end-to-end smoke in a private synthetic repository. No wrapper nested sandbox, app/test payloads remain recipe-guarded. Approval may also authorize conditional application/commit only if that smoke and all acceptance criteria pass. Failure means no application/commit. No push/tag/install/release.
+
+The proposal now names the supervisor trust decision; no fifth design round is automatically proposed. Post-fourth-round changes are not independently cleared. Their executable verification and the separate first-execution permission are explicit gates. Implementation Go has not been granted.
+
+### Fourth-round runtimes
+
+| Runtime/model | Session | Seconds | Reported usage |
+| --- | --- | --- | --- |
+| astra: gpt-6-astra | `01a159cd-ab3a-7220-bd16-4d70ba055c4b` | 277.84 | 64703 total-only tokens; money unreported |
+| opus: claude-opus-5-5/claude-haiku-5-5 | `889f9dad-cda5-4c29-94d0-7e8be29d5621` | 268.91 | 0.960428 USD equivalent reported |
+
+Claude fourth call includes an auxiliary Haiku 5.5 usage bucket and two reported web-search requests, no separately exposed session/role. Four-call Claude equivalent list-price total is 3.1686533 USD, not an invoice. OpenAI money and driver costs remain unreported. All eight reviewer sessions are complete; no helper/implementer/test-writer is running. Existing CLI auth/runtime state retained, no copies/export.
+
+[four-eyes 0.6.0] outcome: stopped at scoped implementation Go; strict; design rounds 4 (round 4 explicitly approved at P174); eight returned results, no convergence claim; post-round 4 edits not re-reviewed. Implementation/test-writer/change-review:none. New tests authored:none. App build/test/pilot:none. Go:none; first TCB execution approval:none; implementation commit:none; push:none. Documentation checkpoint uses standing commit authorization only.
+
+Current proposed specification SHA256: `34f97eae0e87f62c7c50db8140ddf2f644419270643cd37641ac5f58d06a5f76`; immutable copy: specification-after-round4-not-rereviewed.md in the external review directory.
+
+Closing discussion P184, next P185. Proposed scoped implementation Go remains unanswered. No fifth round was dispatched; all fourth-round findings have dispositions, and the code-level proof/execution gates are explicitly pending. This documentation checkpoint does not authorize implementation or first normal-user TCB execution.
