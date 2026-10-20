@@ -1,0 +1,7 @@
+[
+  {"providerID":"codex","accountID":"synthetic-a","accountLabel":"A","fetchedAt":1800000000,
+   "metrics":[{"id":"five-hour","label":"5h window","usedPercent":85,"resetsAt":1800003600}]},
+  {"providerID":"claude","accountID":"synthetic-b","accountLabel":"B","fetchedAt":1800000000,
+   "metrics":[{"id":"fable","label":"Fable","usedPercent":98,"resetsAt":1800003600},
+              {"id":"unknown","label":"Unknown","usedPercent":null,"resetsAt":null}]}
+]

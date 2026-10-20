@@ -1,0 +1,14 @@
+{
+  "rateLimitsByLimitId": {
+    "synthetic-work": {
+      "primaryWindow": {"usedPercent": 98, "windowDurationMins": 300, "resetsAt": 1800003600},
+      "secondaryWindow": {"usedPercent": 55, "windowDurationMins": 10080, "resetsAt": 1800604800}
+    }
+  },
+  "rateLimits": {"primaryWindow": {"usedPercent": 1}},
+  "rateLimitResetCredits": {
+    "availableCount": 4,
+    "applicableAvailableCount": 2,
+    "credits": [{"id": "invented-1", "label": "Earned reset", "expiresAt": 1800200000}]
+  }
+}
