@@ -1,0 +1,486 @@
+{
+  "status": "Three strict rounds complete; final corrections not re-reviewed; implementation not authorized.",
+  "findings": [
+    {
+      "id": "D01",
+      "raisedBy": [
+        "astra:P156"
+      ],
+      "disposition": "adapted",
+      "topic": "Credential-broker boundary",
+      "reason": "Removed the stronger credential-free containment promise; retain measured file/network guards, clean environment/closed fds, cooperative no-real-credential rule and fake Keychain tests. Decline new mandatory broker/account isolation: not an operator-settled boundary and no Keychain writes/queries are authorized. Expose this declined blocker at Go."
+    },
+    {
+      "id": "D02",
+      "raisedBy": [
+        "astra:P157"
+      ],
+      "disposition": "adopted",
+      "topic": "Python startup",
+      "reason": "Require -I -S -B at entry, fixed-path helper loading, no pycache and actual startup-hook/shadowing tests."
+    },
+    {
+      "id": "D03",
+      "raisedBy": [
+        "astra:P158",
+        "opus:3"
+      ],
+      "disposition": "adopted",
+      "topic": "Git code/config/index effects",
+      "reason": "Preflight config without execution, constrain Git environment/argv, disallow active extensions/includes/worktrees, raw blob audit; test actual sentinel hooks/index immutability."
+    },
+    {
+      "id": "D04",
+      "raisedBy": [
+        "astra:P159",
+        "opus:2"
+      ],
+      "disposition": "adopted",
+      "topic": "Committed source closure",
+      "reason": "Build/test a fresh raw-blob materialization, no ignored inputs/filters/archive substitutions or reused scratch; reject index flags and independently audit bytes/modes."
+    },
+    {
+      "id": "D05",
+      "raisedBy": [
+        "astra:P161",
+        "opus:1"
+      ],
+      "disposition": "adapted",
+      "topic": "Prepare owns guard",
+      "reason": "Public prepare establishes/probes file/network guard before package code, not only helper phases; no broker-isolation promise."
+    },
+    {
+      "id": "D06",
+      "raisedBy": [
+        "astra:P160",
+        "opus:6"
+      ],
+      "disposition": "adopted",
+      "topic": "Normative schemas and blind-test seam",
+      "reason": "Specify nested inputs/checks/evidence, exact commands and environment, reason/exit decisions and import-only Services. Invented fixtures plus golden digest vectors, not evidence."
+    },
+    {
+      "id": "D07",
+      "raisedBy": [
+        "astra:P162"
+      ],
+      "disposition": "adopted",
+      "topic": "Failed versus malformed observations",
+      "reason": "Permit explicit negative/unverified enums/booleans; missing docs are blocked diagnostics; missing fields/type/identity errors remain failures even in development."
+    },
+    {
+      "id": "D08",
+      "raisedBy": [
+        "astra:P163"
+      ],
+      "disposition": "adopted",
+      "topic": "Canonicalization and root mode",
+      "reason": "Pin json serialization/UTF8/NFC/case rules; include rootMode in artifact tree digest; golden Unicode vector."
+    },
+    {
+      "id": "D09",
+      "raisedBy": [
+        "astra:P164",
+        "opus:6"
+      ],
+      "disposition": "adopted",
+      "topic": "Observation chronology",
+      "reason": "Add preparedAt, measurementStartedAt, completion semantics and one-second recording tolerance; reject future/pre-freeze observations."
+    },
+    {
+      "id": "D10",
+      "raisedBy": [
+        "astra:P165"
+      ],
+      "disposition": "adopted",
+      "topic": "Runtime dependency closure",
+      "reason": "Inspect all Mach-O slices/load commands: dependencies restricted to system prefixes; restricted rpaths; no new embedded runtime libraries/resources. Existing accepted executable inspected read-only; its dependencies are system absolute and rpath @loader_path."
+    },
+    {
+      "id": "D11",
+      "raisedBy": [
+        "opus:4"
+      ],
+      "disposition": "adapted",
+      "topic": "Frozen assertion inventory",
+      "reason": "Source search found only Indicators submenu item count and parent indices0/2, no exact help or parent item count/last-item assertion. Preserve indices and append About. No conflict found; no test edit or alternate UI needed."
+    },
+    {
+      "id": "D12",
+      "raisedBy": [
+        "opus:5"
+      ],
+      "disposition": "adopted",
+      "topic": "Changelog release status",
+      "reason": "Initial Unreleased only; nondevelopment requires valid nonfuture dated proposed notes; never automatic publication/date inference."
+    },
+    {
+      "id": "D13",
+      "raisedBy": [
+        "opus:7"
+      ],
+      "disposition": "adopted",
+      "topic": "Secret-pattern precision",
+      "reason": "Freeze regexes and scanned streams; ordinary SemVer/build/hex negative cases; pattern rejection not proof of all-secret absence."
+    },
+    {
+      "id": "D14",
+      "raisedBy": [
+        "opus:8"
+      ],
+      "disposition": "adopted",
+      "topic": "Atomic publication",
+      "reason": "Use Darwin no-replace rename relative held parent; raced empty output test."
+    },
+    {
+      "id": "D15",
+      "raisedBy": [
+        "opus:9"
+      ],
+      "disposition": "adopted",
+      "topic": "Numeric-core policy",
+      "reason": "Remove unspecified packaging-size error; SemVer core bound only by file-size/syntax, build-number subset remains separate."
+    },
+    {
+      "id": "D16",
+      "raisedBy": [
+        "opus:10"
+      ],
+      "disposition": "adopted",
+      "topic": "Extended attributes",
+      "reason": "Ignore without hashing/rejection; local gate makes no quarantine/distribution attestation."
+    },
+    {
+      "id": "D17",
+      "raisedBy": [
+        "opus:11"
+      ],
+      "disposition": "adopted",
+      "topic": "Tool identity",
+      "reason": "Exact tuple/digests, no raw home paths, consistent sanitized discovery in both phases; identifies selected inputs rather than every system byte."
+    },
+    {
+      "id": "D18",
+      "raisedBy": [
+        "opus:12"
+      ],
+      "disposition": "adapted",
+      "topic": "Proposed tag",
+      "reason": "Store nullable tag and exact option continuity. Require nonnull for release-ready, no creation requirement."
+    },
+    {
+      "id": "D19",
+      "raisedBy": [
+        "opus:13",
+        "astra:P160"
+      ],
+      "disposition": "adopted",
+      "topic": "Suite identity/freeze",
+      "reason": "Pin suite-directory-count mapping, baseline16-file map digest, final committed test inventory and full pass-name equality; independent freeze before disclosure."
+    },
+    {
+      "id": "D20",
+      "raisedBy": [
+        "opus2:1"
+      ],
+      "disposition": "adapted",
+      "topic": "Nested SwiftPM sandbox",
+      "reason": "Add --disable-sandbox only under measured outer guard plus --disable-keychain/--disable-netrc. Historical accepted commands already used disable-sandbox. Decline pre-Go build/test execution: operator authorized design only; actual pilot occurs after Go."
+    },
+    {
+      "id": "D21",
+      "raisedBy": [
+        "opus2:2"
+      ],
+      "disposition": "retained",
+      "topic": "Broker isolation",
+      "reason": "Retain D01 cooperative trust/limited OS claims; do not silently claim Keychain/preferences IPC confinement. Reject new mandatory broker queries/OS account setup. Go explicitly exposes the limitation. Add bounded in-memory raw output and cleanup."
+    },
+    {
+      "id": "D22",
+      "raisedBy": [
+        "opus2:3"
+      ],
+      "disposition": "adopted",
+      "topic": "Bundled binary versus testable binary",
+      "reason": "Separate debug test scratch from release scratch; fixed LIMITAUR_BIN points at actual signed staging bundle, hash before/after diagnostics; source-unit-test evidence distinguished."
+    },
+    {
+      "id": "D23",
+      "raisedBy": [
+        "astra2:P156",
+        "opus2:4"
+      ],
+      "disposition": "adapted",
+      "topic": "Named test records",
+      "reason": "Fixed Python result-recording runner imports unchanged modules and emits sanitized terminal names; native output grammar based on existing logs. No dependency on xunit coverage assumptions. Exact normalization/subtests/skips fixed."
+    },
+    {
+      "id": "D24",
+      "raisedBy": [
+        "opus2:5"
+      ],
+      "disposition": "declined",
+      "topic": "Loopback exception",
+      "reason": "Source/spec says no localhost listener and NativeTransportTests uses URLProtocol/delegate fakes. Retain full network denial for app tests; controlled loopback exists only for guard infrastructure control/probe."
+    },
+    {
+      "id": "D25",
+      "raisedBy": [
+        "opus2:6"
+      ],
+      "disposition": "retained",
+      "topic": "Frozen menu assertions",
+      "reason": "Already inventoried in D11, verified no conflicting parent count/last/help assertions; record facts explicitly, preserve indices."
+    },
+    {
+      "id": "D26",
+      "raisedBy": [
+        "opus2:7"
+      ],
+      "disposition": "declined",
+      "topic": "Collector guessed types/rounding",
+      "reason": "Actual parse_args uses type=int for warmup/seconds, result uses interval2, unrounded CPU arithmetic and strict comparisons, exact known classifications. Do not relax correct bounds based on speculation. D34 below clarifies actual derivations."
+    },
+    {
+      "id": "D27",
+      "raisedBy": [
+        "opus2:8"
+      ],
+      "disposition": "adopted",
+      "topic": "New independent map enforcement",
+      "reason": "Require actual bytes/path sets for old map and full AdversarialRelease freeze at prepare and verify; new native test files covered separately."
+    },
+    {
+      "id": "D28",
+      "raisedBy": [
+        "opus2:9"
+      ],
+      "disposition": "adopted",
+      "topic": "Git queries and scratch placement",
+      "reason": "Add stage/index modes and check-ignore commands, external private export/scratch/home and ceiling, safe dist creation/publication separate from execution."
+    },
+    {
+      "id": "D29",
+      "raisedBy": [
+        "opus2:10"
+      ],
+      "disposition": "adapted",
+      "topic": "Resolved backend",
+      "reason": "Verified installed help says default swiftbuild. Pin explicit build-system and inputs.resolvedBuildSystem; do not rely on old Swift6.2 recollection. Current default qualification still unverified."
+    },
+    {
+      "id": "D30",
+      "raisedBy": [
+        "opus2:11"
+      ],
+      "disposition": "adopted",
+      "topic": "CLI and structural fixture decisions",
+      "reason": "Pin development/error rows, tag continuity, prepared=false on structural errors, canonical manifest/hash recomputation and required plist/signature entries."
+    },
+    {
+      "id": "D31",
+      "raisedBy": [
+        "opus2:12"
+      ],
+      "disposition": "adopted",
+      "topic": "Version vectors and About options",
+      "reason": "Add shared parser vectors; explicitly test production compiled full SemVer About option and optional bundle build version."
+    },
+    {
+      "id": "D32",
+      "raisedBy": [
+        "astra2:P157"
+      ],
+      "disposition": "adopted",
+      "topic": "Git mediated metadata reads",
+      "reason": "Preflight full .git tree for regular single-link files/directories, bounded no-follow traversal and no special/external metadata; sentinel/FIFO tests before any Git."
+    },
+    {
+      "id": "D33",
+      "raisedBy": [
+        "astra2:P158"
+      ],
+      "disposition": "adopted",
+      "topic": "Zero-success unchanged reports",
+      "reason": "Allow missing provider/outcome keys structurally; success18 required explicitly for qualification. Empty or failed-only reports are honest negative observations."
+    },
+    {
+      "id": "D34",
+      "raisedBy": [
+        "astra2:P159"
+      ],
+      "disposition": "adopted",
+      "topic": "Exact test interface",
+      "reason": "Freeze dataclasses/signatures, result/error attributes, subprocess representation, Services input/deadline/capture contract and orchestration return tuple."
+    },
+    {
+      "id": "D35",
+      "raisedBy": [
+        "astra2:P160"
+      ],
+      "disposition": "adopted",
+      "topic": "Collector derived predicates",
+      "reason": "Separate workload qualifying from targets, add requestedSeconds attestation to distinguish requested from elapsed duration, negative consistency vectors."
+    },
+    {
+      "id": "D36",
+      "raisedBy": [
+        "astra2:P161"
+      ],
+      "disposition": "adopted",
+      "topic": "Attributable guard probes",
+      "reason": "Successful controls then exact same resources denied with EPERM/EACCES, controlled local endpoint, no-op-profile negative test, bounded cleanup."
+    },
+    {
+      "id": "D37",
+      "raisedBy": [
+        "astra2:P162"
+      ],
+      "disposition": "adapted",
+      "topic": "Version/tag domain",
+      "reason": "Allow proposedTag4097 characters; enumerate existing tags rather than loose filename lookup. Remove introduced mandatory tag gate, preserving original P73 optional-tag contract. Explicitly report this change; no SemVer restriction silently added."
+    },
+    {
+      "id": "D38",
+      "raisedBy": [
+        "opus3:1"
+      ],
+      "disposition": "adapted",
+      "topic": "Real home and Foundation lookup",
+      "reason": "Default-deny reads except selected OS/SDK/tool roots and export/scratch; explicit whole-home denial plus CFFIXED_USER_HOME. Broker isolation request retained as declined D01, not silently claimed. No actual credential read/probe here.",
+      "reReviewed": false
+    },
+    {
+      "id": "D39",
+      "raisedBy": [
+        "opus3:2"
+      ],
+      "disposition": "adapted",
+      "topic": "Nested sandbox test ownership",
+      "reason": "Guarded suites never apply another sandbox/full prepare. Fixed supervisor establishes actual profiles/probes; unit seam tests control/errno paths. Real regeneration builds disable inner SwiftPM sandbox. Separate supervised full-prepare fixture smoke required before acceptance. Significant final correction, not re-reviewed.",
+      "reReviewed": false
+    },
+    {
+      "id": "D40",
+      "raisedBy": [
+        "opus3:3"
+      ],
+      "disposition": "adapted",
+      "topic": "Collector assumptions and protection",
+      "reason": "Actual qualifying_counters is fixed18 successes, no positive non-success, exact elapsed loop; contrary speculation declined. Add mechanical collector source freeze and explicit short-elapsed invalid_evidence code.",
+      "reReviewed": false
+    },
+    {
+      "id": "D41",
+      "raisedBy": [
+        "opus3:4"
+      ],
+      "disposition": "adopted",
+      "topic": "Command deadlines",
+      "reason": "Pin build/test/query/probe/signature timeout table; kill process groups, bounded memory output.",
+      "reReviewed": false
+    },
+    {
+      "id": "D42",
+      "raisedBy": [
+        "opus3:5"
+      ],
+      "disposition": "adapted",
+      "topic": "Compiler cache placement",
+      "reason": "Use known previous guarded env variables plus explicit Swift/Clang module-cache flags, separate role roots; no external cache write allowance. Unmeasured backend behavior stays pilot/release gate.",
+      "reReviewed": false
+    },
+    {
+      "id": "D43",
+      "raisedBy": [
+        "opus3:6"
+      ],
+      "disposition": "adopted",
+      "topic": "Verify selected policy",
+      "reason": "Take build policy/backend/development from manifest; recompute current source/config/tool/SDK/arch only. Verify development flag changes qualification, not build identity.",
+      "reReviewed": false
+    },
+    {
+      "id": "D44",
+      "raisedBy": [
+        "opus3:7"
+      ],
+      "disposition": "adapted",
+      "topic": "Metadata links and exact config pairs",
+      "reason": "Permit multilink content-addressed objects only; explicit inert core/user/gc/pull/remote/branch key allowlist; reject transformation/active/unknown keys, no automatic repairs.",
+      "reReviewed": false
+    },
+    {
+      "id": "D45",
+      "raisedBy": [
+        "opus3:8"
+      ],
+      "disposition": "adapted",
+      "topic": "Internal runtime search paths",
+      "reason": "Allow rpaths resolving inside frozen app in addition to system Swift path, still forbid @rpath/non-system dependencies and external search roots. No broad unmeasured acceptance of arbitrary paths.",
+      "reReviewed": false
+    },
+    {
+      "id": "D46",
+      "raisedBy": [
+        "opus3:9",
+        "astra3:P5"
+      ],
+      "disposition": "adopted",
+      "topic": "Schema/runner/entry exactness",
+      "reason": "Pin directory-relative module examples, sys.modules registration, globally unique native names including(), enum/qualification decisions, placeholder semantic validation scope, ctypes exclusive rename and graceful interpreter check.",
+      "reReviewed": false
+    },
+    {
+      "id": "D47",
+      "raisedBy": [
+        "opus3:10"
+      ],
+      "disposition": "adopted",
+      "topic": "Allowed paths/About/map completeness",
+      "reason": "Update actual allowed list; omit missing About build option; verify historical16-file map completeness with ls-tree.",
+      "reReviewed": false
+    },
+    {
+      "id": "D48",
+      "raisedBy": [
+        "astra3:P1"
+      ],
+      "disposition": "adopted",
+      "topic": "Git lazy fetch",
+      "reason": "Reject partial/promisor configs/markers, exact remote/branch pairs, GIT_NO_LAZY_FETCH=1, require capability marker; installed captured Git2.54.0 has marker. Synthetic missing-object negative test required after Go. Driver checked primary Git docs and binary marker.",
+      "reReviewed": false
+    },
+    {
+      "id": "D49",
+      "raisedBy": [
+        "astra3:P2"
+      ],
+      "disposition": "adopted",
+      "topic": "Repository config identity",
+      "reason": "Capture digest of config/info-exclude with presence state; current accepted-but-changed config still input_mismatch.",
+      "reReviewed": false
+    },
+    {
+      "id": "D50",
+      "raisedBy": [
+        "astra3:P3"
+      ],
+      "disposition": "adopted",
+      "topic": "Final bundle correctness",
+      "reason": "Read-only child app, full tree/root/mode comparisons across suites, repeat final plist/signature/Mach-O checks on published tree; non-executable mutation test.",
+      "reReviewed": false
+    },
+    {
+      "id": "D51",
+      "raisedBy": [
+        "astra3:P4"
+      ],
+      "disposition": "adopted",
+      "topic": "Embedded loader overrides",
+      "reason": "Reject LC_DYLD_ENVIRONMENT and lazy loads; enumerate inspected dependency/load-dylinker command policy. Add independent override fixture.",
+      "reReviewed": false
+    }
+  ]
+}

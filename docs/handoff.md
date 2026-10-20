@@ -2,17 +2,24 @@
 
 Updated 2026-10-20 (America/Los_Angeles). The compact-bars development stage is accepted and committed locally as `ab8b5e6c163fe042f2334f89c2c81343746cd288`. The completed result/handoff documentation is in `9cdcda8b1c125a53f7551eb18782861cea2be95b`; the checkout was clean at that commit before this documentation-only refresh. No push, tag, installation or release. Runtime/test/build inputs remain unchanged. Baseline future work from actual current HEAD, not earlier hardcoded orchestration hashes.
 
+## P73 design checkpoint (2026-10-20)
+
+The operator approved P152–P153 specification and cold design review at P155 (“proceed as proposed.”), not implementation. Three strict Astra/Opus rounds are complete. [Release-tooling proposal](proposals/release-tooling.md), [design result and runtime record](reviews/release-tooling-design.md), [finding ledger](reviews/release-tooling-findings.json). Final guard/Git/artifact corrections are NOT RE-REVIEWED; no convergence claimed. Recommend one focused additional design-review round before Go. Its brief is prepared at /Users/ivan/ws/limitaur-review/2026-10-20-release-tooling/additional-review-brief.txt but NOT dispatched; approval of that extension is pending at P173. No implementation, tests, builds, live checks, tag or push ran in this phase. Existing test bytes and the collector remain unchanged. P119 remains complete.
+
+Do not restart the three completed review rounds or their sessions. If the operator approves the extra round, use fresh sessions on the final frozen material, judge findings, then present concrete implementation Go with cast/isolation. If they instead explicitly approve Go, recover actual HEAD and resolve the stated post-review/IPC-limit decisions before dispatch. Normal Claude CLI auth only, no credential-copy setup. Full raw outputs and source/data hashes are durable outside the repo; no normal runtime state was exported.
+
+
 ## Read first
 
 - [AGENTS.md](/Users/ivan/ws/limitaur/AGENTS.md), [original specification](/Users/ivan/ws/limitaur/docs/specification.md), [approved compact-bars addendum](/Users/ivan/ws/limitaur/docs/compact-bars.md), [README](/Users/ivan/ws/limitaur/README.md).
 - [Development result](/Users/ivan/ws/limitaur/docs/reviews/compact-bars-result.md) and [full stage report](/Users/ivan/ws/limitaur-review/2026-10-18-01a15018/compact-bars/report.md).
 - [Acceptance](/Users/ivan/ws/limitaur-review/2026-10-18-01a15018/compact-bars/accepted-development.json), [final manifest](/Users/ivan/ws/limitaur-review/2026-10-18-01a15018/compact-bars/remediation-1/candidate-manifest.json), [final review dispositions](/Users/ivan/ws/limitaur-review/2026-10-18-01a15018/compact-bars/remediation-1/review-acceptance.json).
 
-Current closing discussion point P148; continue at P149. User standing rules: plain-prose questions, no structured question tool; concrete plan/approval before nontrivial implementation; commit coherent accepted work autonomously; push only with explicit authorization in that turn.
+Current closing discussion point P173; continue at P174. User standing rules: plain-prose questions, no structured question tool; concrete plan/approval before nontrivial implementation; commit coherent accepted work autonomously; push only with explicit authorization in that turn.
 
 ## Next session
 
-Recover the current checkout and read the linked result and pending additions contract. P119 is complete; do not reopen its approval or resume its finished helper sessions. Present a concrete next implementation plan for the outstanding P73 work and obtain approval before implementation. Recommend SemVer and automated release tooling first, followed by API-metered/hybrid support, so later release evidence can be collected against the final frozen artifact. This ordering is a recommendation, not approval of either remaining scope.
+Recover actual HEAD and the P73 design checkpoint above. P119 is complete; do not reopen it. The release-tooling design has three reviews and post-review corrections; the proposed focused extra review and implementation Go remain separate pending decisions. SemVer/release tooling remains recommended before API-metered/hybrid. No implementation of either scope is approved.
 
 Keep actual UI, current Claude app-bundle access, sustained performance and default-backend qualification explicitly unverified. Use Claude as a normal CLI with its existing login; no repeated credential-copy setup. Preserve all frozen tests and do not push. This session can be cleared: source, reviews, results, bundle and cleanup evidence are durable, and no helper or implementation phase is still running.
 
