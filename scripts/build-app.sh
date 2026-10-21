@@ -9,7 +9,8 @@ VERSION="$(sed -n 's/^    static let string = "\([^"]*\)"$/\1/p' Sources/Limitau
 test -n "$VERSION" || { echo "build-app.sh: could not read version from AppVersion.swift" >&2; exit 1; }
 BUILD_NUMBER="$(git rev-list --count HEAD 2>/dev/null || echo 1)"
 REVISION="$(git rev-parse HEAD 2>/dev/null || echo unknown)"
-if [ -n "$(git status --porcelain --untracked-files=no 2>/dev/null)" ]; then REVISION="$REVISION-dirty"; fi
+CORE="${VERSION%%-*}"; CORE="${CORE%%+*}"
+if [ -n "$(git status --porcelain -- Package.swift Sources Resources scripts 2>/dev/null)" ]; then REVISION="$REVISION-dirty"; fi
 swift build -c release "$@"
 BIN_DIR="$(swift build -c release "$@" --show-bin-path)"
 BUILT_VERSION="$("$BIN_DIR/Limitaur" --version)"
@@ -17,7 +18,7 @@ test "$BUILT_VERSION" = "$VERSION" || { echo "build-app.sh: binary reports $BUIL
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN_DIR/Limitaur" "$APP/Contents/MacOS/Limitaur"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
-/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" \
+/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $CORE" \
                         -c "Set :CFBundleVersion $BUILD_NUMBER" \
                         -c "Add :LimitaurSourceRevision string $REVISION" "$APP/Contents/Info.plist"
 plutil -lint "$APP/Contents/Info.plist"
@@ -25,5 +26,5 @@ plutil -lint "$APP/Contents/Info.plist"
 test -x "$APP/Contents/MacOS/Limitaur"
 codesign --force --sign - "$APP"
 codesign --verify --strict "$APP"
-(cd "$(dirname "$APP")" && shasum -a 256 "$(basename "$APP")/Contents/MacOS/Limitaur" > "$(basename "$APP").sha256")
+(cd "$(dirname "$APP")" && shasum -a 256 "./$(basename "$APP")/Contents/MacOS/Limitaur" > "$(basename "$APP").sha256")
 echo "$APP $VERSION ($BUILD_NUMBER, $REVISION)"

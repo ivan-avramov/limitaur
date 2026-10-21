@@ -35,6 +35,46 @@ import Testing
 
 private final class BundleAnchor {}
 
+@Test func aboutOptionsIncludeBuildNumberInsideAppBundle() throws {
+    let root = FileManager.default.temporaryDirectory
+        .appendingPathComponent("limitaur-about-\(UUID().uuidString)").appendingPathComponent("Limitaur.app")
+    defer { try? FileManager.default.removeItem(at: root.deletingLastPathComponent()) }
+    try FileManager.default.createDirectory(at: root.appendingPathComponent("Contents/MacOS"), withIntermediateDirectories: true)
+    let plist: [String: Any] = ["CFBundleIdentifier": "local.limitaur.app", "CFBundleVersion": "42",
+                                "CFBundleShortVersionString": AppVersion.string, "CFBundleExecutable": "Limitaur"]
+    try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+        .write(to: root.appendingPathComponent("Contents/Info.plist"))
+    let bundle = try #require(Bundle(url: root))
+    let options = AppVersion.aboutPanelOptions(bundle: bundle)
+    #expect(options[.applicationVersion] as? String == AppVersion.string)
+    #expect(options[.version] as? String == "42")
+}
+
+/// Runs the real executable built beside the test bundle. Exercises the dispatch in main,
+/// which the pure `commandLineResponse` test cannot: a wrong fallthrough would start AppKit.
+@Test(arguments: [(["--version"], 0, AppVersion.string + "\n"), (["--version", "extra"], 2, ""),
+                  (["--version", "--demo"], 2, "")])
+func executableVersionDispatch(arguments: [String], status: Int32, stdout: String) throws {
+    let executable = Bundle(for: BundleAnchor.self).bundleURL.deletingLastPathComponent().appendingPathComponent("Limitaur")
+    try #require(FileManager.default.isExecutableFile(atPath: executable.path), "built Limitaur executable missing")
+    let process = Process(), output = Pipe(), errors = Pipe()
+    process.executableURL = executable; process.arguments = arguments
+    process.standardOutput = output; process.standardError = errors
+    process.environment = ["HOME": FileManager.default.temporaryDirectory.path, "PATH": "/usr/bin:/bin"]
+    try process.run()
+    let finished = DispatchSemaphore(value: 0)
+    process.terminationHandler = { _ in finished.signal() }
+    if finished.wait(timeout: .now() + 10) == .timedOut {
+        process.terminate()
+        Issue.record("executable did not exit within 10 s for \(arguments)")
+        return
+    }
+    #expect(process.terminationStatus == status)
+    #expect(String(decoding: output.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self) == stdout)
+    let diagnostic = String(decoding: errors.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
+    #expect(status == 0 ? diagnostic.isEmpty : diagnostic == "Invalid diagnostic input\n")
+}
+
 @MainActor private final class RouterProbe {
     var refreshes = 0, connections = 0, accounts = 0, quits = 0
     func router(demo: Bool) -> AppActionRouter {

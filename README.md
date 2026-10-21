@@ -27,7 +27,7 @@ The build script creates a local ad-hoc signed app bundle. It does not install a
 
 ## Version
 
-The version lives in one place: the `string` constant in `Sources/Limitaur/AppVersion.swift`. `Limitaur --version` prints it and exits before any settings, credential or network code runs; About Limitaur… in the Settings menu shows it. The build script reads that constant, stamps it into `CFBundleShortVersionString`, sets `CFBundleVersion` to the git commit count, records the HEAD revision (with a `-dirty` suffix when tracked files are modified) in `LimitaurSourceRevision`, checks that the built binary reports the same version, and writes `Limitaur.app.sha256` next to the bundle. `CHANGELOG.md` holds release notes in Keep a Changelog form. Nothing here notarizes, tags or publishes.
+The version lives in one place: the `string` constant in `Sources/Limitaur/AppVersion.swift`. `Limitaur --version` prints it and exits before any settings, credential or network code runs; About Limitaur… in the Settings menu shows it. The build script reads that constant, stamps its numeric core into `CFBundleShortVersionString` (Apple allows only three integers there, so a prerelease or build suffix appears in `--version` and About but not in the plist), sets `CFBundleVersion` to the git commit count, records the HEAD revision (with a `-dirty` suffix when any build input under `Sources`, `Resources`, `scripts` or `Package.swift` is modified or untracked) in `LimitaurSourceRevision`, checks that the built binary reports the same version, and writes `Limitaur.app.sha256` next to the bundle. `CHANGELOG.md` holds release notes in Keep a Changelog form. Nothing here notarizes, tags or publishes.
 
 ## Local diagnostics
 
