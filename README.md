@@ -25,10 +25,15 @@ The bundle script accepts an optional output path followed by SwiftPM build opti
 
 The build script creates a local ad-hoc signed app bundle. It does not install a login item or publish a release. The bundle has no Dock icon.
 
+## Version
+
+The version lives in one place: the `string` constant in `Sources/Limitaur/AppVersion.swift`. `Limitaur --version` prints it and exits before any settings, credential or network code runs; About Limitaur… in the Settings menu shows it. The build script reads that constant, stamps it into `CFBundleShortVersionString`, sets `CFBundleVersion` to the git commit count, records the HEAD revision (with a `-dirty` suffix when tracked files are modified) in `LimitaurSourceRevision`, checks that the built binary reports the same version, and writes `Limitaur.app.sha256` next to the bundle. `CHANGELOG.md` holds release notes in Keep a Changelog form. Nothing here notarizes, tags or publishes.
+
 ## Local diagnostics
 
 ```sh
 BIN_DIR="$(swift build -c release --show-bin-path)"
+"$BIN_DIR/Limitaur" --version
 "$BIN_DIR/Limitaur" --check-percent 95.01
 "$BIN_DIR/Limitaur" --inspect-fixture codex Tests/LimitaurCoreTests/Fixtures/codex-direct.json
 "$BIN_DIR/Limitaur" --inspect-fixture codex Tests/LimitaurCoreTests/Fixtures/codex-app-server.json

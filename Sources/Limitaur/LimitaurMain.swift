@@ -185,8 +185,13 @@ private func checkLive() {
 @main struct Main {
     @MainActor static func main() {
         let args = CommandLine.arguments
+        if let version = AppVersion.commandLineResponse(args) {
+            print(version, terminator: "")
+            return
+        }
         if args.count >= 2 {
             switch args[1] {
+            case "--version": fail()
             case "--check-percent":
                 guard args.count == 3 else { fail() }
                 let value = Double(args[2])
@@ -242,7 +247,7 @@ private func checkLive() {
                 return
             case "--help":
                 guard args.count == 2 else { fail() }
-                output(["diagnostics": ["--demo", "--demo-open-popover", "--demo-light", "--demo-dark",
+                output(["diagnostics": ["--version", "--demo", "--demo-open-popover", "--demo-light", "--demo-dark",
                                         "--render-demo DIRECTORY", "--check-percent VALUE",
                                         "--inspect-fixture PROVIDER FILE", "--rank-fixture FILE --now UNIX_SECONDS [--count 1...8]",
                                         "--check-live", "--stats FILE"]])

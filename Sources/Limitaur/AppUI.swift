@@ -495,6 +495,13 @@ private struct FrozenDemoClock: MonitorClock {
     }
     @objc private func selectCountMenuItem(_ sender: NSMenuItem) { selectCount(sender.tag) }
     @objc private func openAccounts() { router.accounts() }
+    /// Presents the About panel; tests inject a probe. The default activates the
+    /// accessory app so the standard panel comes to the front.
+    var aboutPresenter: ([NSApplication.AboutPanelOptionKey: Any]) -> Void = { options in
+        NSApp.activate()
+        NSApp.orderFrontStandardAboutPanel(options: options)
+    }
+    @objc private func showAbout() { aboutPresenter(AppVersion.aboutPanelOptions()) }
     func settingsMenu() -> NSMenu {
         let menu = NSMenu(title: "Settings")
         let indicators = NSMenuItem(title: "Indicators", action: nil, keyEquivalent: "")
@@ -511,6 +518,9 @@ private struct FrozenDemoClock: MonitorClock {
         let accounts = NSMenuItem(title: "Accounts…", action: #selector(openAccounts), keyEquivalent: "")
         accounts.target = self; accounts.isEnabled = !demo
         menu.addItem(accounts)
+        let about = NSMenuItem(title: "About Limitaur…", action: #selector(showAbout), keyEquivalent: "")
+        about.target = self
+        menu.addItem(about)
         return menu
     }
     private func showSettingsMenu() {
