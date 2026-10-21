@@ -64,6 +64,8 @@ private let bottomHalf = NSRect(x: firstJar.minX, y: firstJar.minY, width: first
     #expect(base != render([claudeSession], dark: false), "appearance must change pixels")
     #expect(render([claudeSession]) == base, "rendering is deterministic")
     #expect(render([], stale: true) != render([]), "health marker must change pixels")
+    let fable = ranked("claude", id: "weekly_scoped:g:m:s:h", label: "Fable", percent: 21)
+    #expect(render([claudeWeekly]) != render([fable]), "scope initial must change pixels")
     let three = render([claudeSession, codexSession, claudeWeekly])
     #expect(three != render([claudeSession, claudeSession, claudeSession]), "each jar draws its own glyphs")
 }

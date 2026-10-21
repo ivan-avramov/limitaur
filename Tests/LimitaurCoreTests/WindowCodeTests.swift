@@ -31,8 +31,7 @@ private func metric(_ id: String, label: String = "x", duration: TimeInterval? =
     #expect(windowCode(for: metric("weekly_all:::", label: "weekly")) == "W")
     #expect(windowCode(for: metric("seven_day", label: "7d window")) == "W")
     #expect(windowCode(for: metric("seven_day_opus", label: "seven_day_opus")) == "W", "legacy scoped key keeps its window, no guessed initial")
-    #expect(windowCode(for: metric("weekly_scoped:g:model:surface:h", label: "Fable")) == "F")
-    #expect(windowCode(for: metric("weekly_scoped:g:model:surface:h", label: "opus 4")) == "O")
+    #expect(windowCode(for: metric("weekly_scoped:g:model:surface:h", label: "Fable")) == "W")
     #expect(windowCode(for: metric("weekly_scoped:g:model:surface:h", label: "")) == "W")
     #expect(windowCode(for: metric("spend", label: "Spend")) == "$")
     #expect(windowCode(for: metric("extra_usage", label: "Extra usage")) == "$")
@@ -46,6 +45,17 @@ private func metric(_ id: String, label: String = "x", duration: TimeInterval? =
     #expect(windowCode(for: metric("x", label: "17d window")) == "?")
     #expect(windowCode(for: metric("x", label: "Code review")) == "?")
     #expect(windowCode(for: metric("", label: "")) == "?")
+}
+
+@Test func scopeInitialOnlyForModelScopedLimitsWithADisplayName() {
+    #expect(scopeInitial(for: metric("weekly_scoped:g:model:surface:h", label: "Fable")) == "F")
+    #expect(scopeInitial(for: metric("weekly_scoped:g:model:surface:h", label: "opus 4")) == "O")
+    #expect(scopeInitial(for: metric("weekly_scoped:g:model:surface:h", label: "")) == nil)
+    #expect(scopeInitial(for: metric("weekly_scoped:g:model:surface:h", label: "weekly_scoped")) == nil, "kind used as label is not a model name")
+    #expect(scopeInitial(for: metric("weekly_all:::", label: "weekly")) == nil)
+    #expect(scopeInitial(for: metric("session:::", label: "session")) == nil)
+    #expect(scopeInitial(for: metric("seven_day_opus", label: "seven_day_opus")) == nil, "legacy key: no guessed initial")
+    #expect(scopeInitial(for: metric("default:primary", label: "Fable", duration: 18_000)) == nil, "Codex windows are not model scoped")
 }
 
 @Test func providerGlyphsAreSingleUppercaseCharacters() {

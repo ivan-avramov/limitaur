@@ -1,6 +1,6 @@
 # Limitaur handoff
 
-Updated 2026-10-20 (America/Los_Angeles). Discussion IDs continue from P328.
+Updated 2026-10-20 (America/Los_Angeles). Discussion IDs continue from P330.
 
 ## Product state
 

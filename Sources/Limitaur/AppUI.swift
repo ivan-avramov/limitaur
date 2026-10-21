@@ -122,6 +122,7 @@ private struct FrozenDemoClock: MonitorClock {
     }
     private static let glyphFont = NSFont.systemFont(ofSize: 8, weight: .bold)
     private static let codeFont = NSFont.monospacedDigitSystemFont(ofSize: 7.5, weight: .bold)
+    private static let pairFont = NSFont.monospacedDigitSystemFont(ofSize: 6.5, weight: .bold)
 
     /// Glyph boxes inside a jar: provider on top, window code below.
     private static func glyphRects(in jar: NSRect) -> (provider: NSRect, code: NSRect) {
@@ -152,7 +153,8 @@ private struct FrozenDemoClock: MonitorClock {
         } else {
             draw(text: providerGlyph(for: provider), font: glyphFont, color: color, centeredIn: rects.provider)
         }
-        draw(text: code, font: codeFont, color: color, centeredIn: rects.code)
+        // A two-character code (window + model initial) uses a slightly smaller face to fit the jar.
+        draw(text: code, font: code.count > 1 ? pairFont : codeFont, color: color, centeredIn: rects.code)
     }
     /// Grey mask of the jar: white everywhere, black where the glyphs are. Used to knock the
     /// glyphs out of the track and fill so they stay legible over any fill colour.
@@ -189,7 +191,7 @@ private struct FrozenDemoClock: MonitorClock {
                 continue
             }
             let ranked = selected[index]
-            let code = windowCode(for: ranked.metric)
+            let code = windowCode(for: ranked.metric) + (scopeInitial(for: ranked.metric) ?? "")
             let fillHeight = fill > 0 ? max(0.5, jar.height * CGFloat(fill)) : 0
             let fillRect = NSRect(x: jar.minX, y: jar.minY, width: jar.width, height: fillHeight)
             let fillColor: NSColor
