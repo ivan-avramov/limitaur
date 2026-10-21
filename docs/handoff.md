@@ -1,8 +1,24 @@
 # Limitaur handoff
 
-Updated 2026-10-20 (America/Los_Angeles). The compact-bars development stage is accepted and committed locally as `ab8b5e6c163fe042f2334f89c2c81343746cd288`. The completed result/handoff documentation is in `9cdcda8b1c125a53f7551eb18782861cea2be95b`; the checkout was clean at that commit before this documentation-only refresh. No push, tag, installation or release. Runtime/test/build inputs remain unchanged. Baseline future work from actual current HEAD, not earlier hardcoded orchestration hashes.
+Updated 2026-10-20 (America/Los_Angeles). Compact-bars source is accepted at `ab8b5e6c163fe042f2334f89c2c81343746cd288`; its result/handoff documentation followed in `9cdcda8b1c125a53f7551eb18782861cea2be95b`. This checkpoint changes documentation only. No push, tag, installation or release. Runtime/test/build inputs remain unchanged. Recover actual current HEAD before future work.
 
-## P73 implementation checkpoint (2026-10-20)
+## Current checkpoint: reduced P73, before implementation (2026-10-20)
+
+Closing discussion P308; continue at P309. Pre-checkpoint HEAD `eebcdf191ae1ede6f9f61948a1b14f913ab0fe4b`; recover actual HEAD. This checkpoint adds documentation only. P119 remains accepted/closed at `ab8b5e6` with 133 recorded tests; no source/test/collector changes or new passing count are claimed.
+
+The operator approved the reduced scope after the churn audit and instructed continuation. Existing implementation Go persists; do not ask again for routine preparation, fixes or minor choices. The latest instruction is to checkpoint and provide a fresh-session prompt before starting the next phase.
+
+Read [the reduced normative contract](proposals/release-tooling-v1.md), SHA256 `1468c65287d84346b3fc3eb43c706562cf0e3ea5eb4399b153925a8f9982111d`, then [its design checkpoint](reviews/release-tooling-v1-design.md). One focused Astra/Opus design round is complete: 20 findings judged; final corrections NOT re-reviewed, no convergence claimed. No reduced test writer or implementer has started; no helper is active. Next is guarded blind testing and implementation, not another broad design loop.
+
+The approved increment is version generation, --version/About, validated build/changelog metadata, safe ad-hoc packaging and an artifact identity manifest. Retire the full production release-platform architecture. Do not dispatch the former 25-group remediation or apply candidate 1. Preserve old 50 AdversarialRelease tests and outcomes externally; they cover the retired API. A fresh candidate-blind writer creates AdversarialPackaging. Original 133 tests and all frozen bytes remain mandatory.
+
+Use the existing qualified external v2/private-volume harness with fresh owned roots and phase controls. It remains development infrastructure, not product code. The reduced inert Git metadata fixture has a successful trusted synthetic control; the reduced generic driver is not yet adapted. Old consumed drivers hardcode obsolete baselines. No new permissions, new normal-user helper execution, credential copies, auth grants, live UI/provider/performance, push/install/tag/release. Normal Claude CLI uses its existing login. Actual UI/AX, current app-bundle provider access, sustained performance and default backend remain release gates. API/hybrid remains later, unapproved scope.
+
+Evidence: `/Users/ivan/ws/limitaur-review/2026-10-20-release-tooling/reduced-v1/`; historical candidate/churn/freeze/guard evidence stays in sibling `implementation/`. The skill-improvement proposal was written to `/tmp/four-eyes-review-panel-churn-proposal.md`; no installed skill changes were made here. Its file has since changed size, so inspect rather than overwrite it.
+
+## Historical P73 guard checkpoints (superseded next-step instructions)
+
+The following records preserve earlier approvals, consumed pilots and their results. Their proposed full-platform implementation/remediation sequence is superseded by the reduced contract above; do not treat historical “next” or retry prompts as current instructions.
 
 Latest P244–P257: operator “why are you asking me at each step? proceed” supersedes repeated per-attempt confirmations for routine in-scope repairs. Proceed autonomously under existing Go with bounded, frozen, evidence-backed phases. Ask for actual host/data permission expansion or the separate first normal-user release-TCB gate; do not reopen P119 or implementation Go. [Private-volume pilot and operational recipe](reviews/release-private-volume-pilot.md).
 
@@ -51,13 +67,13 @@ P119 remains complete with recorded133 passes; frozen16-file map and collector u
 - [Development result](/Users/ivan/ws/limitaur/docs/reviews/compact-bars-result.md) and [full stage report](/Users/ivan/ws/limitaur-review/2026-10-18-01a15018/compact-bars/report.md).
 - [Acceptance](/Users/ivan/ws/limitaur-review/2026-10-18-01a15018/compact-bars/accepted-development.json), [final manifest](/Users/ivan/ws/limitaur-review/2026-10-18-01a15018/compact-bars/remediation-1/candidate-manifest.json), [final review dispositions](/Users/ivan/ws/limitaur-review/2026-10-18-01a15018/compact-bars/remediation-1/review-acceptance.json).
 
-Current closing discussion point P257; continue at P258. User standing rules: plain-prose questions, no structured question tool; existing P73 Go authorizes routine implementation/controller work, no per-step approval; materially changed protections/new scope and the first normal-user TCB execution remain concrete decisions; commit coherent accepted work autonomously; push only with explicit authorization in that turn.
+Current closing discussion point P308; continue at P309. Use plain-prose questions only. Existing reduced-scope Go authorizes routine implementation/controller work without per-step approval; materially changed protections or new scope still need a concrete decision. Commit coherent accepted work autonomously; never push without explicit authorization in that turn.
 
 ## Next session
 
-Recover actual HEAD and latest private-volume result above. P73 Go/read-policy adoption persist; native baseline guard/artifact/72-record prerequisites are qualified after independently completed cleanup. Use fresh private-volume phase infrastructure, correct the post-detach sentinel bookkeeping and continue the approved blind-test/implementation sequence; no routine new Go. Historical drivers retain consumed scopes/hardcoded baselines, so do not rerun them blindly. No first normal-user new release-TCB execution before its separate frozen-code/data approval. SemVer/release tooling before API/hybrid; API/hybrid remains unapproved. P119 is complete and not reopened.
+Recover actual HEAD; read AGENTS.md, this handoff and compact-bars-result.md first, then release-tooling-v1.md and release-tooling-v1-design.md. Preserve P119 closure. Resume the approved reduced increment: adapt fresh external harness drivers, fresh GPT-6.1-Sol blind writer in AdversarialPackaging, freeze before disclosure, separate fresh Sonnet implementation, guarded validation, same writer B and fresh Astra/Opus final review, one coherent semantic fix round if needed. No fresh implementation Go is needed. Do not resume the old 25-group full-platform batch or amend any frozen tests.
 
-Keep actual UI, current Claude app-bundle access, sustained performance and default-backend qualification explicitly unverified. Use Claude as a normal CLI with its existing login; no repeated credential-copy setup. Preserve all frozen tests and do not push. This session can be cleared: source, reviews, results, bundle and cleanup evidence are durable, and no helper or implementation phase is still running.
+No worker is active. All new helper/app/test code remains guarded; no normal execution of the old three-file release TCB is needed. Keep API/hybrid unapproved and all UI/app-access/performance/default-backend release gates explicit. No install, auth grant, tag, release or push. Claude is a normal CLI with its existing login; no credential-copy setup.
 
 ## Current product
 
@@ -71,7 +87,7 @@ A signed local [development bundle](/Users/ivan/ws/limitaur-review/2026-10-18-01
 
 ## Outstanding scope and release gates
 
-P119 is APPROVED and COMPLETE for development. Do not ask for its approval again. P73 API-metered accounts/hybrid credit use/SemVer/release tooling remains separately PENDING; [exact last additions contract](/Users/ivan/ws/limitaur-review/2026-10-18-01a15018/claude-continuation/additions-design.md), SHA256 `1008f15e1d1fd63534500a998b329668790eefa8c06fc6a140aed5c750253ae3`. Its heading says approved scope, but the final detailed contract was not approved. Cursor deferred. Recommend version/release tooling before collecting artifact-bound release evidence; reporting coverage/current-day semantics and organization-unverified restart binding need careful review before API implementation. Do not silently approve or implement the pending contract.
+P119 is APPROVED and COMPLETE for development. Do not ask for its approval again. P73 versioning/packaging now has the approved reduced contract above; its implementation has not started. API-metered accounts/hybrid credit use remain separately PENDING; [exact last additions contract](/Users/ivan/ws/limitaur-review/2026-10-18-01a15018/claude-continuation/additions-design.md), SHA256 `1008f15e1d1fd63534500a998b329668790eefa8c06fc6a140aed5c750253ae3`. Its heading says approved scope, but the final detailed contract was not approved. Cursor deferred. Recommend version/release tooling before collecting artifact-bound release evidence; reporting coverage/current-day semantics and organization-unverified restart binding need careful review before API implementation. Do not silently approve or implement the pending contract.
 
 Release readiness is false: actual menu-bar anchoring/click/keyboard/scroll/light-dark/increasedcontrast/AX; current app-bundle Codex+Claude integration, especially Claude Keychain access; default SwiftBuild backend qualification; sustained eligible two-provider performance. Native backend passes but is deprecated; default service-context linking failed under the prior guard, although its emitted direct link succeeded. Cause not established. No permission broadening occurred.
 
