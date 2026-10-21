@@ -10,6 +10,6 @@ Release gates remain actual anchored UI/appearance/contrast/keyboard/scroll/AX, 
 
 Known low-priority limitations: amount-only enabled Claude spend with unknown percentage remains incomplete; duplicate unverified selected Codex IDs across different tokens can collide in ranking keys; retry eligibility text may persist until the next fetch; the count-action negative test could use a deterministic local-query completion barrier. Actual AppKit draw-hook behavior remains a release check. No required source fix is deferred.
 
-API-metered/hybrid behavior, SemVer and automated release tooling remain pending P73. Cursor deferred.
+API-metered/hybrid behavior remains pending. P73 versioning has a minimal approved scope (see docs/handoff.md). Cursor deferred.
 
 [Full report](/Users/ivan/ws/limitaur-review/2026-10-18-01a15018/compact-bars/report.md), [acceptance and exact tree/delta proof](/Users/ivan/ws/limitaur-review/2026-10-18-01a15018/compact-bars/accepted-development.json), [final review](/Users/ivan/ws/limitaur-review/2026-10-18-01a15018/compact-bars/runtime-evidence/bars-panel2/BP2-result.txt). Evidence, model/session IDs, findings/dispositions and reported costs are preserved outside the repository. No credential/runtime state is included.
