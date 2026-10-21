@@ -39,13 +39,36 @@ public func scopeInitial(for metric: UsageMetric) -> String? {
     return letter
 }
 
-/// Default provider glyph: C for Claude, X for Codex, else the uppercased first letter.
+/// Two-letter provider codes shown above the window code. Every pair of codes must be
+/// distinguishable at menu-bar size: see `providerCodesAreDistinguishable`.
+/// Unknown providers use their first two letters, which the test does not vouch for.
+public let providerCodes: [String: String] = [
+    "claude": "CL", "codex": "CX", "gemini": "GM", "cursor": "CU", "copilot": "GH",
+    "grok": "XA", "mistral": "MS", "perplexity": "PX", "deepseek": "DS", "meta": "MA",
+    "microsoft": "MC", "cohere": "CE", "windsurf": "WI", "replit": "RP", "amazon": "AQ",
+    "huggingface": "HF", "together": "TG", "groq": "GQ", "openrouter": "OR", "kimi": "KM",
+    "qwen": "AL", "fireworks": "FW"
+]
+
 public func providerGlyph(for provider: ProviderID) -> String {
-    switch provider.rawValue.lowercased() {
-    case "claude": return "C"
-    case "codex": return "X"
-    default: return initial(of: provider.rawValue) ?? "?"
-    }
+    if let code = providerCodes[provider.rawValue.lowercased()] { return code }
+    let letters = provider.rawValue.filter { $0.isLetter || $0.isNumber }.prefix(2).uppercased()
+    return letters.isEmpty ? "??" : letters
+}
+
+/// Letters that read alike in a small bold sans face share a class. Two codes are
+/// distinguishable when at least one position holds letters from different classes.
+public func letterConfusionClass(_ character: Character) -> Int {
+    let classes: [Set<Character>] = [
+        ["C", "G", "O", "Q", "D", "0"], ["I", "L", "J", "T", "1"], ["E", "F"], ["M", "N", "W"],
+        ["B", "R", "P", "8"], ["U", "V", "Y"], ["K", "X"], ["S", "5"], ["Z", "2"], ["A", "4"], ["H"]
+    ]
+    return classes.firstIndex(where: { $0.contains(Character(character.uppercased())) }) ?? -1
+}
+
+public func providerCodesAreDistinguishable(_ a: String, _ b: String) -> Bool {
+    guard a.count == b.count else { return true }
+    return zip(a, b).contains { letterConfusionClass($0) != letterConfusionClass($1) || letterConfusionClass($0) == -1 }
 }
 
 private func initial(of text: String) -> String? {

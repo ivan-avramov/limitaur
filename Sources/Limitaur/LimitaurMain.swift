@@ -151,6 +151,22 @@ private func checkLive() {
             let bars = RingView(frame: NSRect(x: 0, y: 0, width: RingView.statusWidth(for: count), height: 24))
             bars.count = count; bars.selected = projection.selected
             try png(bars, path: directory + "/bars-\(count)-\(theme).png", appearance: appearance)
+            if count == 3 {
+                let current = RingView.layout
+                for (layout, name) in [(RingView.Layout.jar, "jar"), (.beside, "beside"), (.logo, "logo")] {
+                    RingView.layout = layout
+                    for (backdrop, white) in [("plain", theme == "light" ? 0.93 : 0.13), ("highlighted", theme == "light" ? 0.72 : 0.5)] {
+                        let preview = RingView(frame: NSRect(x: 0, y: 0, width: RingView.statusWidth(for: 3), height: 24))
+                        preview.count = 3; preview.selected = projection.selected
+                        let container = NSView(frame: preview.frame)
+                        container.wantsLayer = true
+                        container.layer?.backgroundColor = NSColor(calibratedWhite: white, alpha: 1).cgColor
+                        container.addSubview(preview)
+                        try png(container, path: directory + "/layout-\(name)-\(backdrop)-\(theme).png", appearance: appearance)
+                    }
+                }
+                RingView.layout = current
+            }
             if count == 3 { try png(bars, path: directory + "/rings-\(theme).png", appearance: appearance) }
             let empty = RingView(frame: NSRect(x: 0, y: 0, width: RingView.statusWidth(for: count), height: 24))
             empty.count = count; empty.stale = true; empty.providerWarning = true

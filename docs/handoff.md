@@ -1,6 +1,6 @@
 # Limitaur handoff
 
-Updated 2026-10-20 (America/Los_Angeles). Discussion IDs continue from P330.
+Updated 2026-10-20 (America/Los_Angeles). Discussion IDs continue from P340.
 
 ## Product state
 
@@ -24,7 +24,7 @@ Dropped by decision: Python packaging tool, artifact identity manifest, tracked-
 
 ## Labelled bars (P323–P327, 2026-10-20)
 
-Approved and implemented per `docs/labelled-bars.md`: jars with provider glyph and window code, optional local logo images, `windowCode(for:)` in LimitaurCore. Static renders inspected at 1x and zoomed in both appearances. The operator ran the built bundle on 2026-10-20: both Codex and Claude fetched successfully from the app bundle, Claude via Keychain, so the app-bundle provider-access gate is informally cleared; the other gates remain.
+Implemented per `docs/labelled-bars.md`, revised 2026-10-21 after live inspection: active layout is a bar with two-letter provider code and window code beside it; jar and logo-gauge layouts are retained in source by operator request, not default. Provider code table and confusability test: `docs/provider-codes.md`. Signing identity support for stable Keychain trust (P339). Static renders inspected at 1x and zoomed in both appearances. The operator ran the built bundle on 2026-10-20: both Codex and Claude fetched successfully from the app bundle, Claude via Keychain, so the app-bundle provider-access gate is informally cleared; the other gates remain.
 
 ## Still pending, in order
 

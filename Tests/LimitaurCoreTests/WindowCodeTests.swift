@@ -58,10 +58,26 @@ private func metric(_ id: String, label: String = "x", duration: TimeInterval? =
     #expect(scopeInitial(for: metric("default:primary", label: "Fable", duration: 18_000)) == nil, "Codex windows are not model scoped")
 }
 
-@Test func providerGlyphsAreSingleUppercaseCharacters() {
-    #expect(providerGlyph(for: "claude") == "C")
-    #expect(providerGlyph(for: "codex") == "X")
-    #expect(providerGlyph(for: "cursor") == "C")
-    #expect(providerGlyph(for: "9lives") == "9")
-    #expect(providerGlyph(for: "--") == "?")
+@Test func providerGlyphsAreTwoLetterCodes() {
+    #expect(providerGlyph(for: "claude") == "CL")
+    #expect(providerGlyph(for: "codex") == "CX")
+    #expect(providerGlyph(for: "Gemini") == "GM")
+    #expect(providerGlyph(for: "zed") == "ZE", "unknown provider falls back to its first two letters")
+    #expect(providerGlyph(for: "--") == "??")
+}
+
+@Test func providerCodesAreDistinguishable() {
+    let codes = providerCodes.sorted { $0.key < $1.key }
+    #expect(codes.count >= 20)
+    for code in codes { #expect(code.value.count == 2 && code.value == code.value.uppercased(), "\(code.key)") }
+    for (i, a) in codes.enumerated() {
+        for b in codes[(i + 1)...] {
+            #expect(a.value != b.value, "\(a.key) and \(b.key) share a code")
+            #expect(providerCodesAreDistinguishable(a.value, b.value), "\(a.key) \(a.value) vs \(b.key) \(b.value)")
+        }
+    }
+    #expect(!providerCodesAreDistinguishable("CL", "GL"), "same classes in both positions")
+    #expect(!providerCodesAreDistinguishable("CL", "GI"))
+    #expect(providerCodesAreDistinguishable("CL", "CX"))
+    #expect(providerCodesAreDistinguishable("MS", "MA"))
 }

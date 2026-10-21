@@ -1,8 +1,8 @@
 # Limitaur
 
-Native macOS 26+ menu-bar monitor for existing Codex and Claude local sessions. It reads subscription usage and displays the highest fresh quota percentages as small jars that fill upward. Each jar is labelled with a provider glyph on top (C for Claude, X for Codex) and a window code below: `5` session or up to six hours, `W` weekly, `M` monthly, `$` spend, `?` unknown, followed by a model initial for model-scoped limits, so Fable's weekly limit reads `WF`. The labels are cut out of the fill so they stay readable at any level. The Indicators menu selects 1–8 jars (default 3) immediately; Accounts… remains a separate dialog. Yellow starts above 80%; red above 95%.
+Native macOS 26+ menu-bar monitor for existing Codex and Claude local sessions. It reads subscription usage and displays the highest fresh quota percentages as narrow bars that fill upward. Beside each bar, two codes are stacked: the provider code on top (`CL` Claude, `CX` Codex; full table in `docs/provider-codes.md`) and the window code below: `5` session or up to six hours, `W` weekly, `M` monthly, `$` spend, `?` unknown, followed by a model initial for model-scoped limits, so Fable's weekly limit reads `WF`. The Indicators menu selects 1–8 bars (default 3) immediately; Accounts… remains a separate dialog. Yellow starts above 80%; red above 95%.
 
-To show a provider logo instead of the letter, put a monochrome black-on-transparent square PNG at `Resources/providers/<providerID>.png` (for example `claude.png`, `codex.png`) before running the build script. That directory is ignored by git, so logos never enter the repository. The app does not predict usage, buy credits, redeem resets, refresh credentials, or send telemetry.
+Two experimental layouts, a labelled jar and a logo-shaped gauge, remain in the source behind `RingView.layout` for comparison and are not used by default. A monochrome black-on-transparent square PNG at `Resources/providers/<providerID>.png` is picked up by those layouts; that directory is ignored by git, so logos never enter the repository. The app does not predict usage, buy credits, redeem resets, refresh credentials, or send telemetry.
 
 ## Authentication and sources
 
@@ -25,7 +25,15 @@ open dist/Limitaur.app
 
 The bundle script accepts an optional output path followed by SwiftPM build options. For an isolated native backend build, pass `--build-system`, `--scratch-path`, and `--cache-path` arguments after the output path. It queries SwiftPM for the binary directory. The native backend is deprecated; the default SwiftBuild backend still has an unresolved linking permission error in the recorded isolated checks.
 
-The build script creates a local ad-hoc signed app bundle. It does not install a login item or publish a release. The bundle has no Dock icon.
+The build script creates a local signed app bundle. It does not install a login item or publish a release. The bundle has no Dock icon.
+
+By default the bundle is ad-hoc signed, and every rebuild gets a new identity, so macOS asks again before the app may read the Claude Keychain item. To keep that trust across rebuilds, create a self-signed code-signing certificate once and name it when building:
+
+1. Keychain Access → Keychain Access menu → Certificate Assistant → Create a Certificate…
+2. Name `Limitaur Dev`, Identity Type `Self Signed Root`, Certificate Type `Code Signing`, then Create.
+3. Build with `LIMITAUR_SIGN_IDENTITY="Limitaur Dev" sh scripts/build-app.sh`, or export the variable in your shell.
+
+The first launch of a bundle signed with the new identity asks once; later rebuilds do not. Nothing here notarizes or publishes.
 
 ## Version
 

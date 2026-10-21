@@ -100,11 +100,19 @@ private struct FrozenDemoClock: MonitorClock {
 }
 
 @MainActor final class RingView: NSView {
-    static let jarWidth: CGFloat = 14, jarHeight: CGFloat = 18, gap: CGFloat = 3, leftPad: CGFloat = 4, rightPad: CGFloat = 8
+    /// Slot layout. `jar`: glyphs inside a filled jar. `beside`: a narrow bar with the glyphs
+    /// stacked to its right in the plain foreground colour.
+    enum Layout { case jar, beside, logo }
+    static var layout: Layout = .beside
+    static let leftPad: CGFloat = 4, rightPad: CGFloat = 8
+    static var slotWidth: CGFloat { layout == .beside ? 19 : 18 }
+    static var slotHeight: CGFloat { layout == .beside ? 18 : layout == .jar ? 20 : 18 }
+    static var gap: CGFloat { layout == .jar ? 3 : 5 }
+    static let barWidth: CGFloat = 5
     override func hitTest(_ point: NSPoint) -> NSView? { nil }
     static func statusWidth(for count: Int) -> CGFloat {
         let n = CGFloat(indicatorCount(count))
-        return jarWidth * n + gap * (n - 1) + leftPad + rightPad
+        return slotWidth * n + gap * (n - 1) + leftPad + rightPad
     }
     var count = 3 { didSet { needsDisplay = true } }
     var selected: [RankedMetric] = [] { didSet { needsDisplay = true } }
@@ -120,14 +128,24 @@ private struct FrozenDemoClock: MonitorClock {
         needsDisplay = true
         appearanceChanged?()
     }
-    private static let glyphFont = NSFont.systemFont(ofSize: 8, weight: .bold)
-    private static let codeFont = NSFont.monospacedDigitSystemFont(ofSize: 7.5, weight: .bold)
-    private static let pairFont = NSFont.monospacedDigitSystemFont(ofSize: 6.5, weight: .bold)
+    private static let glyphFont = NSFont.systemFont(ofSize: 9.5, weight: .bold)
+    private static let codeFont = NSFont.monospacedDigitSystemFont(ofSize: 9, weight: .bold)
+    private static let pairFont = NSFont.monospacedDigitSystemFont(ofSize: 8, weight: .bold)
+    private static let pairGlyphFont = NSFont.systemFont(ofSize: 8, weight: .bold)
+    /// Opaque neutral track: dark in dark mode, light in light mode, so the foreground-tinted
+    /// fill always contrasts with it and nothing behind the status item bleeds through.
+    private var track: NSColor {
+        effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            ? NSColor(calibratedWhite: 0.42, alpha: 1) : NSColor(calibratedWhite: 0.6, alpha: 1)
+    }
+    private static let logoTrack = NSColor(calibratedWhite: 0.45, alpha: 1)
+    private static let centreFont = NSFont.monospacedDigitSystemFont(ofSize: 8.5, weight: .heavy)
+    private static let centrePairFont = NSFont.monospacedDigitSystemFont(ofSize: 7, weight: .heavy)
 
-    /// Glyph boxes inside a jar: provider on top, window code below.
-    private static func glyphRects(in jar: NSRect) -> (provider: NSRect, code: NSRect) {
-        (NSRect(x: jar.minX + 1, y: jar.midY + 0.5, width: jar.width - 2, height: jar.height / 2 - 1.5),
-         NSRect(x: jar.minX + 1, y: jar.minY + 1, width: jar.width - 2, height: jar.height / 2 - 1.5))
+    /// Glyph boxes inside a slot rect: provider on top, window code below.
+    static func glyphRects(in slot: NSRect) -> (provider: NSRect, code: NSRect) {
+        (NSRect(x: slot.minX, y: slot.midY, width: slot.width, height: slot.height / 2),
+         NSRect(x: slot.minX, y: slot.minY, width: slot.width, height: slot.height / 2))
     }
     private static func draw(text: String, font: NSFont, color: NSColor, centeredIn rect: NSRect) {
         let attributes: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: color]
@@ -138,90 +156,125 @@ private struct FrozenDemoClock: MonitorClock {
     /// Paints `color` through the logo's shape only, never the whole box.
     private static func draw(mask: CGImage, color: NSColor, centeredIn rect: NSRect) {
         guard let cg = NSGraphicsContext.current?.cgContext else { return }
-        let side = min(rect.width, rect.height)
+        let side = min(rect.width, rect.height) - 1
         let target = NSRect(x: rect.midX - side / 2, y: rect.midY - side / 2, width: side, height: side)
         cg.saveGState()
         cg.clip(to: target, mask: mask)
         color.setFill(); target.fill()
         cg.restoreGState()
     }
-    /// Draws both glyphs of one jar in `color`, or, when `color` is nil, as black marks for a mask.
-    private static func drawGlyphs(provider: ProviderID, code: String, in jar: NSRect, color: NSColor) {
-        let rects = glyphRects(in: jar)
+    private static func drawGlyphs(provider: ProviderID, code: String, in slot: NSRect, color: NSColor) {
+        let rects = glyphRects(in: slot)
         if let mask = ProviderGlyphImages.mask(for: provider) {
             draw(mask: mask, color: color, centeredIn: rects.provider)
         } else {
-            draw(text: providerGlyph(for: provider), font: glyphFont, color: color, centeredIn: rects.provider)
+            let glyph = providerGlyph(for: provider)
+            draw(text: glyph, font: glyph.count > 1 ? pairGlyphFont : glyphFont, color: color, centeredIn: rects.provider)
         }
-        // A two-character code (window + model initial) uses a slightly smaller face to fit the jar.
         draw(text: code, font: code.count > 1 ? pairFont : codeFont, color: color, centeredIn: rects.code)
     }
-    /// Grey mask of the jar: white everywhere, black where the glyphs are. Used to knock the
-    /// glyphs out of the track and fill so they stay legible over any fill colour.
-    private static func knockoutMask(provider: ProviderID, code: String, jar: NSRect, scale: CGFloat) -> CGImage? {
-        let width = Int(jar.width * scale), height = Int(jar.height * scale)
-        guard let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
-                                      space: CGColorSpaceCreateDeviceGray(), bitmapInfo: CGImageAlphaInfo.none.rawValue) else { return nil }
-        context.setFillColor(gray: 1, alpha: 1)
-        context.fill(CGRect(x: 0, y: 0, width: width, height: height))
-        context.scaleBy(x: scale, y: scale)
+    private var isDark: Bool { effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua }
+    /// Near-black or near-white, whichever contrasts with the fill for this severity. The normal
+    /// fill is the label colour, white in dark mode and black in light mode; yellow is bright; red is dark.
+    func contrastColor(for percent: Double?) -> NSColor {
+        let light = NSColor(calibratedWhite: 0.95, alpha: 1), dark = NSColor(calibratedWhite: 0.1, alpha: 1)
+        switch severity(percent) {
+        case .warning: return dark
+        case .critical: return light
+        case .normal, .unknown: return isDark ? dark : light
+        }
+    }
+    private static func fillColor(for percent: Double?) -> NSColor {
+        switch severity(percent) {
+        case .normal: return .labelColor
+        case .warning: return .systemYellow
+        case .critical: return .systemRed
+        case .unknown: return .secondaryLabelColor
+        }
+    }
+    /// The provider's logo shape as the gauge: dim track, fill rising to the percent, window
+    /// code centred in a contrasting colour. Used only when a logo image is present.
+    private func drawLogoGauge(_ ranked: RankedMetric, mask: CGImage, in slot: NSRect) {
+        guard let cg = NSGraphicsContext.current?.cgContext else { return }
+        let side = min(slot.width, slot.height)
+        let box = NSRect(x: slot.midX - side / 2, y: slot.midY - side / 2, width: side, height: side)
+        let code = windowCode(for: ranked.metric) + (scopeInitial(for: ranked.metric) ?? "")
+        let fill = ringFill(ranked.metric.usedPercent)
+        let fillHeight = fill.map { $0 > 0 ? max(0.5, box.height * CGFloat($0)) : 0 } ?? 0
+        let fillColor = Self.fillColor(for: ranked.metric.usedPercent)
+        cg.saveGState()
+        cg.clip(to: box, mask: mask)
+        Self.logoTrack.setFill(); box.fill()
+        if fillHeight > 0 {
+            fillColor.setFill()
+            NSRect(x: box.minX, y: box.minY, width: box.width, height: fillHeight).fill()
+        }
+        cg.restoreGState()
+        let font = code.count > 1 ? Self.centrePairFont : Self.centreFont
         NSGraphicsContext.saveGraphicsState()
-        NSGraphicsContext.current = NSGraphicsContext(cgContext: context, flipped: false)
-        drawGlyphs(provider: provider, code: code, in: NSRect(origin: .zero, size: jar.size), color: .black)
+        NSRect(x: box.minX, y: box.minY + fillHeight, width: box.width, height: box.height - fillHeight).clip()
+        Self.draw(text: code, font: font, color: NSColor(calibratedWhite: 0.1, alpha: 1), centeredIn: box)
         NSGraphicsContext.restoreGraphicsState()
-        return context.makeImage()
+        if fillHeight > 0 {
+            NSGraphicsContext.saveGraphicsState()
+            NSRect(x: box.minX, y: box.minY, width: box.width, height: fillHeight).clip()
+            Self.draw(text: code, font: font, color: contrastColor(for: ranked.metric.usedPercent), centeredIn: box)
+            NSGraphicsContext.restoreGraphicsState()
+        }
     }
     override func draw(_ dirtyRect: NSRect) {
         willDraw?()
         super.draw(dirtyRect)
         effectiveAppearance.performAsCurrentDrawingAppearance {
-        let scale = window?.backingScaleFactor ?? 2
         for index in 0..<indicatorCount(count) {
-            let jar = NSRect(x: Self.leftPad + CGFloat(index) * (Self.jarWidth + Self.gap),
-                             y: bounds.midY - Self.jarHeight / 2, width: Self.jarWidth, height: Self.jarHeight)
-            let outline = NSBezierPath(roundedRect: jar, xRadius: 2.5, yRadius: 2.5)
+            let slot = NSRect(x: Self.leftPad + CGFloat(index) * (Self.slotWidth + Self.gap),
+                              y: bounds.midY - Self.slotHeight / 2, width: Self.slotWidth, height: Self.slotHeight)
+            if Self.layout == .logo, index < selected.count, let mask = ProviderGlyphImages.mask(for: selected[index].providerID) {
+                drawLogoGauge(selected[index], mask: mask, in: slot)
+                continue
+            }
+            let bar = Self.layout == .jar ? slot : NSRect(x: slot.minX, y: slot.minY, width: Self.barWidth, height: slot.height)
+            let radius: CGFloat = Self.layout == .jar ? 3 : 1.5
+            let outline = NSBezierPath(roundedRect: bar, xRadius: radius, yRadius: radius)
+            track.setFill(); outline.fill()
             guard index < selected.count, let fill = ringFill(selected[index].metric.usedPercent) else {
-                NSColor(calibratedWhite: 0.22, alpha: 0.8).setFill(); outline.fill()
                 let dash = NSBezierPath()
                 dash.lineWidth = 1
-                dash.move(to: NSPoint(x: jar.minX + 3, y: jar.midY))
-                dash.line(to: NSPoint(x: jar.maxX - 3, y: jar.midY))
+                dash.move(to: NSPoint(x: bar.minX + 1.5, y: bar.midY))
+                dash.line(to: NSPoint(x: bar.maxX - 1.5, y: bar.midY))
                 NSColor.secondaryLabelColor.setStroke()
                 dash.stroke()
                 continue
             }
             let ranked = selected[index]
             let code = windowCode(for: ranked.metric) + (scopeInitial(for: ranked.metric) ?? "")
-            let fillHeight = fill > 0 ? max(0.5, jar.height * CGFloat(fill)) : 0
-            let fillRect = NSRect(x: jar.minX, y: jar.minY, width: jar.width, height: fillHeight)
-            let fillColor: NSColor
-            switch severity(ranked.metric.usedPercent) {
-            case .normal: fillColor = .labelColor
-            case .warning: fillColor = .systemYellow
-            case .critical: fillColor = .systemRed
-            case .unknown: fillColor = .secondaryLabelColor
-            }
-            NSGraphicsContext.saveGraphicsState()
-            if let cg = NSGraphicsContext.current?.cgContext,
-               let mask = Self.knockoutMask(provider: ranked.providerID, code: code, jar: jar, scale: scale) {
-                cg.clip(to: jar, mask: mask)
-            }
-            NSColor(calibratedWhite: 0.22, alpha: 0.8).setFill(); outline.fill()
+            let fillHeight = fill > 0 ? max(0.5, bar.height * CGFloat(fill)) : 0
+            let fillRect = NSRect(x: bar.minX, y: bar.minY, width: bar.width, height: fillHeight)
+            let fillColor = Self.fillColor(for: ranked.metric.usedPercent)
             if fillHeight > 0 {
                 NSGraphicsContext.saveGraphicsState()
                 outline.addClip()
                 fillColor.setFill(); fillRect.fill()
                 NSGraphicsContext.restoreGraphicsState()
             }
-            NSGraphicsContext.restoreGraphicsState()
-            // Above the fill line the glyphs sit on the fixed dark track, so they are a fixed light
-            // tone in both appearances; below it the knockout shows the menu bar through the fill.
-            NSGraphicsContext.saveGraphicsState()
-            NSRect(x: jar.minX, y: jar.minY + fillHeight, width: jar.width, height: jar.height - fillHeight).clip()
-            Self.drawGlyphs(provider: ranked.providerID, code: code, in: jar, color: NSColor(calibratedWhite: 0.93, alpha: 1))
-            NSGraphicsContext.restoreGraphicsState()
-            NSColor.labelColor.withAlphaComponent(0.35).setStroke()
-            outline.lineWidth = 1; outline.stroke()
+            switch Self.layout {
+            case .beside:
+                let column = NSRect(x: bar.maxX + 1, y: slot.minY, width: slot.width - Self.barWidth - 1, height: slot.height)
+                Self.drawGlyphs(provider: ranked.providerID, code: code, in: column, color: .labelColor)
+            case .jar, .logo:
+                // Light glyphs on the opaque dark track above the fill line; a contrasting
+                // colour inside the fill. Neither depends on what is behind the status item.
+                NSGraphicsContext.saveGraphicsState()
+                NSRect(x: bar.minX, y: bar.minY + fillHeight, width: bar.width, height: bar.height - fillHeight).clip()
+                Self.drawGlyphs(provider: ranked.providerID, code: code, in: bar, color: NSColor(calibratedWhite: 0.93, alpha: 1))
+                NSGraphicsContext.restoreGraphicsState()
+                if fillHeight > 0 {
+                    NSGraphicsContext.saveGraphicsState()
+                    fillRect.clip()
+                    Self.drawGlyphs(provider: ranked.providerID, code: code, in: bar, color: contrastColor(for: ranked.metric.usedPercent))
+                    NSGraphicsContext.restoreGraphicsState()
+                }
+            }
         }
         if providerWarning || stale {
             let marker = NSBezierPath(ovalIn: NSRect(x: bounds.maxX - 5, y: bounds.maxY - 6, width: 4, height: 4))
