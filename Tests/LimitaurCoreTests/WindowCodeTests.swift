@@ -63,13 +63,22 @@ private func metric(_ id: String, label: String = "x", duration: TimeInterval? =
     #expect(providerGlyph(for: "codex") == "CX")
     #expect(providerGlyph(for: "Gemini") == "GM")
     #expect(providerGlyph(for: "zed") == "ZE", "unknown provider falls back to its first two letters")
+    #expect(providerGlyph(for: "clio") == "C?", "fallback colliding with CL degrades")
+    #expect(providerGlyph(for: "chatgpt") == "C?", "CH collides with GH")
+    #expect(providerGlyph(for: "openai") == "O?", "OP collides with OR")
+    #expect(providerGlyph(for: "ßa") == "SS", "uppercase before truncation keeps two characters")
+    #expect(providerGlyph(for: "x") == "X?")
     #expect(providerGlyph(for: "--") == "??")
+    for code in providerCodes.values { #expect(providerGlyph(for: ProviderID(code.lowercased() + "zz")).count == 2) }
 }
 
 @Test func providerCodesAreDistinguishable() {
     let codes = providerCodes.sorted { $0.key < $1.key }
     #expect(codes.count >= 20)
-    for code in codes { #expect(code.value.count == 2 && code.value == code.value.uppercased(), "\(code.key)") }
+    for code in codes {
+        #expect(code.value.count == 2 && code.value == code.value.uppercased(), "\(code.key)")
+        #expect(code.value.allSatisfy { letterConfusionClass($0) >= 0 }, "\(code.key) uses an unclassified character")
+    }
     for (i, a) in codes.enumerated() {
         for b in codes[(i + 1)...] {
             #expect(a.value != b.value, "\(a.key) and \(b.key) share a code")
@@ -78,6 +87,12 @@ private func metric(_ id: String, label: String = "x", duration: TimeInterval? =
     }
     #expect(!providerCodesAreDistinguishable("CL", "GL"), "same classes in both positions")
     #expect(!providerCodesAreDistinguishable("CL", "GI"))
+    #expect(!providerCodesAreDistinguishable("C7", "G7"), "identical unclassified characters are not evidence")
+    #expect(!providerCodesAreDistinguishable("C6", "G6"), "6 reads like G")
+    #expect(!providerCodesAreDistinguishable("CL", "CL"))
+    #expect(providerCodesAreDistinguishable("C7", "G8"), "distinct unclassified characters do differ")
     #expect(providerCodesAreDistinguishable("CL", "CX"))
     #expect(providerCodesAreDistinguishable("MS", "MA"))
+    #expect(letterConfusionClass("ß") == letterConfusionClass("S"), "multi-character uppercase must not trap")
+    #expect(letterConfusionClass("7") == -1)
 }

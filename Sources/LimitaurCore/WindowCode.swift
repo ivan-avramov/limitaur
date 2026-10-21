@@ -50,25 +50,37 @@ public let providerCodes: [String: String] = [
     "qwen": "AL", "fireworks": "FW"
 ]
 
+/// Unknown providers fall back to their first two letters; a fallback that is not
+/// distinguishable from a reserved code degrades to its first letter plus `?`.
 public func providerGlyph(for provider: ProviderID) -> String {
     if let code = providerCodes[provider.rawValue.lowercased()] { return code }
-    let letters = provider.rawValue.filter { $0.isLetter || $0.isNumber }.prefix(2).uppercased()
-    return letters.isEmpty ? "??" : letters
+    let letters = String(provider.rawValue.uppercased().filter { $0.isLetter || $0.isNumber }.prefix(2))
+    guard letters.count == 2 else { return letters.isEmpty ? "??" : letters + "?" }
+    if providerCodes.values.contains(where: { !providerCodesAreDistinguishable(letters, $0) }) {
+        return String(letters.prefix(1)) + "?"
+    }
+    return letters
 }
 
 /// Letters that read alike in a small bold sans face share a class. Two codes are
 /// distinguishable when at least one position holds letters from different classes.
 public func letterConfusionClass(_ character: Character) -> Int {
     let classes: [Set<Character>] = [
-        ["C", "G", "O", "Q", "D", "0"], ["I", "L", "J", "T", "1"], ["E", "F"], ["M", "N", "W"],
-        ["B", "R", "P", "8"], ["U", "V", "Y"], ["K", "X"], ["S", "5"], ["Z", "2"], ["A", "4"], ["H"]
+        ["C", "G", "O", "Q", "D", "0", "6"], ["I", "L", "J", "T", "1"], ["E", "F"], ["M", "N", "W"],
+        ["B", "R", "P", "8", "3", "9"], ["U", "V", "Y"], ["K", "X"], ["S", "5"], ["Z", "2"], ["A", "4"], ["H"]
     ]
-    return classes.firstIndex(where: { $0.contains(Character(character.uppercased())) }) ?? -1
+    guard let upper = character.uppercased().first else { return -1 }
+    return classes.firstIndex(where: { $0.contains(upper) }) ?? -1
 }
 
+/// Unclassified characters count as their own class: two codes differ at a position only
+/// when the classes differ, or both characters are unclassified and not equal.
 public func providerCodesAreDistinguishable(_ a: String, _ b: String) -> Bool {
     guard a.count == b.count else { return true }
-    return zip(a, b).contains { letterConfusionClass($0) != letterConfusionClass($1) || letterConfusionClass($0) == -1 }
+    return zip(a, b).contains { x, y in
+        let cx = letterConfusionClass(x), cy = letterConfusionClass(y)
+        return cx != cy || (cx == -1 && x != y)
+    }
 }
 
 private func initial(of text: String) -> String? {

@@ -80,7 +80,7 @@ private func halves(_ rect: NSRect) -> (top: NSRect, bottom: NSRect) {
     withLayout(.jar) { #expect(RingView.statusWidth(for: 3) == CGFloat(72)) }
 }
 
-@MainActor @Test(arguments: [RingView.Layout.beside, .jar]) func renderingReflectsGlyphsFillAndAppearance(layout: RingView.Layout) {
+@MainActor @Test(arguments: [RingView.Layout.beside, .jar, .logo]) func renderingReflectsGlyphsFillAndAppearance(layout: RingView.Layout) {
     _ = NSApplication.shared
     withLayout(layout) {
         let claudeSession = ranked("claude", id: "session:::", label: "session", percent: 21)
@@ -111,14 +111,67 @@ private func halves(_ rect: NSRect) -> (top: NSRect, bottom: NSRect) {
     let a = bitmap([claudeSession]), b = bitmap([claudeWeekly]), c = bitmap([codexSession])
     let bar = NSRect(x: 4, y: 2, width: 5, height: 18)
     let column = NSRect(x: 10, y: 2, width: 13, height: 18)
-    #expect(alphaSum(a, bar) == alphaSum(b, bar) && alphaSum(a, bar) == alphaSum(c, bar), "bar pixels do not depend on the glyphs")
+    #expect(brightnessSum(a, bar) == brightnessSum(b, bar) && brightnessSum(a, bar) == brightnessSum(c, bar), "bar pixels do not depend on the glyphs")
     #expect(alphaSum(a, halves(column).bottom) != alphaSum(b, halves(column).bottom), "window code is in the bottom half")
     #expect(alphaSum(a, halves(column).top) == alphaSum(b, halves(column).top))
     #expect(alphaSum(a, halves(column).top) != alphaSum(c, halves(column).top), "provider code is in the top half")
     #expect(alphaSum(a, halves(column).bottom) == alphaSum(c, halves(column).bottom))
-    // Full bar is a solid block of the fill colour: letters are beside it, not knocked out of it.
+    // Full bar is a solid block of the fill colour (red at 100%): letters are beside it, not painted on it.
+    let inner = bar.insetBy(dx: 1, dy: 2)
     let scale = Double(a.pixelsHigh) / 22
-    #expect(alphaSum(a, bar.insetBy(dx: 1, dy: 2)) > Double((bar.width - 2) * (bar.height - 4)) * scale * scale * 0.97)
+    let red = brightness(a, x: inner.midX, y: inner.midY)
+    #expect(abs(brightnessSum(a, inner) - red * Double(inner.width * inner.height) * scale * scale) < 0.5, "uniform fill colour")
+}
+
+@MainActor @Test func besideLayoutIgnoresProviderImages() throws {
+    _ = NSApplication.shared
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent("limitaur-beside-\(UUID().uuidString)/Glyph.app")
+    let providers = root.appendingPathComponent("Contents/Resources/providers")
+    try FileManager.default.createDirectory(at: providers, withIntermediateDirectories: true)
+    try PropertyListSerialization.data(fromPropertyList: ["CFBundleIdentifier": "local.limitaur.test"], format: .xml, options: 0)
+        .write(to: root.appendingPathComponent("Contents/Info.plist"))
+    let logo = NSImage(size: NSSize(width: 32, height: 32), flipped: false) { rect in
+        NSColor.black.setFill(); NSBezierPath(ovalIn: rect).fill(); return true
+    }
+    try NSBitmapImageRep(cgImage: logo.cgImage(forProposedRect: nil, context: nil, hints: nil)!)
+        .representation(using: .png, properties: [:])!.write(to: providers.appendingPathComponent("codex.png"))
+    defer { ProviderGlyphImages.bundle = .main; try? FileManager.default.removeItem(at: root.deletingLastPathComponent()) }
+    let codex = ranked("codex", id: "session:::", label: "session", percent: 40)
+    let letters = render([codex])
+    ProviderGlyphImages.bundle = try #require(Bundle(url: root))
+    #expect(ProviderGlyphImages.mask(for: "codex") != nil)
+    #expect(render([codex]) == letters, "beside layout is letters-only even when an image exists")
+}
+
+@MainActor @Test func logoLayoutWithoutImagesDrawsTheJar() {
+    _ = NSApplication.shared
+    let metrics = [ranked("claude", id: "weekly_scoped:g:m:s:h", label: "Fable", percent: 60),
+                   ranked("codex", id: "session:::", label: "session", percent: 90)]
+    let jar = withLayout(.jar) { render(metrics) }
+    let logo = withLayout(.logo) { render(metrics) }
+    #expect(jar == logo)
+}
+
+@MainActor @Test func lightModeLevelsStayReadable() {
+    _ = NSApplication.shared
+    // Yellow on the light track has low luminance contrast; the 1-point edge marks the level.
+    let warning = bitmap([ranked("codex", id: "session:::", label: "session", percent: 85)], dark: false)
+    let bar = NSRect(x: 4, y: 2, width: 5, height: 18)
+    let fillTop = bar.minY + bar.height * 0.85
+    let edge = brightness(warning, x: bar.midX, y: fillTop - 0.5)
+    let fill = brightness(warning, x: bar.midX, y: fillTop - 3)
+    let track = brightness(warning, x: bar.midX, y: fillTop + 1.5)
+    #expect(edge < fill - 0.3 && edge < track - 0.2, "edge \(edge) fill \(fill) track \(track)")
+    // Jar glyphs above the fill line are dark on the light-mode track.
+    withLayout(.jar) {
+        let low = bitmap([ranked("claude", id: "session:::", label: "session", percent: 5)], dark: false)
+        let empty = bitmap([ranked("claude", id: "session:::", label: "session", percent: 5).filled(to: 5)], dark: false)
+        // Compare against an unavailable slot, whose upper band is bare track (the dash sits at mid-height).
+        let bare = bitmap([], dark: false)
+        let band = NSRect(x: 4, y: 14, width: 18, height: 7)
+        #expect(brightnessSum(low, band) < brightnessSum(bare, band) * 0.97, "dark glyphs darken the light-mode track")
+        #expect(low.representation(using: .png, properties: [:]) == empty.representation(using: .png, properties: [:]))
+    }
 }
 
 @MainActor @Test func jarLayoutPaintsContrastingGlyphsInTheirOwnHalvesOfAFullJar() {

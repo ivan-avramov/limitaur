@@ -106,8 +106,8 @@ private struct FrozenDemoClock: MonitorClock {
     static var layout: Layout = .beside
     static let leftPad: CGFloat = 4, rightPad: CGFloat = 8
     static var slotWidth: CGFloat { layout == .beside ? 19 : 18 }
-    static var slotHeight: CGFloat { layout == .beside ? 18 : layout == .jar ? 20 : 18 }
-    static var gap: CGFloat { layout == .jar ? 3 : 5 }
+    static var slotHeight: CGFloat { layout == .beside ? 18 : 20 }
+    static var gap: CGFloat { layout == .beside ? 5 : 3 }
     static let barWidth: CGFloat = 5
     override func hitTest(_ point: NSPoint) -> NSView? { nil }
     static func statusWidth(for count: Int) -> CGFloat {
@@ -136,7 +136,7 @@ private struct FrozenDemoClock: MonitorClock {
     /// fill always contrasts with it and nothing behind the status item bleeds through.
     private var track: NSColor {
         effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-            ? NSColor(calibratedWhite: 0.42, alpha: 1) : NSColor(calibratedWhite: 0.6, alpha: 1)
+            ? NSColor(calibratedWhite: 0.42, alpha: 1) : NSColor(calibratedWhite: 0.5, alpha: 1)
     }
     private static let logoTrack = NSColor(calibratedWhite: 0.45, alpha: 1)
     private static let centreFont = NSFont.monospacedDigitSystemFont(ofSize: 8.5, weight: .heavy)
@@ -163,9 +163,10 @@ private struct FrozenDemoClock: MonitorClock {
         color.setFill(); target.fill()
         cg.restoreGState()
     }
-    private static func drawGlyphs(provider: ProviderID, code: String, in slot: NSRect, color: NSColor) {
+    /// `allowImage` is false for the beside layout, which is letters-only by contract.
+    private static func drawGlyphs(provider: ProviderID, code: String, in slot: NSRect, color: NSColor, allowImage: Bool) {
         let rects = glyphRects(in: slot)
-        if let mask = ProviderGlyphImages.mask(for: provider) {
+        if allowImage, let mask = ProviderGlyphImages.mask(for: provider) {
             draw(mask: mask, color: color, centeredIn: rects.provider)
         } else {
             let glyph = providerGlyph(for: provider)
@@ -233,8 +234,8 @@ private struct FrozenDemoClock: MonitorClock {
                 drawLogoGauge(selected[index], mask: mask, in: slot)
                 continue
             }
-            let bar = Self.layout == .jar ? slot : NSRect(x: slot.minX, y: slot.minY, width: Self.barWidth, height: slot.height)
-            let radius: CGFloat = Self.layout == .jar ? 3 : 1.5
+            let bar = Self.layout == .beside ? NSRect(x: slot.minX, y: slot.minY, width: Self.barWidth, height: slot.height) : slot
+            let radius: CGFloat = Self.layout == .beside ? 1.5 : 3
             let outline = NSBezierPath(roundedRect: bar, xRadius: radius, yRadius: radius)
             track.setFill(); outline.fill()
             guard index < selected.count, let fill = ringFill(selected[index].metric.usedPercent) else {
@@ -255,23 +256,31 @@ private struct FrozenDemoClock: MonitorClock {
                 NSGraphicsContext.saveGraphicsState()
                 outline.addClip()
                 fillColor.setFill(); fillRect.fill()
+                // A 1-point edge in a contrasting colour marks the level even where the fill's
+                // luminance is close to the track's (red or yellow on grey in light mode).
+                if fillHeight < bar.height {
+                    contrastColor(for: ranked.metric.usedPercent).setFill()
+                    NSRect(x: bar.minX, y: fillRect.maxY - 1, width: bar.width, height: 1).fill()
+                }
                 NSGraphicsContext.restoreGraphicsState()
             }
             switch Self.layout {
             case .beside:
                 let column = NSRect(x: bar.maxX + 1, y: slot.minY, width: slot.width - Self.barWidth - 1, height: slot.height)
-                Self.drawGlyphs(provider: ranked.providerID, code: code, in: column, color: .labelColor)
+                Self.drawGlyphs(provider: ranked.providerID, code: code, in: column, color: .labelColor, allowImage: false)
             case .jar, .logo:
-                // Light glyphs on the opaque dark track above the fill line; a contrasting
-                // colour inside the fill. Neither depends on what is behind the status item.
+                // Above the fill line the glyphs sit on the opaque track: light on the dark-mode
+                // track, dark on the light-mode track. Inside the fill they take the contrast
+                // colour for that severity. Neither depends on what is behind the status item.
                 NSGraphicsContext.saveGraphicsState()
                 NSRect(x: bar.minX, y: bar.minY + fillHeight, width: bar.width, height: bar.height - fillHeight).clip()
-                Self.drawGlyphs(provider: ranked.providerID, code: code, in: bar, color: NSColor(calibratedWhite: 0.93, alpha: 1))
+                Self.drawGlyphs(provider: ranked.providerID, code: code, in: bar,
+                                color: isDark ? NSColor(calibratedWhite: 0.93, alpha: 1) : NSColor(calibratedWhite: 0.1, alpha: 1), allowImage: true)
                 NSGraphicsContext.restoreGraphicsState()
                 if fillHeight > 0 {
                     NSGraphicsContext.saveGraphicsState()
                     fillRect.clip()
-                    Self.drawGlyphs(provider: ranked.providerID, code: code, in: bar, color: contrastColor(for: ranked.metric.usedPercent))
+                    Self.drawGlyphs(provider: ranked.providerID, code: code, in: bar, color: contrastColor(for: ranked.metric.usedPercent), allowImage: true)
                     NSGraphicsContext.restoreGraphicsState()
                 }
             }

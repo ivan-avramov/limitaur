@@ -153,6 +153,7 @@ private func checkLive() {
             try png(bars, path: directory + "/bars-\(count)-\(theme).png", appearance: appearance)
             if count == 3 {
                 let current = RingView.layout
+                defer { RingView.layout = current }
                 for (layout, name) in [(RingView.Layout.jar, "jar"), (.beside, "beside"), (.logo, "logo")] {
                     RingView.layout = layout
                     for (backdrop, white) in [("plain", theme == "light" ? 0.93 : 0.13), ("highlighted", theme == "light" ? 0.72 : 0.5)] {
@@ -165,7 +166,6 @@ private func checkLive() {
                         try png(container, path: directory + "/layout-\(name)-\(backdrop)-\(theme).png", appearance: appearance)
                     }
                 }
-                RingView.layout = current
             }
             if count == 3 { try png(bars, path: directory + "/rings-\(theme).png", appearance: appearance) }
             let empty = RingView(frame: NSRect(x: 0, y: 0, width: RingView.statusWidth(for: count), height: 24))
