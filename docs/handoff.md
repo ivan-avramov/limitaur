@@ -31,6 +31,7 @@ Approved and implemented per `docs/labelled-bars.md`: jars with provider glyph a
 1. Release gates, all manual on this machine and unverified: actual menu-bar anchoring, click, keyboard, scroll, light/dark, increased contrast and accessibility labels; Codex and Claude fetch from the built app bundle, especially Claude Keychain access; default SwiftBuild backend build; sustained performance (60 s warmup plus 600 s measured, both providers, max RSS under 50 MiB, mean one-core CPU under 0.1%). Never grant OS access automatically.
 2. API-metered accounts and hybrid credit use: not approved. Last contract draft is external at `/Users/ivan/ws/limitaur-review/2026-10-18-01a15018/claude-continuation/additions-design.md`; its detailed contract was not approved.
 3. Cursor: deferred.
+4. Known build warnings: two deprecated classic Keychain calls in `Credentials.swift` (SecKeychainGet/SetUserInteractionAllowed). Deliberate: they are the only way to guarantee no background prompt for the file-based login-keychain item Claude Code writes. Replacing them is a credential-boundary change needing strict four-eyes and empirical prompt verification; not planned (P330).
 
 ## Rules of the road
 
