@@ -1,6 +1,8 @@
 # Limitaur
 
-Native macOS 26+ menu-bar monitor for existing Codex and Claude local sessions. It reads subscription usage and displays the highest fresh quota percentages as narrow bars that fill upward. The Indicators menu selects 1–8 bars (default 3) immediately; Accounts… remains a separate dialog. Yellow starts above 80%; red above 95%. The app does not predict usage, buy credits, redeem resets, refresh credentials, or send telemetry.
+Native macOS 26+ menu-bar monitor for existing Codex and Claude local sessions. It reads subscription usage and displays the highest fresh quota percentages as small jars that fill upward. Each jar is labelled with a provider glyph on top (C for Claude, X for Codex) and a window code below: `5` session or up to six hours, `W` weekly, `M` monthly, the first letter of a model-scoped limit such as `F` for Fable, `$` spend, `?` unknown. The labels are cut out of the fill so they stay readable at any level. The Indicators menu selects 1–8 jars (default 3) immediately; Accounts… remains a separate dialog. Yellow starts above 80%; red above 95%.
+
+To show a provider logo instead of the letter, put a monochrome black-on-transparent square PNG at `Resources/providers/<providerID>.png` (for example `claude.png`, `codex.png`) before running the build script. That directory is ignored by git, so logos never enter the repository. The app does not predict usage, buy credits, redeem resets, refresh credentials, or send telemetry.
 
 ## Authentication and sources
 
@@ -46,7 +48,7 @@ BIN_DIR="$(swift build -c release --show-bin-path)"
 dist/Limitaur.app/Contents/MacOS/Limitaur --check-live
 ```
 
-Fixture diagnostics use synthetic JSON, do not access credentials, and output normalized JSON. The optional ranking `--count` accepts integers 1–8; the default remains 3, and invalid explicit values exit with a fixed error and no snapshot. `--check-live` uses the real app bundle adapters, waits at most 20 seconds overall, and emits only provider status and counts. The demo mode is offline and labelled; it opens the popover for keyboard and accessibility inspection. Demo indicator choices remain in memory, while account and connection actions are disabled. Static PNGs show actual view rendering at counts 1, 3, 5 and 8 in light and dark appearances; they do not verify menu-bar anchoring, keyboard interaction, or the accessibility tree in a running app.
+Fixture diagnostics use synthetic JSON, do not access credentials, and output normalized JSON. The optional ranking `--count` accepts integers 1–8; the default remains 3, and invalid explicit values exit with a fixed error and no snapshot. `--check-live` uses the real app bundle adapters, waits at most 20 seconds overall, and emits only provider status and counts. The demo mode is offline and labelled; it opens the popover for keyboard and accessibility inspection. Demo indicator choices remain in memory, while account and connection actions are disabled. Static PNGs show actual jar rendering at counts 1, 3, 5 and 8 in light and dark appearances; they do not verify menu-bar anchoring, keyboard interaction, or the accessibility tree in a running app.
 
 For a qualifying resource measurement, launch the bundle executable with an explicit sanitized aggregate statistics path, enable both default providers, close the dropdown, then sample its PID:
 

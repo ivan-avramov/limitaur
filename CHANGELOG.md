@@ -4,6 +4,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 
 ## [Unreleased]
 
+### Changed
+- Status bars are now labelled jars: a provider glyph on top and a window code below, knocked out of the fill. Optional local provider logo images.
+
 ## [0.1.0] - 2026-10-20
 
 ### Added

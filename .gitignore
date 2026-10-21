@@ -9,3 +9,4 @@ xcuserdata/
 .env.*
 *.pem
 __pycache__/
+Resources/providers/

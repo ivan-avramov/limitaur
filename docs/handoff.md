@@ -1,6 +1,6 @@
 # Limitaur handoff
 
-Updated 2026-10-20 (America/Los_Angeles). Discussion IDs continue from P318.
+Updated 2026-10-20 (America/Los_Angeles). Discussion IDs continue from P328.
 
 ## Product state
 
@@ -21,6 +21,10 @@ The earlier release-platform design is retired and archived under `docs/archive/
 Tests after P73: 79 native Swift, 49 frozen independent Python, 12 collector, all passing.
 
 Dropped by decision: Python packaging tool, artifact identity manifest, tracked-source digest, changelog validator, build-tool plugin, blind AdversarialPackaging suite, sandbox harness for this increment. The 50 external AdversarialRelease tests target the retired design and stay outside the repository.
+
+## Labelled bars (P323–P327, 2026-10-20)
+
+Approved and implemented per `docs/labelled-bars.md`: jars with provider glyph and window code, optional local logo images, `windowCode(for:)` in LimitaurCore. Static renders inspected at 1x and zoomed in both appearances. The operator ran the built bundle on 2026-10-20: both Codex and Claude fetched successfully from the app bundle, Claude via Keychain, so the app-bundle provider-access gate is informally cleared; the other gates remain.
 
 ## Still pending, in order
 

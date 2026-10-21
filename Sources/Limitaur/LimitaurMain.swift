@@ -101,6 +101,7 @@ private func checkLive() {
     view.layoutSubtreeIfNeeded()
     window.displayIfNeeded()
     let bitmap = view.bitmapImageRepForCachingDisplay(in: view.bounds)!
+    bitmap.size = view.bounds.size
     view.cacheDisplay(in: view.bounds, to: bitmap)
     let data = bitmap.representation(using: .png, properties: [:])!
     try data.write(to: URL(fileURLWithPath: path), options: .atomic)
@@ -117,7 +118,7 @@ private func checkLive() {
                       balances: [CreditBalance(label: "Provider credits", remaining: Decimal(4))],
                       resetCredits: ResetCreditSummary(availableCount: 2, applicableCount: 1, details: nil)),
         UsageSnapshot(providerID: "claude", accountID: "demo-b", accountLabel: "Demo", fetchedAt: now,
-                      metrics: [UsageMetric(id: "fable", label: "Fable", usedPercent: 98, resetsAt: now.addingTimeInterval(7200))])
+                      metrics: [UsageMetric(id: "weekly_scoped:fable", label: "Fable", usedPercent: 98, resetsAt: now.addingTimeInterval(7200))])
     ]
     for index in 0..<6 {
         sample.append(UsageSnapshot(providerID: index.isMultiple(of: 2) ? "codex" : "claude",
