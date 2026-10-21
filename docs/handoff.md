@@ -1,6 +1,6 @@
 # Limitaur handoff
 
-Updated 2026-10-20 (America/Los_Angeles). Discussion IDs continue from P317.
+Updated 2026-10-20 (America/Los_Angeles). Discussion IDs continue from P318.
 
 ## Product state
 
@@ -8,15 +8,17 @@ Compact-bars source is accepted at `ab8b5e6` (P119, closed). At that commit 133 
 
 Native app: Swift/AppKit, macOS 26+, no runtime dependencies, menu-bar only. See README.md for behaviour, commands and what is verified versus unverified.
 
-## P73 versioning: minimal scope (approved 2026-10-20)
+## P73 versioning: done (2026-10-20, commits 9f42eb5 and 6116935)
 
-The earlier release-platform design is retired and archived under `docs/archive/p73-release-platform/`. Do not resume it. The approved replacement is:
+The earlier release-platform design is retired and archived under `docs/archive/p73-release-platform/`. Do not resume it. The implemented scope, reviewed cold by gpt-6-astra and claude-opus-5-5 (see `docs/reviews/p73-version-review.md`), is:
 
 - one version constant in `Sources/Limitaur/AppVersion.swift`, hand-edited, SemVer;
 - `--version` prints it and exits before AppKit starts; About Limitaur… in Settings shows it;
 - `scripts/build-app.sh` stamps that version, a git commit count and the HEAD revision into Info.plist, signs ad-hoc and writes a sha256 of the executable next to the bundle;
 - `CHANGELOG.md` in keep-a-changelog form, no validator;
-- native tests for the version string, early exit and the About callback.
+- native tests for the version string, early exit, the real executable's dispatch and the About callback.
+
+Tests after P73: 79 native Swift, 49 frozen independent Python, 12 collector, all passing.
 
 Dropped by decision: Python packaging tool, artifact identity manifest, tracked-source digest, changelog validator, build-tool plugin, blind AdversarialPackaging suite, sandbox harness for this increment. The 50 external AdversarialRelease tests target the retired design and stay outside the repository.
 
