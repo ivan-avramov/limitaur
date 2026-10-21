@@ -66,16 +66,36 @@ private struct FrozenDemoClock: MonitorClock {
     func quit() { quitBody() }
 }
 
-/// Loads optional monochrome provider template images from the bundle's providers/ directory.
+/// Loads optional monochrome provider images from the bundle's providers/ directory and turns
+/// each into a CoreGraphics image mask whose unmasked samples are the image's opaque pixels.
 @MainActor enum ProviderGlyphImages {
-    private static var cache: [String: NSImage?] = [:]
-    static func image(for provider: ProviderID, bundle: Bundle = .main) -> NSImage? {
+    private static var cache: [String: CGImage?] = [:]
+    /// Bundle searched for providers/<id>.png; tests inject a temporary bundle. Setting it clears the cache.
+    static var bundle: Bundle = .main { didSet { cache = [:] } }
+    static func mask(for provider: ProviderID) -> CGImage? {
         if let cached = cache[provider.rawValue] { return cached }
         let url = bundle.url(forResource: provider.rawValue, withExtension: "png", subdirectory: "providers")
-        let image = url.flatMap { NSImage(contentsOf: $0) }
-        image?.isTemplate = true
-        cache[provider.rawValue] = image
-        return image
+        let mask = url.flatMap { NSImage(contentsOf: $0) }.flatMap(shapeMask)
+        cache[provider.rawValue] = mask
+        return mask
+    }
+    /// Alpha-only bitmap: 255 everywhere, then the image punched out, so a mask sample of 0
+    /// (the shape) is where CoreGraphics paints when the mask is used as a clip.
+    private static func shapeMask(_ image: NSImage) -> CGImage? {
+        guard let source = image.cgImage(forProposedRect: nil, context: nil, hints: nil),
+              source.width > 0, source.height > 0, source.width <= 1024, source.height <= 1024,
+              let context = CGContext(data: nil, width: source.width, height: source.height, bitsPerComponent: 8, bytesPerRow: 0,
+                                      space: CGColorSpaceCreateDeviceGray(), bitmapInfo: CGImageAlphaInfo.alphaOnly.rawValue)
+        else { return nil }
+        let frame = CGRect(x: 0, y: 0, width: source.width, height: source.height)
+        context.setFillColor(gray: 1, alpha: 1); context.fill(frame)
+        context.setBlendMode(.destinationOut)
+        context.draw(source, in: frame)
+        guard let bytes = context.data else { return nil }
+        let data = Data(bytes: bytes, count: context.bytesPerRow * source.height)
+        guard let provider = CGDataProvider(data: data as CFData) else { return nil }
+        return CGImage(maskWidth: source.width, height: source.height, bitsPerComponent: 8, bitsPerPixel: 8,
+                       bytesPerRow: context.bytesPerRow, provider: provider, decode: nil, shouldInterpolate: true)
     }
 }
 
@@ -114,18 +134,21 @@ private struct FrozenDemoClock: MonitorClock {
         let origin = NSPoint(x: rect.midX - size.width / 2, y: rect.midY - size.height / 2)
         (text as NSString).draw(at: origin, withAttributes: attributes)
     }
-    private static func draw(image: NSImage, color: NSColor, centeredIn rect: NSRect) {
+    /// Paints `color` through the logo's shape only, never the whole box.
+    private static func draw(mask: CGImage, color: NSColor, centeredIn rect: NSRect) {
+        guard let cg = NSGraphicsContext.current?.cgContext else { return }
         let side = min(rect.width, rect.height)
         let target = NSRect(x: rect.midX - side / 2, y: rect.midY - side / 2, width: side, height: side)
-        image.draw(in: target, from: .zero, operation: .sourceOver, fraction: 1)
-        color.set()
-        target.fill(using: .sourceAtop)
+        cg.saveGState()
+        cg.clip(to: target, mask: mask)
+        color.setFill(); target.fill()
+        cg.restoreGState()
     }
     /// Draws both glyphs of one jar in `color`, or, when `color` is nil, as black marks for a mask.
     private static func drawGlyphs(provider: ProviderID, code: String, in jar: NSRect, color: NSColor) {
         let rects = glyphRects(in: jar)
-        if let image = ProviderGlyphImages.image(for: provider) {
-            draw(image: image, color: color, centeredIn: rects.provider)
+        if let mask = ProviderGlyphImages.mask(for: provider) {
+            draw(mask: mask, color: color, centeredIn: rects.provider)
         } else {
             draw(text: providerGlyph(for: provider), font: glyphFont, color: color, centeredIn: rects.provider)
         }

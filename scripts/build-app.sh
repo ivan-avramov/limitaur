@@ -19,6 +19,7 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN_DIR/Limitaur" "$APP/Contents/MacOS/Limitaur"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 # Optional local provider glyph images (ignored by git): Resources/providers/<providerID>.png
+/bin/rm -rf "$APP/Contents/Resources/providers"
 if ls Resources/providers/*.png >/dev/null 2>&1; then
   mkdir -p "$APP/Contents/Resources/providers"
   cp Resources/providers/*.png "$APP/Contents/Resources/providers/"

@@ -1,0 +1,5 @@
+# Labelled bars: review record
+
+2026-10-20. Commit b1aa0a3 (jars with provider glyph and window code) was reviewed cold by gpt-6-astra via codex and claude-opus-5-5 via the claude CLI, fresh sessions on a read-only clone. Thirteen findings and one scope request consolidated to nine items; eight adopted in the follow-up commit, one rejected (plist note for local logo images). Material fixes: logo images now paint through a CoreGraphics shape mask instead of a sourceAtop tint that filled the box; window codes classify by known duration first, with exact 7-day and 28–31-day buckets and no label fallback once a duration is known; legacy scoped Claude keys keep their window; the build script clears bundled logos before copying; tests check the knockout at 100% fill, glyph halves and a synthetic logo. The addendum was amended to state the fixed light glyph tone over the fixed dark track. Follow-up changes were not re-reviewed. Ledger, brief, renders and raw outputs: `/Users/ivan/ws/limitaur-review/2026-10-20-labelled-bars/`.
+
+Counts after the change: 87 native Swift, 49 frozen independent Python, 12 collector; all pass.
