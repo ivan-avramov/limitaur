@@ -30,10 +30,12 @@ fi
 plutil -lint "$APP/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c 'Print :LSUIElement' "$APP/Contents/Info.plist" | grep -qx true
 test -x "$APP/Contents/MacOS/Limitaur"
-# Ad-hoc by default. Set LIMITAUR_SIGN_IDENTITY to a code-signing identity in your login
-# keychain (for example a self-signed "Limitaur Dev" certificate) so the designated
-# requirement stays stable across rebuilds and the Keychain keeps trusting the app.
-codesign --force --sign "${LIMITAUR_SIGN_IDENTITY:--}" "$APP"
+# Signing identity: LIMITAUR_SIGN_IDENTITY if set; otherwise a code-signing identity named
+# "Limitaur Dev" when the login keychain has one; otherwise ad-hoc. A stable identity keeps the
+# designated requirement the same across rebuilds, so the Keychain keeps trusting the app.
+IDENTITY="${LIMITAUR_SIGN_IDENTITY:-}"
+if [ -z "$IDENTITY" ] && security find-identity -v -p codesigning 2>/dev/null | grep -q '"Limitaur Dev"'; then IDENTITY="Limitaur Dev"; fi
+codesign --force --sign "${IDENTITY:--}" "$APP"
 codesign --verify --strict "$APP"
 (cd "$(dirname "$APP")" && shasum -a 256 "./$(basename "$APP")/Contents/MacOS/Limitaur" > "$(basename "$APP").sha256")
-echo "$APP $VERSION ($BUILD_NUMBER, $REVISION, signed ${LIMITAUR_SIGN_IDENTITY:-ad-hoc})"
+echo "$APP $VERSION ($BUILD_NUMBER, $REVISION, signed ${IDENTITY:-ad-hoc})"

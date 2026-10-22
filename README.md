@@ -27,13 +27,17 @@ The bundle script accepts an optional output path followed by SwiftPM build opti
 
 The build script creates a local signed app bundle. It does not install a login item or publish a release. The bundle has no Dock icon.
 
-By default the bundle is ad-hoc signed, and every rebuild gets a new identity, so macOS asks again before the app may read the Claude Keychain item. To keep that trust across rebuilds, create a self-signed code-signing certificate once and name it when building:
+An ad-hoc signed bundle gets a new identity on every rebuild, so macOS asks again before the app may read the Claude Keychain item. The script therefore signs with a code-signing identity named `Limitaur Dev` when the login keychain has one, or with whatever `LIMITAUR_SIGN_IDENTITY` names, and falls back to ad-hoc. To create the identity once, either use Keychain Access (Certificate Assistant → Create a Certificate…, name `Limitaur Dev`, Self Signed Root, Code Signing) or from a shell:
 
-1. Keychain Access → Keychain Access menu → Certificate Assistant → Create a Certificate…
-2. Name `Limitaur Dev`, Identity Type `Self Signed Root`, Certificate Type `Code Signing`, then Create.
-3. Build with `LIMITAUR_SIGN_IDENTITY="Limitaur Dev" sh scripts/build-app.sh`, or export the variable in your shell.
+```sh
+W=$(mktemp -d); openssl req -x509 -newkey rsa:2048 -nodes -days 3650 -keyout $W/key.pem -out $W/cert.pem \
+  -subj "/CN=Limitaur Dev" -addext "keyUsage=critical,digitalSignature" -addext "extendedKeyUsage=critical,codeSigning"
+openssl pkcs12 -export -legacy -out $W/dev.p12 -inkey $W/key.pem -in $W/cert.pem -name "Limitaur Dev" -passout pass:transit
+security import $W/dev.p12 -k ~/Library/Keychains/login.keychain-db -P transit -T /usr/bin/codesign
+security add-trusted-cert -p codeSign -k ~/Library/Keychains/login.keychain-db $W/cert.pem; rm -rf $W
+```
 
-The first launch of a bundle signed with the new identity asks once; later rebuilds do not. Nothing here notarizes or publishes.
+The first launch of a bundle signed with the identity asks once, and choosing Always Allow keeps it across rebuilds. Nothing here notarizes or publishes.
 
 ## Version
 
