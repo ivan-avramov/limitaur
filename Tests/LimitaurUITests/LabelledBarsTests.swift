@@ -4,16 +4,16 @@ import Testing
 @testable import LimitaurCore
 @testable import Limitaur
 
-@MainActor private func bitmap(_ metrics: [RankedMetric], count: Int = 3, dark: Bool = true, stale: Bool = false) -> NSBitmapImageRep {
+@MainActor private func bitmap(_ metrics: [RankedMetric], count: Int = 3, dark: Bool = true, unavailable: [ProviderID] = []) -> NSBitmapImageRep {
     let view = RingView(frame: NSRect(x: 0, y: 0, width: RingView.statusWidth(for: count), height: 22))
-    view.count = count; view.selected = metrics; view.stale = stale
+    view.count = count; view.selected = metrics; view.unavailableProviders = unavailable
     view.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
     let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds)!
     view.cacheDisplay(in: view.bounds, to: rep)
     return rep
 }
-@MainActor private func render(_ metrics: [RankedMetric], count: Int = 3, dark: Bool = true, stale: Bool = false) -> Data {
-    bitmap(metrics, count: count, dark: dark, stale: stale).representation(using: .png, properties: [:])!
+@MainActor private func render(_ metrics: [RankedMetric], count: Int = 3, dark: Bool = true, unavailable: [ProviderID] = []) -> Data {
+    bitmap(metrics, count: count, dark: dark, unavailable: unavailable).representation(using: .png, properties: [:])!
 }
 
 private func ranked(_ provider: ProviderID, id: String, label: String, percent: Double?) -> RankedMetric {
@@ -72,12 +72,12 @@ private func halves(_ rect: NSRect) -> (top: NSRect, bottom: NSRect) {
 }
 
 @MainActor @Test func statusWidthGrowsWithSlotsAndFitsCounts() {
-    #expect(RingView.statusWidth(for: 1) == CGFloat(31))
-    #expect(RingView.statusWidth(for: 3) == CGFloat(79))
-    #expect(RingView.statusWidth(for: 8) == CGFloat(199))
+    #expect(RingView.statusWidth(for: 1) == CGFloat(27))
+    #expect(RingView.statusWidth(for: 3) == CGFloat(75))
+    #expect(RingView.statusWidth(for: 8) == CGFloat(195))
     #expect(RingView.statusWidth(for: 0) == RingView.statusWidth(for: 3))
     #expect(RingView.statusWidth(for: 99) == RingView.statusWidth(for: 3))
-    withLayout(.jar) { #expect(RingView.statusWidth(for: 3) == CGFloat(72)) }
+    withLayout(.jar) { #expect(RingView.statusWidth(for: 3) == CGFloat(68)) }
 }
 
 @MainActor @Test(arguments: [RingView.Layout.beside, .jar, .logo]) func renderingReflectsGlyphsFillAndAppearance(layout: RingView.Layout) {
@@ -97,7 +97,7 @@ private func halves(_ rect: NSRect) -> (top: NSRect, bottom: NSRect) {
         #expect(base != render([unknown]), "unavailable slot must differ from a known value")
         #expect(base != render([claudeSession], dark: false), "appearance must change pixels")
         #expect(render([claudeSession]) == base, "rendering is deterministic")
-        #expect(render([], stale: true) != render([]), "health marker must change pixels")
+        #expect(render([], unavailable: ["claude"]) != render([]), "an unavailable provider must change pixels")
         #expect(render([claudeSession, codexSession, claudeWeekly]) != render([claudeSession, claudeSession, claudeSession]),
                 "each slot draws its own glyphs")
     }
@@ -121,6 +121,27 @@ private func halves(_ rect: NSRect) -> (top: NSRect, bottom: NSRect) {
     let scale = Double(a.pixelsHigh) / 22
     let red = brightness(a, x: inner.midX, y: inner.midY)
     #expect(abs(brightnessSum(a, inner) - red * Double(inner.width * inner.height) * scale * scale) < 0.5, "uniform fill colour")
+}
+
+@MainActor @Test(arguments: [RingView.Layout.beside, .jar]) func emptySlotsNameUnavailableProvidersInOrder(layout: RingView.Layout) {
+    _ = NSApplication.shared
+    withLayout(layout) {
+        let codex = ranked("codex", id: "session:::", label: "session", percent: 40)
+        let plain = bitmap([codex])
+        let one = bitmap([codex], unavailable: ["claude"])
+        let two = bitmap([codex], unavailable: ["claude", "gemini"])
+        let width = RingView.slotWidth, step = width + RingView.gap
+        let slots = (0..<3).map { NSRect(x: 4 + CGFloat($0) * step, y: 0, width: width, height: 22) }
+        func slot(_ i: Int) -> NSRect { slots[i] }
+        #expect(brightnessSum(one, slot(0)) == brightnessSum(plain, slot(0)), "ranked slot unchanged")
+        #expect(brightnessSum(one, slot(1)) != brightnessSum(plain, slot(1)), "first empty slot names claude")
+        #expect(brightnessSum(one, slot(2)) == brightnessSum(plain, slot(2)), "second empty slot stays bare with one provider")
+        #expect(brightnessSum(two, slot(2)) != brightnessSum(plain, slot(2)), "second empty slot names gemini")
+        #expect(brightnessSum(two, slot(1)) == brightnessSum(one, slot(1)), "claude label does not depend on later entries")
+        let full = bitmap([codex, codex, codex], unavailable: ["claude"])
+        #expect(full.representation(using: .png, properties: [:]) == bitmap([codex, codex, codex]).representation(using: .png, properties: [:]),
+                "no empty slot, no label")
+    }
 }
 
 @MainActor @Test func besideLayoutIgnoresProviderImages() throws {

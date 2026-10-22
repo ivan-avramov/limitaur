@@ -104,7 +104,7 @@ private struct FrozenDemoClock: MonitorClock {
     /// stacked to its right in the plain foreground colour.
     enum Layout { case jar, beside, logo }
     static var layout: Layout = .beside
-    static let leftPad: CGFloat = 4, rightPad: CGFloat = 8
+    static let leftPad: CGFloat = 4, rightPad: CGFloat = 4
     static var slotWidth: CGFloat { layout == .beside ? 19 : 18 }
     static var slotHeight: CGFloat { layout == .beside ? 18 : 20 }
     static var gap: CGFloat { layout == .beside ? 5 : 3 }
@@ -116,8 +116,8 @@ private struct FrozenDemoClock: MonitorClock {
     }
     var count = 3 { didSet { needsDisplay = true } }
     var selected: [RankedMetric] = [] { didSet { needsDisplay = true } }
-    var providerWarning = false { didSet { needsDisplay = true } }
-    var stale = false { didSet { needsDisplay = true } }
+    /// Providers that are configured but not healthy; the first empty slots carry their codes.
+    var unavailableProviders: [ProviderID] = [] { didSet { needsDisplay = true } }
     var appearanceChanged: (() -> Void)?
     var willDraw: (() -> Void)?
     override var isFlipped: Bool { false }
@@ -238,6 +238,8 @@ private struct FrozenDemoClock: MonitorClock {
             let radius: CGFloat = Self.layout == .beside ? 1.5 : 3
             let outline = NSBezierPath(roundedRect: bar, xRadius: radius, yRadius: radius)
             track.setFill(); outline.fill()
+            let glyphArea = Self.layout == .beside
+                ? NSRect(x: bar.maxX + 1, y: slot.minY, width: slot.width - Self.barWidth - 1, height: slot.height) : bar
             guard index < selected.count, let fill = ringFill(selected[index].metric.usedPercent) else {
                 let dash = NSBezierPath()
                 dash.lineWidth = 1
@@ -245,6 +247,14 @@ private struct FrozenDemoClock: MonitorClock {
                 dash.line(to: NSPoint(x: bar.maxX - 1.5, y: bar.midY))
                 NSColor.secondaryLabelColor.setStroke()
                 dash.stroke()
+                // An empty slot names a provider that is configured but not healthy, dimmed.
+                let missing = index - selected.count
+                if missing >= 0, missing < unavailableProviders.count {
+                    let code = providerGlyph(for: unavailableProviders[missing])
+                    let area = Self.layout == .beside ? glyphArea : NSRect(x: bar.minX, y: bar.minY + Self.barWidth, width: bar.width, height: bar.height - Self.barWidth)
+                    Self.draw(text: code, font: code.count > 1 ? Self.pairGlyphFont : Self.glyphFont,
+                              color: .secondaryLabelColor, centeredIn: Self.glyphRects(in: area).provider)
+                }
                 continue
             }
             let ranked = selected[index]
@@ -266,8 +276,7 @@ private struct FrozenDemoClock: MonitorClock {
             }
             switch Self.layout {
             case .beside:
-                let column = NSRect(x: bar.maxX + 1, y: slot.minY, width: slot.width - Self.barWidth - 1, height: slot.height)
-                Self.drawGlyphs(provider: ranked.providerID, code: code, in: column, color: .labelColor, allowImage: false)
+                Self.drawGlyphs(provider: ranked.providerID, code: code, in: glyphArea, color: .labelColor, allowImage: false)
             case .jar, .logo:
                 // Above the fill line the glyphs sit on the opaque track: light on the dark-mode
                 // track, dark on the light-mode track. Inside the fill they take the contrast
@@ -284,10 +293,6 @@ private struct FrozenDemoClock: MonitorClock {
                     NSGraphicsContext.restoreGraphicsState()
                 }
             }
-        }
-        if providerWarning || stale {
-            let marker = NSBezierPath(ovalIn: NSRect(x: bounds.maxX - 5, y: bounds.maxY - 6, width: 4, height: 4))
-            NSColor.systemOrange.setFill(); marker.fill()
         }
         }
     }
@@ -712,7 +717,7 @@ private struct FrozenDemoClock: MonitorClock {
         refreshProjection()
         guard let current = lastProjection else { return }
         if previous == nil || previous?.selected != current.selected ||
-           previous?.providerWarning != current.providerWarning ||
+           previous?.providerWarning != current.providerWarning || previous?.unavailableProviders != current.unavailableProviders ||
            previous?.accessibilitySummary != current.accessibilitySummary ||
            !sameDropdownRows(previous?.profiles ?? [], current.profiles) {
             requestLocalDisplay()
@@ -731,15 +736,13 @@ private struct FrozenDemoClock: MonitorClock {
         }
         lastProjection = projected
         if rings.selected != projected.selected { rings.selected = projected.selected }
-        let warning = projected.providerWarning
-        let stale = projected.profiles.contains { $0.health == .stale }
-        if rings.providerWarning != warning { rings.providerWarning = warning }
-        if rings.stale != stale { rings.stale = stale }
+        if rings.unavailableProviders != projected.unavailableProviders { rings.unavailableProviders = projected.unavailableProviders }
         if item.button?.accessibilityLabel() != projected.accessibilitySummary {
             item.button?.setAccessibilityLabel(projected.accessibilitySummary)
         }
         if item.button?.toolTip != projected.accessibilitySummary {
             item.button?.toolTip = projected.accessibilitySummary
+            rings.toolTip = projected.accessibilitySummary
         }
         if popover.isShown && !sameDropdownRows(lastDropdownRows, projected.profiles) {
             dropdown.renderNow = wall

@@ -105,6 +105,8 @@ public struct PresentationState: Sendable {
     public let profiles: [ProfileDisplay]
     public let selected: [RankedMetric]
     public let providerWarning: Bool
+    /// Providers with at least one profile that is not healthy, in row order, unique.
+    public let unavailableProviders: [ProviderID]
     public let accessibilitySummary: String
 }
 
@@ -153,6 +155,10 @@ public func projectDisplay(_ display: MonitorDisplay, count requestedCount: Int,
     }.prefix(count)
     let chosen = Array(selected)
     let warning = rows.contains { $0.health != .healthy }
+    var unavailable: [ProviderID] = []
+    for row in rows where row.health != .healthy && !unavailable.contains(row.profile.providerID) {
+        unavailable.append(row.profile.providerID)
+    }
     var labels = chosen.map { row in
         let percent = row.metric.usedPercent.map { String(format: "%.2f percent", $0) } ?? "unknown"
         let reset = row.metric.resetsAt.flatMap(displayableResetDate).map {
@@ -169,7 +175,7 @@ public func projectDisplay(_ display: MonitorDisplay, count requestedCount: Int,
         labels.append("\(row.profile.providerID.rawValue), \(row.profile.label), \(row.health.rawValue)")
     }
     return PresentationState(revision: display.revision, count: count, profiles: rows,
-                             selected: chosen, providerWarning: warning,
+                             selected: chosen, providerWarning: warning, unavailableProviders: unavailable,
                              accessibilitySummary: labels.joined(separator: "; "))
 }
 

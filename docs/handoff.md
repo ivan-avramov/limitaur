@@ -1,6 +1,6 @@
 # Limitaur handoff
 
-Updated 2026-10-20 (America/Los_Angeles). Discussion IDs continue from P340.
+Updated 2026-10-20 (America/Los_Angeles). Discussion IDs continue from P345.
 
 ## Product state
 
@@ -28,9 +28,14 @@ Implemented per `docs/labelled-bars.md`, revised 2026-10-21 after live inspectio
 
 ## Still pending, in order
 
-1. Release gates, all manual on this machine and unverified: actual menu-bar anchoring, click, keyboard, scroll, light/dark, increased contrast and accessibility labels; Codex and Claude fetch from the built app bundle, especially Claude Keychain access; default SwiftBuild backend build; sustained performance (60 s warmup plus 600 s measured, both providers, max RSS under 50 MiB, mean one-core CPU under 0.1%). Never grant OS access automatically.
-2. API-metered accounts and hybrid credit use: not approved. Last contract draft is external at `/Users/ivan/ws/limitaur-review/2026-10-18-01a15018/claude-continuation/additions-design.md`; its detailed contract was not approved.
-3. Cursor: deferred.
+1. P339 signing identity: operator creates a self-signed "Limitaur Dev" code-signing certificate once and builds with `LIMITAUR_SIGN_IDENTITY`, so Keychain trust survives rebuilds.
+2. P343 credential re-check (credential boundary, strict four-eyes, not yet approved): a paused Claude binding is never re-read today; the token is loaded once at connect and the binding pauses permanently at `expiresAt` until Connect. Proposal: periodic non-interactive re-read of the configured source while paused, resuming on a changed fingerprint. See the 2026-10-21 investigation in the session record and `docs/reviews/beside-layout-review.md`.
+3. Release gates: app-bundle provider access cleared informally by live use; default SwiftPM backend builds on the host (the recorded failure was sandbox-only); anchoring, click and both appearances exercised by daily use; keyboard, scrolling and accessibility tree unverified; sustained performance (60 s warm-up plus 600 s, both providers healthy, max RSS under 50 MiB, mean one-core CPU under 0.1%) not yet measured. Never grant OS access automatically.
+4. API-metered and hybrid accounts: backlog, `docs/backlog/api-metered-accounts.md`; to be implemented on the operator's other machine.
+5. Experimental jar and logo layouts: retained by operator request; delete after a period on the beside layout.
+6. Cursor: deferred.
+
+Remote: `origin` is `git@github.com:ivan-avramov/limitaur.git`, public, MIT, created 2026-10-21 and still empty. Push only on explicit instruction in that turn.
 4. Known build warnings: two deprecated classic Keychain calls in `Credentials.swift` (SecKeychainGet/SetUserInteractionAllowed). Deliberate: they are the only way to guarantee no background prompt for the file-based login-keychain item Claude Code writes. Replacing them is a credential-boundary change needing strict four-eyes and empirical prompt verification; not planned (P330).
 
 ## Rules of the road

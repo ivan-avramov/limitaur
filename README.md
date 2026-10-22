@@ -1,6 +1,6 @@
 # Limitaur
 
-Native macOS 26+ menu-bar monitor for existing Codex and Claude local sessions. It reads subscription usage and displays the highest fresh quota percentages as narrow bars that fill upward. Beside each bar, two codes are stacked: the provider code on top (`CL` Claude, `CX` Codex; full table in `docs/provider-codes.md`) and the window code below: `5` session or up to six hours, `W` weekly, `M` monthly, `$` spend, `?` unknown, followed by a model initial for model-scoped limits, so Fable's weekly limit reads `WF`. The Indicators menu selects 1–8 bars (default 3) immediately; Accounts… remains a separate dialog. Yellow starts above 80%; red above 95%.
+Native macOS 26+ menu-bar monitor for existing Codex and Claude local sessions. It reads subscription usage and displays the highest fresh quota percentages as narrow bars that fill upward. Beside each bar, two codes are stacked: the provider code on top (`CL` Claude, `CX` Codex; full table in `docs/provider-codes.md`) and the window code below: `5` session or up to six hours, `W` weekly, `M` monthly, `$` spend, `?` unknown, followed by a model initial for model-scoped limits, so Fable's weekly limit reads `WF`. An empty slot shows a dash, and names a configured provider that is currently unavailable, stale or signed out, in dimmed letters. The Indicators menu selects 1–8 bars (default 3) immediately; Accounts… remains a separate dialog. Yellow starts above 80%; red above 95%.
 
 Two experimental layouts, a labelled jar and a logo-shaped gauge, remain in the source behind `RingView.layout` for comparison and are not used by default. A monochrome black-on-transparent square PNG at `Resources/providers/<providerID>.png` is picked up by those layouts; that directory is ignored by git, so logos never enter the repository. The app does not predict usage, buy credits, redeem resets, refresh credentials, or send telemetry.
 
@@ -23,7 +23,7 @@ sh scripts/build-app.sh
 open dist/Limitaur.app
 ```
 
-The bundle script accepts an optional output path followed by SwiftPM build options. For an isolated native backend build, pass `--build-system`, `--scratch-path`, and `--cache-path` arguments after the output path. It queries SwiftPM for the binary directory. The native backend is deprecated; the default SwiftBuild backend still has an unresolved linking permission error in the recorded isolated checks.
+The bundle script accepts an optional output path followed by SwiftPM build options and queries SwiftPM for the binary directory. The default SwiftPM build backend works on the host; an earlier linking failure occurred only under a retired sandbox harness.
 
 The build script creates a local signed app bundle. It does not install a login item or publish a release. The bundle has no Dock icon.
 

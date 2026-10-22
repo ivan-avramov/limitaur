@@ -169,7 +169,7 @@ private func checkLive() {
             }
             if count == 3 { try png(bars, path: directory + "/rings-\(theme).png", appearance: appearance) }
             let empty = RingView(frame: NSRect(x: 0, y: 0, width: RingView.statusWidth(for: count), height: 24))
-            empty.count = count; empty.stale = true; empty.providerWarning = true
+            empty.count = count; empty.unavailableProviders = ["claude", "codex"]
             try png(empty, path: directory + "/bars-\(count)-empty-stale-\(theme).png", appearance: appearance)
             if count == 3 { try png(empty, path: directory + "/empty-stale-\(theme).png", appearance: appearance) }
             let zeroSnapshot = UsageSnapshot(providerID: "codex", accountID: "demo-zero", accountLabel: "Demo",
