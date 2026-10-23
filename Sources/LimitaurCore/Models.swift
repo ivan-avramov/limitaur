@@ -144,10 +144,12 @@ public func resetCountdownText(resetAt date: Date, now: Date) -> String {
 /// per-entity minimum. Raised from 30 s on 2026-10-22 after the Claude usage
 /// endpoint answered a 30 s poll with HTTP 429 and multi-minute Retry-After.
 public let nominalPollInterval: TimeInterval = 45
+public let cadenceTolerance: TimeInterval = 1
 public func pollInterval(jitter: Double) -> TimeInterval {
     guard jitter.isFinite else { return nominalPollInterval }
     return nominalPollInterval + min(1.5, max(0, jitter))
 }
+public let retentionSlack: TimeInterval = pollInterval(jitter: 1.5) + cadenceTolerance + 1
 
 public struct RankedMetric: Sendable, Equatable {
     public var providerID: ProviderID

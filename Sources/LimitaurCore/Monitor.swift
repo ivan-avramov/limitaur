@@ -47,12 +47,13 @@ public struct ProfileDisplay: Sendable {
     public let freshnessDeadline: TimeInterval?
     public let snapshotGeneration: Int?
     public let expirations: SnapshotExpirations
+    public let fetchedInstant: TimeInterval?
     public init(profile: AccountProfile, snapshot: UsageSnapshot?, health: Health, message: String?, fetchedAge: TimeInterval?,
                 freshnessDeadline: TimeInterval? = nil, snapshotGeneration: Int? = nil,
-                expirations: SnapshotExpirations = SnapshotExpirations()) {
+                expirations: SnapshotExpirations = SnapshotExpirations(), fetchedInstant: TimeInterval? = nil) {
         self.profile = profile; self.snapshot = snapshot; self.health = health; self.message = message; self.fetchedAge = fetchedAge
         self.freshnessDeadline = freshnessDeadline; self.snapshotGeneration = snapshotGeneration
-        self.expirations = expirations
+        self.expirations = expirations; self.fetchedInstant = fetchedInstant
     }
 }
 
@@ -70,8 +71,11 @@ public struct PresentationCandidate: Sendable {
     public let metric: RankedMetric
     public let freshnessDeadline: TimeInterval?
     public let snapshotGeneration: Int?
-    public init(metric: RankedMetric, freshnessDeadline: TimeInterval?, snapshotGeneration: Int?) {
+    public let nominalDeadline: TimeInterval?
+    public init(metric: RankedMetric, freshnessDeadline: TimeInterval?, snapshotGeneration: Int?,
+                nominalDeadline: TimeInterval? = nil) {
         self.metric = metric; self.freshnessDeadline = freshnessDeadline; self.snapshotGeneration = snapshotGeneration
+        self.nominalDeadline = nominalDeadline
     }
 }
 
@@ -140,31 +144,34 @@ public func projectDisplay(_ display: MonitorDisplay, count requestedCount: Int,
         if stale && !(message?.contains("Cached usage stale") ?? false) {
             message = [message, "Cached usage stale"].compactMap { $0 }.joined(separator: "; ")
         }
-        let age = row.freshnessDeadline.map { max(0, monotonicNow - ($0 - 90)) } ?? row.fetchedAge
+        let age = row.fetchedInstant.map { max(0, monotonicNow - $0) }
+            ?? row.freshnessDeadline.map { max(0, monotonicNow - ($0 - 90)) } ?? row.fetchedAge
         rows.append(ProfileDisplay(profile: row.profile, snapshot: row.snapshot, health: health,
                                    message: message, fetchedAge: age,
                                    freshnessDeadline: row.freshnessDeadline,
-                                   snapshotGeneration: row.snapshotGeneration, expirations: expired))
+                                   snapshotGeneration: row.snapshotGeneration, expirations: expired,
+                                   fetchedInstant: row.fetchedInstant))
     }
-    let selected = display.candidates.compactMap { candidate -> RankedMetric? in
+    let selectedCandidates = display.candidates.compactMap { candidate -> PresentationCandidate? in
         guard let deadline = candidate.freshnessDeadline, monotonicNow < deadline,
               let generation = candidate.snapshotGeneration,
               !((observations[generation] ?? SnapshotExpirations()).metrics.contains(candidate.metric.metric.id)),
               candidate.metric.metric.resetsAt.map({ wallNow < $0 }) ?? true else { return nil }
-        return candidate.metric
+        return candidate
     }.prefix(count)
-    let chosen = Array(selected)
+    let chosen = selectedCandidates.map(\.metric)
     let warning = rows.contains { $0.health != .healthy }
     var unavailable: [ProviderID] = []
     for row in rows where row.health != .healthy && !unavailable.contains(row.profile.providerID) {
         unavailable.append(row.profile.providerID)
     }
-    var labels = chosen.map { row in
+    var labels = selectedCandidates.map { candidate -> String in
+        let row = candidate.metric
         let percent = row.metric.usedPercent.map { String(format: "%.2f percent", $0) } ?? "unknown"
         let reset = row.metric.resetsAt.flatMap(displayableResetDate).map {
             "reset " + DateFormatter.localizedString(from: $0, dateStyle: .short, timeStyle: .short)
         } ?? "reset unknown"
-        return "\(row.providerID.rawValue), \(row.accountLabel), \(row.metric.label), \(percent), \(reset), fresh"
+        return "\(row.providerID.rawValue), \(row.accountLabel), \(row.metric.label), \(percent), \(reset), \(candidate.nominalDeadline.map { monotonicNow < $0 } ?? true ? "fresh" : "cached")"
     }
     labels += Array(repeating: "unavailable slot", count: max(0, count - chosen.count))
     if rows.contains(where: { !$0.expirations.metrics.isEmpty }) { labels.append("cached quota reset due") }
@@ -244,6 +251,8 @@ private struct Entity {
     var snapshotGeneration: Int?
     var expirations = SnapshotExpirations()
     var successfulInstant: TimeInterval?
+    var retryAfterUntil: TimeInterval?
+    var retention: TimeInterval?
     var health: Health = .unavailable
     var message: String?
     var throttleUntil: TimeInterval = 0
@@ -251,6 +260,23 @@ private struct Entity {
     var failures = 0
     var lastAttempt: TimeInterval = -.infinity
     var alternateUsed = false
+}
+
+/// Deadline after which the stored snapshot is no longer shown or ranked: 90 s after the fetch, or
+/// longer (never past 300 s) while a provider-declared Retry-After holds the account.
+private func freshnessDeadline(_ entity: Entity) -> TimeInterval? {
+    guard let success = entity.successfulInstant else { return nil }
+    let nominal = success + 90, cap = success + 300
+    guard let retention = entity.retention, retention > nominal else { return nominal }
+    let held = min(retention, cap)
+    if entity.task != nil, !entity.alternateUsed, let retry = entity.retryAfterUntil, entity.lastAttempt >= retry, entity.lastAttempt < held { return cap }
+    return held
+}
+
+/// Extends retention only while the snapshot is still shown; a latch ending inside the nominal window is ignored by the helper.
+private func latchRetention(_ entity: inout Entity, shown: Bool) {
+    guard shown, entity.snapshot != nil, let success = entity.successfulInstant, let retry = entity.retryAfterUntil else { return }
+    entity.retention = min(max(entity.retention ?? 0, retry + retentionSlack), success + 300)
 }
 
 /// Noncredential state for verifying that a presentation action leaves request
@@ -589,7 +615,7 @@ public actor Monitor {
         if entity.subscribers.isEmpty {
             entity.epoch = freshEpoch()
             entity.task?.cancel(); entity.task = nil
-            entity.snapshot = nil; entity.successfulInstant = nil
+            entity.snapshot = nil; entity.successfulInstant = nil; entity.retention = nil
             entity.snapshotGeneration = nil; entity.expirations = SnapshotExpirations()
         }
         entities[old.entityKey] = entity
@@ -715,6 +741,8 @@ public actor Monitor {
                           sourceID: String, fingerprint: String, dispatchDeadline: TimeInterval,
                           result: Result<HTTPResponse, Error>) async {
         guard var entity = entities[key], entity.epoch == epoch, entity.task != nil else { return }
+        let mono = clock.monotonicNow(), wall = clock.wallNow()
+        let shownBefore = freshnessDeadline(entity).map { mono < $0 } ?? false
         entity.task = nil
         let subscriber = entity.subscribers.sorted().first { id in
             guard let candidate = bindings[id] else { return false }
@@ -722,7 +750,6 @@ public actor Monitor {
                    candidate.credential.fingerprint == fingerprint &&
                    (id != bindingID || candidate.generation == bindingGeneration)
         }
-        let mono = clock.monotonicNow(), wall = clock.wallNow()
         // Entity-level effects of a response apply whatever the subscriber state; only a stored
         // snapshot, merge and the account-mismatch rejection need an eligible current subscriber.
         let eligible = subscriber.flatMap { bindings[$0] }
@@ -752,6 +779,7 @@ public actor Monitor {
                            verified != selected { throw CredentialFailure.accountMismatch }
                     }
                     entity.snapshot = snapshot; entity.successfulInstant = mono
+                    entity.retryAfterUntil = nil; entity.retention = nil
                     snapshotGeneration += 1
                     entity.snapshotGeneration = snapshotGeneration
                     entity.expirations = SnapshotExpirations()
@@ -780,7 +808,7 @@ public actor Monitor {
                     if entity.subscribers.isEmpty {
                         entity.epoch = freshEpoch()
                         entity.snapshot = nil
-                        entity.successfulInstant = nil
+                        entity.successfulInstant = nil; entity.retention = nil
                         entity.snapshotGeneration = nil
                         entity.expirations = SnapshotExpirations()
                     }
@@ -843,8 +871,10 @@ public actor Monitor {
                 backoff(&entity, now: mono)
                 if let value = response.headers["retry-after"], let delay = retryDelay(value, wall: wall) {
                     entity.throttleUntil = max(entity.throttleUntil, mono + delay)
+                    entity.retryAfterUntil = max(entity.retryAfterUntil ?? 0, mono + delay)
                 }
                 entity.retryDate = wall.addingTimeInterval(max(0, entity.throttleUntil - mono))
+                latchRetention(&entity, shown: shownBefore)
             default:
                 count(entity.provider, "unavailable")
                 entity.health = .unavailable; entity.message = "Provider unavailable"
@@ -970,12 +1000,15 @@ public actor Monitor {
             existing.throttleUntil = max(existing.throttleUntil, entity.throttleUntil)
             existing.failures = max(existing.failures, entity.failures)
             existing.lastAttempt = max(existing.lastAttempt, entity.lastAttempt)
+            existing.retryAfterUntil = [existing.retryAfterUntil, entity.retryAfterUntil].compactMap { $0 }.max()
             if (entity.successfulInstant ?? -.infinity) > (existing.successfulInstant ?? -.infinity) {
                 existing.snapshot = entity.snapshot; existing.successfulInstant = entity.successfulInstant
                 existing.snapshotGeneration = entity.snapshotGeneration
                 existing.expirations = entity.expirations
                 existing.health = entity.health; existing.message = entity.message
+                existing.retention = entity.retention
             }
+            latchRetention(&existing, shown: freshnessDeadline(existing).map { clock.monotonicNow() < $0 } ?? false)
             existing.subscribers.formUnion(entity.subscribers)
             entity.task?.cancel(); entity.epoch = freshEpoch()
             entities[key] = nil; entities[target] = existing
@@ -1022,6 +1055,8 @@ public actor Monitor {
             entities[key]?.snapshot = nil
             entities[key]?.snapshotGeneration = nil
             entities[key]?.expirations = SnapshotExpirations()
+            entities[key]?.retention = nil
+            entities[key]?.retryAfterUntil = nil
         }
         for pending in loading.values { pending.2.cancel() }
         loading.removeAll()
@@ -1081,7 +1116,7 @@ public actor Monitor {
         displayRevision &+= 1
         var rows: [ProfileDisplay] = [], snapshots: [UsageSnapshot] = []
         var ages: [String: TimeInterval] = [:]
-        var proof: [String: (TimeInterval, Int, SnapshotExpirations)] = [:]
+        var proof: [String: (TimeInterval, Int, SnapshotExpirations, TimeInterval)] = [:]
         var next: TimeInterval?
         let orderedBindings = bindings.values.sorted { $0.profile.id < $1.profile.id }
         var primary: [String: Binding] = [:]
@@ -1097,8 +1132,10 @@ public actor Monitor {
                 next = min(next ?? .infinity, deadline)
             }
             let age = entity.successfulInstant.map { max(0, mono - $0) }
+            let deadline = freshnessDeadline(entity)
+            let stale = deadline.map { mono >= $0 } ?? false
             var health = binding.authPaused ? Health.unauthenticated : entity.health
-            if let age, age >= 90, !binding.authPaused,
+            if stale, !binding.authPaused,
                (health == .healthy || health == .partial) { health = .stale }
             let retryLabel: String?
             if let retryDate = entity.retryDate {
@@ -1107,35 +1144,36 @@ public actor Monitor {
                 } else { retryLabel = "Retry time unavailable" }
             } else { retryLabel = nil }
             var statusMessage = binding.message ?? retryLabel ?? entity.message
-            if let age, age >= 90 {
+            if stale {
                 statusMessage = [statusMessage, "Cached usage stale"].compactMap { $0 }.joined(separator: "; ")
             }
             if let owner = primary[binding.entityKey], owner.profile.id != binding.profile.id {
                 let aliasMessage = "Alias of " + owner.profile.label + (statusMessage.map { "; " + $0 } ?? "")
                 rows.append(ProfileDisplay(profile: binding.profile, snapshot: nil, health: health,
                                            message: aliasMessage, fetchedAge: age,
-                                           freshnessDeadline: entity.successfulInstant.map { $0 + 90 },
+                                           freshnessDeadline: deadline,
                                            snapshotGeneration: entity.snapshotGeneration,
-                                           expirations: entity.expirations))
+                                           expirations: entity.expirations, fetchedInstant: entity.successfulInstant))
                 continue
             }
             if var snapshot = entity.snapshot {
                 snapshot.accountLabel = binding.profile.label
                 rows.append(ProfileDisplay(profile: binding.profile, snapshot: snapshot, health: health,
                                            message: statusMessage, fetchedAge: age,
-                                           freshnessDeadline: entity.successfulInstant.map { $0 + 90 },
+                                           freshnessDeadline: deadline,
                                            snapshotGeneration: entity.snapshotGeneration,
-                                           expirations: entity.expirations))
+                                           expirations: entity.expirations, fetchedInstant: entity.successfulInstant))
                 var rankable = snapshot
                 rankable.metrics.removeAll { entity.expirations.metrics.contains($0.id) }
                 snapshots.append(rankable)
                 let key = snapshot.providerID.rawValue + "\u{1f}" + snapshot.accountID.rawValue
-                ages[key] = age
-                if proof[key] == nil, let instant = entity.successfulInstant, let id = entity.snapshotGeneration {
-                    proof[key] = (instant + 90, id, entity.expirations)
+                let shift = deadline.map { $0 - ((entity.successfulInstant ?? 0) + 90) } ?? 0
+                ages[key] = age.map { max(0, $0 - shift) }
+                if proof[key] == nil, let deadline, let instant = entity.successfulInstant, let id = entity.snapshotGeneration {
+                    proof[key] = (deadline, id, entity.expirations, instant + 90)
                 }
-                if let instant = entity.successfulInstant, mono < instant + 90 {
-                    next = min(next ?? .infinity, instant + 90)
+                if let deadline, mono < deadline {
+                    next = min(next ?? .infinity, deadline)
                     for metric in snapshot.metrics {
                         if let reset = metric.resetsAt,
                            !entity.expirations.metrics.contains(metric.id),
@@ -1171,9 +1209,10 @@ public actor Monitor {
         let candidates = rankMetrics(snapshots, wallNow: wall, elapsedAges: ages, maximumCount: 8)
             .compactMap { ranked -> PresentationCandidate? in
                 let key = ranked.providerID.rawValue + "\u{1f}" + ranked.accountID.rawValue
-                guard let (deadline, id, expired) = proof[key],
+                guard let (deadline, id, expired, nominal) = proof[key],
                       !expired.metrics.contains(ranked.metric.id) else { return nil }
-                return PresentationCandidate(metric: ranked, freshnessDeadline: deadline, snapshotGeneration: id)
+                return PresentationCandidate(metric: ranked, freshnessDeadline: deadline, snapshotGeneration: id,
+                                             nominalDeadline: nominal)
             }
         return MonitorDisplay(profiles: rows.sorted { ($0.profile.providerID.rawValue, $0.profile.id) < ($1.profile.providerID.rawValue, $1.profile.id) },
                               candidates: candidates, revision: displayRevision, nextDisplayDeadline: next)

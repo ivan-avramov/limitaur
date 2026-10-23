@@ -619,7 +619,7 @@ private struct FrozenDemoClock: MonitorClock {
                 self.scheduleCadence()
             }
         }
-        timer.tolerance = 1
+        timer.tolerance = cadenceTolerance
         cadence = timer
         RunLoop.main.add(timer, forMode: .common)
     }
