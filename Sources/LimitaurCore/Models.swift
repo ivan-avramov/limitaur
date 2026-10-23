@@ -140,10 +140,13 @@ public func resetCountdownText(resetAt date: Date, now: Date) -> String {
     return "in \(Int(ceil(seconds / 3600)))h"
 }
 
-/// The UI's cadence is never below the scheduler's 30-second minimum.
+/// Nominal UI cadence: 45 s plus bounded jitter, above the scheduler's 30-second
+/// per-entity minimum. Raised from 30 s on 2026-10-22 after the Claude usage
+/// endpoint answered a 30 s poll with HTTP 429 and multi-minute Retry-After.
+public let nominalPollInterval: TimeInterval = 45
 public func pollInterval(jitter: Double) -> TimeInterval {
-    guard jitter.isFinite else { return 30 }
-    return 30 + min(1.5, max(0, jitter))
+    guard jitter.isFinite else { return nominalPollInterval }
+    return nominalPollInterval + min(1.5, max(0, jitter))
 }
 
 public struct RankedMetric: Sendable, Equatable {

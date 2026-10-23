@@ -16,18 +16,19 @@ import Security
 }
 
 @Test func cadenceRemainsWithinNominalWindow() {
-    #expect(pollInterval(jitter: -4) == 30)
-    #expect(pollInterval(jitter: 0) == 30)
-    #expect(pollInterval(jitter: 1.5) == 31.5)
-    #expect(pollInterval(jitter: 100) == 31.5)
-    #expect(pollInterval(jitter: .nan) == 30)
+    #expect(nominalPollInterval == 45)
+    #expect(pollInterval(jitter: -4) == 45)
+    #expect(pollInterval(jitter: 0) == 45)
+    #expect(pollInterval(jitter: 1.5) == 46.5)
+    #expect(pollInterval(jitter: 100) == 46.5)
+    #expect(pollInterval(jitter: .nan) == 45)
     var elapsed = 0.0
     var refreshes = 0
     while elapsed + pollInterval(jitter: 1.5) <= 600 {
         elapsed += pollInterval(jitter: 1.5)
         refreshes += 1
     }
-    #expect(refreshes >= 18)
+    #expect(refreshes >= 12)
 }
 
 @Test func rankingAndExpiry() {
