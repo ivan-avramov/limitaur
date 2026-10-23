@@ -1,6 +1,6 @@
 # Limitaur handoff
 
-Updated 2026-10-23 (America/Los_Angeles). Discussion IDs continue from P355.
+Updated 2026-10-23 (America/Los_Angeles). Discussion IDs continue from P382.
 
 ## Product state
 
@@ -31,6 +31,14 @@ Implemented per `docs/labelled-bars.md`, revised 2026-10-21 after live inspectio
 Four-eyes strict run complete; record `docs/reviews/credential-recheck-review.md`, residuals `docs/backlog/credential-recheck-residuals.md` (P350–P353, operator's call whether any becomes a requirement). Evidence root `/Users/ivan/ws/limitaur-review/2026-10-21-credential-recheck/`. Tests after the change: 25 UI + 141 core native (42 frozen blind under `Tests/LimitaurCoreTests/CredentialRecheck/`, never edit them; 29 implementer), 49 frozen independent Python, 12 collector, all passing three times in the operator tree at Accept.
 
 Open: M1 (spec R-list) is the operator's manual gate: relaunch the rebuilt signed bundle, let the Claude token expire, run Claude Code, observe resume within about one interval plus one cycle with no dialog; then record the outcome in README (replace the "not yet observed live" clause). `dist/Limitaur.app` was rebuilt after the commit and is signed with "Limitaur Dev" (0.1.0, build 36, revision 5d977a3, sha256 beside it); codesign waited several minutes on a Keychain prompt before completing, so expect that prompt once per new signing process. Helper copies under `/tmp/limitaur-fe/` and `/private/tmp/limitaur-review-checkout` are disposable.
+
+## C3 throttle-paced freshness: four-eyes light run, PAUSED at the second-fix-round ask (2026-10-23 ~08:10Z)
+
+Nothing is running. Nothing of this run is committed except the 45 s cadence (92e3e68). The operator tree holds the uncommitted specification `docs/proposals/throttle-paced-freshness.md` (revision 4, SHA256 in evidence `spec-r4-sha256.txt`). Do not stash, reset or delete it. Operator words: "go for the light run" (P378), "implement autonomously if the review comes back good".
+
+Evidence root `/Users/ivan/ws/limitaur-review/2026-10-23-throttle-freshness/`: `go.txt`, `design-1/` (codex 01a167a1…, opus 24113d63…, `dispositions.md`), `implementer/` (sonnet 6d0bab0d…, `candidate-1.diff`, `report.md`, `verify-candidate-1.txt`, `frozen-on-candidate-1.txt`), `testwriter/` (codex gpt-6.1-sol 01a167a7-dbf5-7233-baad-1051d00e9388, three deliveries; `frozen-2/` is the current frozen set of 40 tests, hashes `frozen-2-sha256.txt`; `invalid-tests.md`; `dispositions-candidate-2.md`), `fixer/` (sonnet 163f6d53…, `candidate-2.diff` = current candidate, `verify-candidate-2.txt`: 25 UI + 192 core three times, Python OK), `change-review-1/` (codex 01a167c9…, opus a7e7ba4c…, `dispositions-*.md`). Helper copies `/tmp/limitaur-fe2/{implementer,testwriter,fixer,verify}` and `/private/tmp/limitaur-review-checkout` are disposable.
+
+State: candidate 2 passes everything; test-writer verdict "fix then merge" (P33 `stop()` does not clear `retention`; P34 README wording; P35 test helper unbounded wait); change review found three timing edges (repeat 429 completing after `held` during the in-flight hold does not re-latch; alternate-credential request inherits the hold; 46.5 s slack shorter than the real tick gap). All adopted into a proposed revision 5 (not yet written). The light-mode fix round is spent, so a second round is the operator's call (P381): recommended. On "go": write r5 (pre-completion "shown"; `alternateUsed == false` guard; slack 48.5 s via `cadenceTolerance` in Models.swift used by AppUI; `stop()` clears `retention`/`retryAfterUntil`; README), brief a fresh sonnet fixer from a copy at candidate 2 + r5, have the test-writer amend the boundary numbers and `secondThrottleAtRetentionEqualityCannotRevive` (resume its session; re-freeze), verify candidate 3 on a clean copy, test-writer delivery 4, change review 2, then apply, commit (`feat: keep throttled usage visible until the provider's Retry-After`), rebuild dist. On "accept as is": apply candidate 2, commit with the six items in `docs/backlog/`. Push only on the operator's word.
 
 ## Still pending, in order
 
