@@ -1,6 +1,6 @@
 # Limitaur handoff
 
-Updated 2026-10-23 (America/Los_Angeles). Discussion IDs continue from P382.
+Updated 2026-10-23 (America/Los_Angeles). Discussion IDs continue from P387.
 
 ## Product state
 
@@ -32,18 +32,16 @@ Four-eyes strict run complete; record `docs/reviews/credential-recheck-review.md
 
 Open: M1 (spec R-list) is the operator's manual gate: relaunch the rebuilt signed bundle, let the Claude token expire, run Claude Code, observe resume within about one interval plus one cycle with no dialog; then record the outcome in README (replace the "not yet observed live" clause). `dist/Limitaur.app` was rebuilt after the commit and is signed with "Limitaur Dev" (0.1.0, build 36, revision 5d977a3, sha256 beside it); codesign waited several minutes on a Keychain prompt before completing, so expect that prompt once per new signing process. Helper copies under `/tmp/limitaur-fe/` and `/private/tmp/limitaur-review-checkout` are disposable.
 
-## C3 throttle-paced freshness: four-eyes light run, PAUSED at the second-fix-round ask (2026-10-23 ~08:10Z)
+## C3 throttle-paced freshness: ACCEPTED and committed (2026-10-23, commit 8c3056a)
 
-Nothing is running. Nothing of this run is committed except the 45 s cadence (92e3e68). The operator tree holds the uncommitted specification `docs/proposals/throttle-paced-freshness.md` (revision 4, SHA256 in evidence `spec-r4-sha256.txt`). Do not stash, reset or delete it. Operator words: "go for the light run" (P378), "implement autonomously if the review comes back good".
+Light four-eyes run complete (record `docs/reviews/throttle-paced-freshness-review.md`; residuals P383–P386 in `docs/backlog/throttle-paced-freshness-residuals.md`, operator's call whether any becomes a requirement). Cause: the Claude usage endpoint answers polls with 429 and a Retry-After about 100 s after the last success. Shipped: cadence 45 s (92e3e68) and, while an entity holds a parsed Retry-After, its last snapshot stays ranked until the deadline plus 48.5 s, cap 300 s after the fetch (8c3056a). Tests after the change: 25 UI + 198 core native (43 frozen blind under `Tests/LimitaurCoreTests/ThrottleFreshness/`, never edit them; 14 implementer), 49 frozen independent Python, 12 collector, all passing three times in the operator tree at Accept. Evidence root `/Users/ivan/ws/limitaur-review/2026-10-23-throttle-freshness/`. Helper copies `/tmp/limitaur-fe2/` and `/private/tmp/limitaur-review-checkout` are disposable.
 
-Evidence root `/Users/ivan/ws/limitaur-review/2026-10-23-throttle-freshness/`: `go.txt`, `design-1/` (codex 01a167a1…, opus 24113d63…, `dispositions.md`), `implementer/` (sonnet 6d0bab0d…, `candidate-1.diff`, `report.md`, `verify-candidate-1.txt`, `frozen-on-candidate-1.txt`), `testwriter/` (codex gpt-6.1-sol 01a167a7-dbf5-7233-baad-1051d00e9388, three deliveries; `frozen-2/` is the current frozen set of 40 tests, hashes `frozen-2-sha256.txt`; `invalid-tests.md`; `dispositions-candidate-2.md`), `fixer/` (sonnet 163f6d53…, `candidate-2.diff` = current candidate, `verify-candidate-2.txt`: 25 UI + 192 core three times, Python OK), `change-review-1/` (codex 01a167c9…, opus a7e7ba4c…, `dispositions-*.md`). Helper copies `/tmp/limitaur-fe2/{implementer,testwriter,fixer,verify}` and `/private/tmp/limitaur-review-checkout` are disposable.
-
-State: candidate 2 passes everything; test-writer verdict "fix then merge" (P33 `stop()` does not clear `retention`; P34 README wording; P35 test helper unbounded wait); change review found three timing edges (repeat 429 completing after `held` during the in-flight hold does not re-latch; alternate-credential request inherits the hold; 46.5 s slack shorter than the real tick gap). All adopted into a proposed revision 5 (not yet written). The light-mode fix round is spent, so a second round is the operator's call (P381): recommended. On "go": write r5 (pre-completion "shown"; `alternateUsed == false` guard; slack 48.5 s via `cadenceTolerance` in Models.swift used by AppUI; `stop()` clears `retention`/`retryAfterUntil`; README), brief a fresh sonnet fixer from a copy at candidate 2 + r5, have the test-writer amend the boundary numbers and `secondThrottleAtRetentionEqualityCannotRevive` (resume its session; re-freeze), verify candidate 3 on a clean copy, test-writer delivery 4, change review 2, then apply, commit (`feat: keep throttled usage visible until the provider's Retry-After`), rebuild dist. On "accept as is": apply candidate 2, commit with the six items in `docs/backlog/`. Push only on the operator's word.
+`dist/Limitaur.app` is rebuilt and signed with "Limitaur Dev" (0.1.0, build 40, revision 8c3056a). Open: the operator relaunches it and watches the Claude row under throttle (expected: "throttled" in the dropdown, bars stay); then M1 as in C2 (the operator chose Allow, not Always Allow, on the Keychain dialogs, so a Connect with Always Allow is needed before the non-interactive re-check can pass).
 
 ## Still pending, in order
 
 1. P339 signing identity: done 2026-10-22 (certificate "Limitaur Dev" in the login keychain, script auto-selects it; one orphaned keyless trust entry remains for the operator to delete or ignore).
-2. P343/P347 credential re-check: done (5d977a3); M1 live gate and dist rebuild pending, see above.
+2. P343/P347 credential re-check: done (5d977a3); throttle-paced freshness done (8c3056a); relaunch and M1 live gate pending, see above.
 3. Release gates: app-bundle provider access cleared informally by live use; default SwiftPM backend builds on the host (the recorded failure was sandbox-only); anchoring, click and both appearances exercised by daily use; keyboard, scrolling and accessibility tree unverified; sustained performance (60 s warm-up plus 600 s, both providers healthy, max RSS under 50 MiB, mean one-core CPU under 0.1%) not yet measured. Never grant OS access automatically.
 4. API-metered and hybrid accounts: backlog, `docs/backlog/api-metered-accounts.md`; to be implemented on the operator's other machine.
 5. Experimental jar and logo layouts: retained by operator request; delete after a period on the beside layout.
