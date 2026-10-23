@@ -217,12 +217,20 @@ private actor LookupCapacity {
     }
 }
 
+public enum RefreshDriver: Sendable { case cycle, dropdown, wake, manual, `internal` }
+private enum LoadOrigin: Sendable {
+    case explicit, recheck, wakeRecheck
+    var isRecheck: Bool { self != .explicit }
+}
+private enum PauseCause: Sendable { case http401, expired, loadFailed }
+
 private struct Binding: Sendable {
     var profile: AccountProfile
     var credential: Credential
     var entityKey: String
     var generation: Int
     var authPaused: Bool = false
+    var pauseCause: PauseCause?
     var message: String?
 }
 private struct Entity {
@@ -267,9 +275,14 @@ public actor Monitor {
     private var bindings: [String: Binding] = [:]
     private var entities: [String: Entity] = [:]
     private var profileFailures: [String: (Health, String)] = [:]
-    private var loading: [String: (Int, AccountProfile, Task<Void, Never>, Bool)] = [:]
+    private var loading: [String: (Int, AccountProfile, Task<Void, Never>, Bool, LoadOrigin)] = [:]
+    private var lastLoad: [String: TimeInterval] = [:]
+    private var rejectedFingerprint: [String: (fingerprint: String, account: AccountID?, serverRejected: Bool)] = [:]
+    private let recheckInterval: TimeInterval
     private var sleepRevalidation: [String: (AccountProfile, Bool)] = [:]
     private var loadGeneration = 0
+    private var epochCounter = 0
+    private func freshEpoch() -> Int { epochCounter += 1; return epochCounter }
     private var configuredProfiles: [String: AccountProfile] = [:]
     private var generation = 0
     private var snapshotGeneration = 0
@@ -284,7 +297,8 @@ public actor Monitor {
     private let beforeDisplayArm: (@Sendable () -> Void)?
     public init(clock: any MonitorClock = SystemMonitorClock(), credentials: CredentialStore = CredentialStore(),
                 transport: any HTTPTransport = NativeHTTPTransport(), registry: ProviderRegistry = ProviderRegistry(),
-                beforeDisplayArm: (@Sendable () -> Void)? = nil) {
+                beforeDisplayArm: (@Sendable () -> Void)? = nil, recheckInterval: TimeInterval = 300) {
+        self.recheckInterval = recheckInterval.isFinite && recheckInterval >= 30 ? recheckInterval : 300
         self.clock = clock; self.credentials = credentials; self.transport = transport; self.registry = registry
         self.beforeDisplayArm = beforeDisplayArm
     }
@@ -319,49 +333,64 @@ public actor Monitor {
                 eligibilityCounts["profileDisables", default: 0] += 1
             }
         }
+        for (id, old) in configuredProfiles {
+            if let new = next[id], new.enabled, credentialEquivalent(new, old) { continue }
+            lastLoad[id] = nil; rejectedFingerprint[id] = nil
+        }
         configuredProfiles = next
         let newIDs = Set(profiles.filter(\.enabled).map(\.id))
-        for id in Array(bindings.keys) where !newIDs.contains(id) { detach(id) }
+        for id in Array(bindings.keys) where !newIDs.contains(id) { detach(id, rejecting: false) }
         for id in Array(loading.keys) where !newIDs.contains(id) {
             loading[id]?.2.cancel()
             loading[id] = nil
         }
-        sleepRevalidation = sleepRevalidation.filter { newIDs.contains($0.key) && next[$0.key] == $0.value.0 }
+        var replay: [String: (AccountProfile, Bool)] = [:]
+        for (id, entry) in sleepRevalidation {
+            if let current = next[id], credentialEquivalent(current, entry.0) { replay[id] = (current, entry.1) }
+        }
+        sleepRevalidation = replay
         profileFailures = profileFailures.filter { newIDs.contains($0.key) }
         for profile in profiles where profile.enabled {
             if var old = bindings[profile.id], old.profile.providerID == profile.providerID,
                old.profile.source == profile.source, old.profile.expectedAccountID == profile.expectedAccountID {
                 old.profile = profile
                 bindings[profile.id] = old
+                loading[profile.id]?.1 = profile
                 continue
             }
-            detach(profile.id)
+            detach(profile.id, rejecting: false)
             if let pending = loading[profile.id] {
-                if pending.1 == profile { continue }
+                if credentialEquivalent(pending.1, profile) { loading[profile.id]?.1 = profile; continue }
                 pending.2.cancel()
                 loading[profile.id] = nil
             }
+            if sleepRevalidation[profile.id] != nil { continue }
             beginLoad(profile, interactive: false, clearPause: false)
         }
         publish()
-        await refresh(force: true, minimumSuccessAge: 10)
+        await refresh(force: true, minimumSuccessAge: 10, driver: .internal)
     }
 
-    private func beginLoad(_ profile: AccountProfile, interactive: Bool, clearPause: Bool) {
+    @discardableResult
+    private func beginLoad(_ profile: AccountProfile, interactive: Bool, clearPause: Bool,
+                           origin: LoadOrigin = .explicit) -> Bool {
         guard awake else {
-            sleepRevalidation[profile.id] = (profile, clearPause)
-            return
+            if !origin.isRecheck { sleepRevalidation[profile.id] = (profile, clearPause) }
+            return false
         }
         guard sourceMatches(profile), registry.adapter(for: profile.providerID) != nil else {
-            profileFailures[profile.id] = (.unavailable, "Credential source unavailable")
-            return
+            if !origin.isRecheck { profileFailures[profile.id] = (.unavailable, "Credential source unavailable") }
+            return false
         }
+        lastLoad[profile.id] = clock.monotonicNow()
         loadGeneration += 1
         let epoch = loadGeneration
         let store = credentials
         let capacity = lookupCapacity
         let now = clock.wallNow()
-        if var binding = bindings[profile.id] {
+        if origin.isRecheck {
+            // A re-check is silent: it changes no binding, message or failure state.
+        } else if var binding = bindings[profile.id] {
             if clearPause { generation += 1; binding.generation = generation }
             binding.authPaused = true
             binding.message = "Connecting account"
@@ -385,43 +414,113 @@ public actor Monitor {
             }
             await capacity.release()
             guard !Task.isCancelled else { return }
-            await self?.loaded(profile: profile, epoch: epoch, clearPause: clearPause, result: result)
+            await self?.loaded(profile: profile, epoch: epoch, clearPause: clearPause, origin: origin, result: result)
         }
-        loading[profile.id] = (epoch, profile, task, clearPause)
+        loading[profile.id] = (epoch, profile, task, clearPause, origin)
+        return true
     }
 
-    private func loaded(profile: AccountProfile, epoch: Int, clearPause: Bool,
-                        result: Result<Credential, CredentialFailure>) async {
-        guard loading[profile.id]?.0 == epoch, configuredProfiles[profile.id] == profile,
-              profile.enabled else { return }
+    private func credentialEquivalent(_ a: AccountProfile, _ b: AccountProfile) -> Bool {
+        a.id == b.id && a.providerID == b.providerID && a.source == b.source && a.expectedAccountID == b.expectedAccountID && a.enabled == b.enabled
+    }
+
+    /// A re-check may only move a still-paused account's message between the pause and denied wordings.
+    private func recheckMessage(_ id: String, denied: Bool, wake: Bool) -> Bool {
+        let current = bindings[id]?.message ?? profileFailures[id]?.1
+        let next: String
+        if denied { guard !wake, current == pausedMessage else { return false }; next = deniedMessage }
+        else { guard current == deniedMessage else { return false }; next = pausedMessage }
+        if bindings[id] != nil { bindings[id]?.message = next }
+        else if let failure = profileFailures[id] { profileFailures[id] = (failure.0, next) }
+        return true
+    }
+
+    private func loaded(profile started: AccountProfile, epoch: Int, clearPause: Bool, origin: LoadOrigin,
+                        result loadResult: Result<Credential, CredentialFailure>) async {
+        guard let profile = configuredProfiles[started.id], profile.enabled,
+              credentialEquivalent(profile, started), loading[profile.id]?.0 == epoch else { return }
         loading[profile.id] = nil
+        var result = loadResult
+        if case .success(let credential) = result, let expiry = credential.expiresAt, expiry <= clock.wallNow() {
+            result = .failure(.expired)
+        }
+        let id = profile.id
         switch result {
         case .failure(let error):
+            if origin.isRecheck {
+                var denied = false
+                if case CredentialFailure.keychainDenied = error { denied = true }
+                if recheckMessage(id, denied: denied, wake: origin == .wakeRecheck) { publish() }
+                return
+            }
             eligibilityCounts["credentialFailures", default: 0] += 1
-            if var binding = bindings[profile.id] {
+            if var binding = bindings[id] {
                 binding.authPaused = true
+                if binding.pauseCause != .http401 {
+                    if case CredentialFailure.expired = error { binding.pauseCause = .expired } else { binding.pauseCause = .loadFailed }
+                }
                 binding.message = credentialMessage(error)
-                bindings[profile.id] = binding
+                bindings[id] = binding
             } else {
-                profileFailures[profile.id] = (.unauthenticated, credentialMessage(error))
+                profileFailures[id] = (.unauthenticated, credentialMessage(error))
             }
         case .success(let credential):
             if let expected = profile.expectedAccountID, credential.selectedAccountID != expected {
-                detach(profile.id)
-                profileFailures[profile.id] = (.unauthenticated, credentialMessage(CredentialFailure.accountMismatch))
+                if origin.isRecheck { if recheckMessage(id, denied: false, wake: false) { publish() }; return }
+                detach(id)
+                profileFailures[id] = (.unauthenticated, credentialMessage(CredentialFailure.accountMismatch))
                 break
             }
-            if let prior = bindings[profile.id], prior.credential.fingerprint == credential.fingerprint,
-               prior.credential.selectedAccountID == credential.selectedAccountID {
+            if origin.isRecheck || !clearPause, let rejected = rejectedFingerprint[id],
+               rejected.fingerprint == credential.fingerprint, rejected.serverRejected || rejected.account == credential.selectedAccountID {
+                if origin.isRecheck {
+                    if recheckMessage(id, denied: false, wake: false) { publish() }
+                } else {
+                    if bindings[id] == nil {
+                        profileFailures[id] = (.unauthenticated, rejected.serverRejected ? pausedMessage
+                                               : credentialMessage(CredentialFailure.accountMismatch))
+                    }
+                    publish()
+                }
+                return
+            }
+            if let prior = bindings[id], prior.credential.fingerprint == credential.fingerprint,
+               (origin.isRecheck && prior.pauseCause == .http401) ||
+                prior.credential.selectedAccountID == credential.selectedAccountID {
                 var binding = prior
-                if clearPause { binding.authPaused = false; binding.message = nil }
-                bindings[profile.id] = binding
+                if origin.isRecheck {
+                    guard binding.authPaused, binding.pauseCause != .http401 else {
+                        if recheckMessage(id, denied: false, wake: false) { publish() }
+                        return
+                    }
+                    binding.credential = credential
+                    binding.authPaused = false; binding.pauseCause = nil; binding.message = nil
+                    bindings[id] = binding
+                    publish()
+                    return
+                }
+                if clearPause {
+                    binding.credential = credential
+                    binding.authPaused = false; binding.pauseCause = nil; binding.message = nil
+                }
+                bindings[id] = binding
+                rejectedFingerprint[id] = nil
             } else {
-                let oldThrottle = bindings[profile.id].flatMap { previous in
-                    previous.profile.source == profile.source ? entities[previous.entityKey]?.throttleUntil : nil
-                } ?? 0
-                detach(profile.id)
-                generation += 1
+                if !clearPause, bindings.values.contains(where: {
+                    $0.profile.providerID == profile.providerID && $0.pauseCause == .http401 &&
+                    $0.credential.fingerprint == credential.fingerprint }) ||
+                    (!clearPause && rejectedFingerprint.contains(where: {
+                        $0.value.serverRejected && $0.value.fingerprint == credential.fingerprint &&
+                        configuredProfiles[$0.key]?.providerID == profile.providerID })) {
+                    if origin.isRecheck {
+                        if recheckMessage(id, denied: false, wake: false) { publish() }
+                    } else {
+                        if bindings[id] != nil { bindings[id]?.message = pausedMessage }
+                        else { profileFailures[id] = (.unauthenticated, pausedMessage) }
+                        publish()
+                    }
+                    return
+                }
                 let selector = credential.selectedAccountID?.rawValue ?? "source:" + profile.source.stableID
                 let initialKey = profile.providerID.rawValue + "|" + credential.fingerprint + "|" + selector
                 let key = bindings.values.first(where: {
@@ -431,41 +530,64 @@ public actor Monitor {
                     entities[$0.entityKey] != nil
                 })?.entityKey ?? initialKey
                 pruneEntities()
-                if entities[key] == nil && entities.count >= 256 {
-                    bindings[profile.id] = nil
-                    profileFailures[profile.id] = (.unavailable, "Account capacity reached; retry after throttles expire")
+                var freed = 0
+                if let previous = bindings[id], let old = entities[previous.entityKey],
+                   old.subscribers == [id], old.throttleUntil <= clock.monotonicNow() { freed = 1 }
+                let full = entities[key] == nil && entities.count - freed >= 256
+                if full && origin.isRecheck {
+                    if recheckMessage(id, denied: false, wake: false) { publish() }
+                    return
+                }
+                let carried = bindings[id].flatMap { entities[$0.entityKey] }
+                let oldThrottle = carried?.throttleUntil ?? 0
+                detach(id)
+                if full {
+                    profileFailures[id] = (.unavailable, "Account capacity reached; retry after throttles expire")
                     break
                 }
-                bindings[profile.id] = Binding(profile: profile, credential: credential, entityKey: key, generation: generation)
+                generation += 1
+                bindings[id] = Binding(profile: profile, credential: credential, entityKey: key, generation: generation)
                 if entities[key] == nil {
                     var entity = Entity(key: key, provider: profile.providerID,
                                         selectedAccountID: credential.selectedAccountID)
+                    entity.epoch = freshEpoch()
                     entity.throttleUntil = oldThrottle
+                    if oldThrottle > 0 { entity.retryDate = carried?.retryDate }
                     if profile.providerID.rawValue == "codex", let selected = credential.selectedAccountID {
                         let verifiedKey = profile.providerID.rawValue + "|verified|" + selected.rawValue
-                        entity.throttleUntil = max(entity.throttleUntil, entities.values.filter {
-                            $0.provider == profile.providerID &&
-                            ($0.selectedAccountID == selected || $0.key == verifiedKey)
-                        }.map(\.throttleUntil).max() ?? 0)
+                        for other in entities.values where other.provider == profile.providerID &&
+                            (other.selectedAccountID == selected || other.key == verifiedKey) &&
+                            other.throttleUntil > entity.throttleUntil {
+                            entity.throttleUntil = other.throttleUntil
+                            entity.retryDate = other.retryDate
+                        }
                     }
                     entities[key] = entity
+                } else if let carried, carried.throttleUntil > entities[key]?.throttleUntil ?? 0 {
+                    entities[key]?.throttleUntil = carried.throttleUntil
+                    entities[key]?.retryDate = carried.retryDate
                 }
-                entities[key]?.subscribers.insert(profile.id)
+                entities[key]?.subscribers.insert(id)
+                rejectedFingerprint[id] = nil
+                if origin.isRecheck { eligibilityCounts["credentialResumes", default: 0] += 1 }
             }
-            profileFailures[profile.id] = nil
+            profileFailures[id] = nil
         }
         publish()
-        if let key = bindings[profile.id]?.entityKey {
-            await refreshEntities(force: true, minimumSuccessAge: clearPause ? nil : 10, onlyKey: key)
+        if let key = bindings[id]?.entityKey {
+            await refreshEntities(force: true, minimumSuccessAge: clearPause ? nil : 10, onlyKey: key, driver: .internal)
         }
     }
 
-    private func detach(_ id: String) {
+    private func detach(_ id: String, rejecting: Bool = true) {
         guard let old = bindings.removeValue(forKey: id) else { return }
+        if rejecting, old.pauseCause == .http401 {
+            rejectedFingerprint[id] = (old.credential.fingerprint, old.credential.selectedAccountID, true)
+        }
         guard var entity = entities[old.entityKey] else { return }
         entity.subscribers.remove(id)
         if entity.subscribers.isEmpty {
-            entity.epoch += 1
+            entity.epoch = freshEpoch()
             entity.task?.cancel(); entity.task = nil
             entity.snapshot = nil; entity.successfulInstant = nil
             entity.snapshotGeneration = nil; entity.expirations = SnapshotExpirations()
@@ -482,23 +604,68 @@ public actor Monitor {
 
     public func reconnect(_ profileID: String) async {
         guard let profile = configuredProfiles[profileID], profile.enabled else { return }
-        guard loading[profileID] == nil else { return }
+        if let pending = loading[profileID] {
+            guard pending.4.isRecheck else { return }
+            pending.2.cancel()
+            loading[profileID] = nil
+        }
         beginLoad(profile, interactive: profile.source == .claudeDefaultDiscovery, clearPause: true)
         publish()
     }
 
     public func manualRefresh() async {
-        await refresh(force: true)
+        await refresh(force: true, driver: .manual)
     }
 
-    public func refresh(force: Bool = false, minimumSuccessAge: TimeInterval? = nil) async {
-        await refreshEntities(force: force, minimumSuccessAge: minimumSuccessAge, onlyKey: nil)
+    public func refresh(force: Bool = false, minimumSuccessAge: TimeInterval? = nil,
+                        driver: RefreshDriver = .cycle) async {
+        await refreshEntities(force: force, minimumSuccessAge: minimumSuccessAge, onlyKey: nil, driver: driver)
     }
 
-    private func refreshEntities(force: Bool, minimumSuccessAge: TimeInterval?, onlyKey: String?) async {
+    /// A profile with no usable credential: paused, expired with no request in flight, or failed unauthenticated.
+    private func isCredentialLess(_ profile: AccountProfile) -> Bool {
+        guard profile.enabled, loading[profile.id] == nil else { return false }
+        guard let binding = bindings[profile.id] else { return profileFailures[profile.id]?.0 == .unauthenticated }
+        if binding.authPaused { return true }
+        guard let expiry = binding.credential.expiresAt, expiry <= clock.wallNow() else { return false }
+        return entities[binding.entityKey]?.task == nil
+    }
+
+    /// Pauses expired bindings, then re-reads each credential-less source (non-interactively) when due.
+    private func recheckCredentials(driver: RefreshDriver) {
+        var due: [String: [(id: String, last: TimeInterval)]] = [:]
+        for id in configuredProfiles.keys.sorted() {
+            guard let profile = configuredProfiles[id], isCredentialLess(profile) else { continue }
+            if var binding = bindings[id], !binding.authPaused {
+                eligibilityCounts["credentialExpiries", default: 0] += 1
+                binding.authPaused = true; binding.pauseCause = .expired; binding.message = pausedMessage
+                bindings[id] = binding
+            }
+            guard driver != .internal, awake else { continue }
+            let now = clock.monotonicNow()
+            if lastLoad[id] == nil { lastLoad[id] = now; if driver != .manual { continue } }
+            let last = lastLoad[id] ?? now
+            guard driver == .manual || now - last >= recheckInterval else { continue }
+            due[profile.source.stableID, default: []].append((id, last))
+        }
+        // One read per source per pass: the oldest last load first, ties by id.
+        for source in due.keys.sorted() {
+            for candidate in due[source, default: []].sorted(by: { ($0.last, $0.id) < ($1.last, $1.id) }) {
+                guard let profile = configuredProfiles[candidate.id] else { continue }
+                if beginLoad(profile, interactive: false, clearPause: false,
+                             origin: driver == .wake ? .wakeRecheck : .recheck) {
+                    eligibilityCounts["credentialRechecks", default: 0] += 1
+                    break
+                }
+            }
+        }
+    }
+
+    private func refreshEntities(force: Bool, minimumSuccessAge: TimeInterval?, onlyKey: String?,
+                                 driver: RefreshDriver) async {
         guard awake else { return }
         pruneEntities()
-        // Revalidate paused bindings only on explicit action; no periodic Keychain prompts.
+        recheckCredentials(driver: driver)
         for key in entities.keys.sorted() {
             if let onlyKey, key != onlyKey { continue }
             guard var entity = entities[key], !entity.subscribers.isEmpty, entity.task == nil else { continue }
@@ -509,10 +676,13 @@ public actor Monitor {
             for id in entity.subscribers {
                 if var binding = bindings[id], let expiry = binding.credential.expiresAt,
                    expiry <= clock.wallNow() {
-                    if !binding.authPaused { eligibilityCounts["credentialExpiries", default: 0] += 1 }
-                    binding.authPaused = true
-                    binding.message = "Session expired; reconnect account"
-                    bindings[id] = binding
+                    if !binding.authPaused {
+                        eligibilityCounts["credentialExpiries", default: 0] += 1
+                        binding.authPaused = true
+                        binding.pauseCause = .expired
+                        binding.message = pausedMessage
+                        bindings[id] = binding
+                    }
                 }
             }
             guard let id = entity.subscribers.sorted(by: { a, b in
@@ -521,10 +691,11 @@ public actor Monitor {
                 return x == y ? a < b : x < y
             }).first(where: { bindings[$0]?.authPaused == false }),
                 let binding = bindings[id] else { continue }
-            entity.epoch += 1
+            entity.epoch = freshEpoch()
             let epoch = entity.epoch
             entity.lastAttempt = now
             entity.alternateUsed = false
+            let dispatchDeadline = entity.throttleUntil
             let transport = self.transport
             let adapter = registry.adapter(for: entity.provider)!
             entity.task = Task {
@@ -533,7 +704,7 @@ public actor Monitor {
                 catch { result = .failure(error) }
                 await self.complete(key: key, epoch: epoch, bindingID: id, bindingGeneration: binding.generation,
                                     sourceID: binding.profile.source.stableID, fingerprint: binding.credential.fingerprint,
-                                    result: result)
+                                    dispatchDeadline: dispatchDeadline, result: result)
             }
             entities[key] = entity
         }
@@ -541,7 +712,7 @@ public actor Monitor {
     }
 
     private func complete(key: String, epoch: Int, bindingID: String, bindingGeneration: Int,
-                          sourceID: String, fingerprint: String,
+                          sourceID: String, fingerprint: String, dispatchDeadline: TimeInterval,
                           result: Result<HTTPResponse, Error>) async {
         guard var entity = entities[key], entity.epoch == epoch, entity.task != nil else { return }
         entity.task = nil
@@ -551,13 +722,10 @@ public actor Monitor {
                    candidate.credential.fingerprint == fingerprint &&
                    (id != bindingID || candidate.generation == bindingGeneration)
         }
-        guard let subscriber, let binding = bindings[subscriber] else {
-            entities[key] = entity
-            publish()
-            await refresh(force: true)
-            return
-        }
         let mono = clock.monotonicNow(), wall = clock.wallNow()
+        // Entity-level effects of a response apply whatever the subscriber state; only a stored
+        // snapshot, merge and the account-mismatch rejection need an eligible current subscriber.
+        let eligible = subscriber.flatMap { bindings[$0] }
         switch result {
         case .failure:
             count(entity.provider, "failed")
@@ -566,6 +734,12 @@ public actor Monitor {
         case .success(let response):
             switch response.status {
             case 200:
+                guard let binding = eligible else {
+                    entities[key] = entity
+                    publish()
+                    await refreshEntities(force: true, minimumSuccessAge: 10, onlyKey: key, driver: .internal)
+                    return
+                }
                 do {
                     let account = binding.credential.selectedAccountID ?? AccountID("source:" + binding.profile.source.stableID)
                     let snapshot = try UsageDecoder.decode(provider: entity.provider, data: response.body,
@@ -584,7 +758,8 @@ public actor Monitor {
                     count(entity.provider, snapshot.partial ? "partial" : "success")
                     entity.health = snapshot.partial ? .partial : .healthy
                     entity.message = snapshot.partial ? "Incomplete provider data" : nil
-                    entity.failures = 0; entity.throttleUntil = 0; entity.retryDate = nil
+                    entity.failures = 0
+                    if entity.throttleUntil <= dispatchDeadline { entity.throttleUntil = 0; entity.retryDate = nil }
                     entities[key] = entity
                     if let verified = verifiedAccount(response.body) { merge(key: key, verified: verified) }
                     publish(); return
@@ -593,6 +768,9 @@ public actor Monitor {
                     for id in Array(entity.subscribers) {
                         guard let candidate = bindings[id], candidate.profile.source.stableID == sourceID,
                               candidate.credential.fingerprint == fingerprint else { continue }
+                        let kept = rejectedFingerprint[id].map { $0.fingerprint == candidate.credential.fingerprint && $0.serverRejected } ?? false
+                        rejectedFingerprint[id] = (candidate.credential.fingerprint, candidate.credential.selectedAccountID,
+                                                   candidate.pauseCause == .http401 || kept)
                         bindings[id] = nil
                         entity.subscribers.remove(id)
                         profileFailures[id] = (.unauthenticated, "Configured account does not match session")
@@ -600,7 +778,7 @@ public actor Monitor {
                     entity.health = .unauthenticated
                     entity.message = "Configured account does not match session"
                     if entity.subscribers.isEmpty {
-                        entity.epoch += 1
+                        entity.epoch = freshEpoch()
                         entity.snapshot = nil
                         entity.successfulInstant = nil
                         entity.snapshotGeneration = nil
@@ -612,23 +790,39 @@ public actor Monitor {
                     backoff(&entity, now: mono)
                 }
             case 401, 403:
-                count(entity.provider, "unauthenticated")
+                var marked = false
                 for id in entity.subscribers {
-                    guard var candidate = bindings[id], candidate.profile.source.stableID == sourceID,
-                          candidate.credential.fingerprint == fingerprint, !candidate.authPaused else { continue }
-                    candidate.authPaused = true; candidate.message = "Reconnect account"
+                    guard var candidate = bindings[id], candidate.credential.fingerprint == fingerprint else { continue }
+                    marked = true
+                    candidate.pauseCause = .http401
+                    if !candidate.authPaused { candidate.authPaused = true; candidate.message = pausedMessage }
                     bindings[id] = candidate
                 }
+                if eligible == nil && !marked {
+                    entities[key] = entity
+                    publish()
+                    await refreshEntities(force: true, minimumSuccessAge: 10, onlyKey: key, driver: .internal)
+                    return
+                }
+                count(entity.provider, "unauthenticated")
                 entity.health = .unauthenticated; entity.message = "Authentication required"
+                for id in entity.subscribers.sorted() {
+                    guard var candidate = bindings[id], !candidate.authPaused,
+                          let expiry = candidate.credential.expiresAt, expiry <= wall else { continue }
+                    eligibilityCounts["credentialExpiries", default: 0] += 1
+                    candidate.authPaused = true; candidate.pauseCause = .expired; candidate.message = pausedMessage
+                    bindings[id] = candidate
+                }
                 if !entity.alternateUsed,
                    let alternate = entity.subscribers.sorted(by: { a, b in
                        let x = bindings[a]?.profile.source.stableID ?? a
                        let y = bindings[b]?.profile.source.stableID ?? b
                        return x == y ? a < b : x < y
-                   }).first(where: { bindings[$0]?.authPaused == false }),
+                   }).first(where: { bindings[$0]?.authPaused == false && bindings[$0]?.credential.fingerprint != fingerprint }),
                    let other = bindings[alternate], mono >= entity.throttleUntil {
                     entity.alternateUsed = true
-                    entity.epoch += 1
+                    let alternateDeadline = entity.throttleUntil
+                    entity.epoch = freshEpoch()
                     let nextEpoch = entity.epoch
                     let transport = self.transport
                     let adapter = registry.adapter(for: entity.provider)!
@@ -639,7 +833,8 @@ public actor Monitor {
                         await self.complete(key: key, epoch: nextEpoch, bindingID: alternate,
                                             bindingGeneration: other.generation,
                                             sourceID: other.profile.source.stableID,
-                                            fingerprint: other.credential.fingerprint, result: retry)
+                                            fingerprint: other.credential.fingerprint,
+                                            dispatchDeadline: alternateDeadline, result: retry)
                     }
                 }
             case 429:
@@ -658,6 +853,9 @@ public actor Monitor {
         }
         entities[key] = entity
         publish()
+        if eligible == nil && entity.task == nil {
+            await refreshEntities(force: true, minimumSuccessAge: 10, onlyKey: key, driver: .internal)
+        }
     }
     private func count(_ provider: ProviderID, _ outcome: String) {
         outcomeCounts[provider.rawValue, default: [:]][outcome, default: 0] += 1
@@ -767,10 +965,11 @@ public actor Monitor {
         if var existing = entities[target] {
             existing.task?.cancel()
             existing.task = nil
-            existing.epoch += 1
+            existing.epoch = freshEpoch()
             if entity.throttleUntil > existing.throttleUntil { existing.retryDate = entity.retryDate }
             existing.throttleUntil = max(existing.throttleUntil, entity.throttleUntil)
             existing.failures = max(existing.failures, entity.failures)
+            existing.lastAttempt = max(existing.lastAttempt, entity.lastAttempt)
             if (entity.successfulInstant ?? -.infinity) > (existing.successfulInstant ?? -.infinity) {
                 existing.snapshot = entity.snapshot; existing.successfulInstant = entity.successfulInstant
                 existing.snapshotGeneration = entity.snapshotGeneration
@@ -778,7 +977,7 @@ public actor Monitor {
                 existing.health = entity.health; existing.message = entity.message
             }
             existing.subscribers.formUnion(entity.subscribers)
-            entity.task?.cancel(); entity.epoch += 1
+            entity.task?.cancel(); entity.epoch = freshEpoch()
             entities[key] = nil; entities[target] = existing
         } else {
             entity.key = target; entities[key] = nil; entities[target] = entity
@@ -791,12 +990,12 @@ public actor Monitor {
         awake = false
         tickTask?.cancel(); tickTask = nil
         for (id, pending) in loading {
-            sleepRevalidation[id] = (pending.1, pending.3)
+            if !pending.4.isRecheck { sleepRevalidation[id] = (pending.1, pending.3) }
             pending.2.cancel()
         }
         loading.removeAll()
         for key in entities.keys {
-            entities[key]?.epoch += 1
+            entities[key]?.epoch = freshEpoch()
             entities[key]?.task?.cancel()
             entities[key]?.task = nil
         }
@@ -810,13 +1009,13 @@ public actor Monitor {
             beginLoad(entry.0, interactive: false, clearPause: entry.1)
         }
         publish()
-        await refresh(force: true)
+        await refresh(force: true, driver: .wake)
     }
     public func clockChanged() {
         eligibilityCounts["clockChanges", default: 0] += 1
         publish()
     }
-    public func dropdownOpened() async { await refresh(force: true, minimumSuccessAge: 10) }
+    public func dropdownOpened() async { await refresh(force: true, minimumSuccessAge: 10, driver: .dropdown) }
     public func stop() {
         sleep()
         for key in entities.keys {
@@ -1011,10 +1210,13 @@ public actor Monitor {
     }
 }
 
+private let pausedMessage = "Session expired or rejected; resumes automatically after the provider app signs in again"
+private let deniedMessage = "Keychain access unavailable; choose Connect / Authorize"
+
 private func credentialMessage(_ error: Error) -> String {
     switch error {
-    case CredentialFailure.expired: return "Session expired; reconnect account"
-    case CredentialFailure.keychainDenied: return "Keychain access unavailable; choose Connect / Authorize"
+    case CredentialFailure.expired: return pausedMessage
+    case CredentialFailure.keychainDenied: return deniedMessage
     case CredentialFailure.accountMismatch: return "Configured account does not match session"
     default: return "Credential source unavailable"
     }
