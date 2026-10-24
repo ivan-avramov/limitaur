@@ -5,6 +5,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 ## [Unreleased]
 
 ### Changed
+- The poll interval is learned per provider (start 50 s, bounds 30–120 s): +10 s or the `Retry-After` on a 429 not attributed to a superseded token, −10 s after 24 h and five clean polls, a reduction followed by a 429 within an hour is reverted and blocked for seven days; persisted in `UserDefaults`, shown as `polls every Ns` in the menu, with a 10 s cycle tick and a per-snapshot freshness horizon of `max(90, interval + 20)` s.
 - The Claude Keychain item is read through a child `/usr/bin/security find-generic-password -a <user> -w` (five-second bound, hexadecimal output handled) instead of the in-process Keychain API, so a Claude Code token rewrite no longer revokes Limitaur's access; the deprecated `SecKeychain*UserInteractionAllowed` calls and `LocalAuthentication` are removed. A slow or denied background read suspends that source until Connect / Authorize or relaunch.
 - After a 401, 403 or 429 the credential is re-read at the next tick at least 30 s after the last load, instead of after five minutes; a rotated token is counted as `credentialRotations`, a suspended source as `keychainSuspensions`.
 - New diagnostic `--read-keychain-service NAME` and `scripts/keychain-acl-probe.sh` (operator-run).

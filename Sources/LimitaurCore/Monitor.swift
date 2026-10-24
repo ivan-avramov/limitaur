@@ -85,14 +85,15 @@ public struct MonitorDisplay: Sendable {
     public let candidates: [PresentationCandidate]
     public let revision: UInt64
     public let nextDisplayDeadline: TimeInterval?
+    public let polling: [String: PollingPolicy]
     public init(profiles: [ProfileDisplay], candidates: [PresentationCandidate], revision: UInt64,
-                nextDisplayDeadline: TimeInterval?) {
+                nextDisplayDeadline: TimeInterval?, polling: [String: PollingPolicy] = [:]) {
         let bounded = Array(candidates.prefix(8))
         self.profiles = profiles
         self.candidates = bounded
         self.selected = Array(bounded.prefix(3)).map(\.metric)
         self.revision = revision
-        self.nextDisplayDeadline = nextDisplayDeadline
+        self.nextDisplayDeadline = nextDisplayDeadline; self.polling = polling
     }
     /// Compatibility for synthetic callers. These candidates have no clock proof and
     /// are deliberately unavailable to the live presentation projector.
@@ -260,13 +261,19 @@ private struct Entity {
     var failures = 0
     var lastAttempt: TimeInterval = -.infinity
     var alternateUsed = false
+    var dispatchInterval: TimeInterval?
+    var freshnessHorizon: TimeInterval = 90
+    var pendingThrottle: PendingThrottle?
 }
+
+/// A 429 awaiting classification; the wall time feeds the policy, the monotonic time ages the receipt.
+private typealias PendingThrottle = (receivedWall: Date, receivedMono: TimeInterval, retryAfter: TimeInterval?, fingerprint: String, id: Int)
 
 /// Deadline after which the stored snapshot is no longer shown or ranked: 90 s after the fetch, or
 /// longer (never past 300 s) while a provider-declared Retry-After holds the account.
 private func freshnessDeadline(_ entity: Entity) -> TimeInterval? {
     guard let success = entity.successfulInstant else { return nil }
-    let nominal = success + 90, cap = success + 300
+    let nominal = success + entity.freshnessHorizon, cap = success + 300
     guard let retention = entity.retention, retention > nominal else { return nominal }
     let held = min(retention, cap)
     if entity.task != nil, !entity.alternateUsed, let retry = entity.retryAfterUntil, entity.lastAttempt >= retry, entity.lastAttempt < held { return cap }
@@ -274,9 +281,10 @@ private func freshnessDeadline(_ entity: Entity) -> TimeInterval? {
 }
 
 /// Extends retention only while the snapshot is still shown; a latch ending inside the nominal window is ignored by the helper.
-private func latchRetention(_ entity: inout Entity, shown: Bool) {
+private func latchRetention(_ entity: inout Entity, shown: Bool, interval: TimeInterval? = nil) {
     guard shown, entity.snapshot != nil, let success = entity.successfulInstant, let retry = entity.retryAfterUntil else { return }
-    entity.retention = min(max(entity.retention ?? 0, retry + retentionSlack), success + 300)
+    let latch = interval.map { max(retry, entity.lastAttempt + max(30, $0) - 1.5) + 13.5 } ?? retry + retentionSlack
+    entity.retention = min(max(entity.retention ?? 0, latch), success + 300)
 }
 
 /// Noncredential state for verifying that a presentation action leaves request
@@ -326,7 +334,12 @@ public actor Monitor {
     private var recheckDue = Set<String>()
     /// Explicit or launch loads that met a busy read, with their `clearPause`; re-issued once the 30 s spacing has passed.
     private var busyRetry: [String: Bool] = [:]
+    /// Receipts of replaced sole-subscriber profiles awaiting their replacement load; receipt fields only.
+    private var replacedThrottle: [String: (pending: PendingThrottle, provider: ProviderID)] = [:]
+    /// Receipts left on a surviving alias's entity when its profile was replaced: old fingerprint and receipt id, wherever the receipt moves.
+    private var aliasReplaced: [String: (fingerprint: String, receipt: Int)] = [:]
     private var stopped = false
+    private var policies: [String: PollingPolicy] = [:]
     public init(clock: any MonitorClock = SystemMonitorClock(), credentials: CredentialStore = CredentialStore(),
                 transport: any HTTPTransport = NativeHTTPTransport(), registry: ProviderRegistry = ProviderRegistry(),
                 beforeDisplayArm: (@Sendable () -> Void)? = nil, recheckInterval: TimeInterval = 300,
@@ -335,6 +348,38 @@ public actor Monitor {
         self.recheckInterval = recheckInterval.isFinite && recheckInterval >= 30 ? recheckInterval : 300
         self.clock = clock; self.credentials = credentials; self.transport = transport; self.registry = registry
         self.beforeDisplayArm = beforeDisplayArm
+    }
+
+    /// Activates learned polling for providers not yet present; an existing entry is never overwritten.
+    public func setPolling(_ initial: [String: PollingPolicy]) { policies.merge(initial) { old, _ in old } }
+    private func recordThrottle(_ pending: PendingThrottle, _ provider: ProviderID) {
+        _ = policies[provider.rawValue]?.recordThrottle(now: pending.receivedWall, retryAfter: pending.retryAfter)
+    }
+    /// Resolves the receipt held for a replaced profile once its load ends: discarded when a different token is bound.
+    private func settleReplaced(_ id: String) -> Bool {
+        guard let held = replacedThrottle.removeValue(forKey: id) else { return false }
+        if let bound = bindings[id], bound.credential.fingerprint != held.pending.fingerprint { return false }
+        recordThrottle(held.pending, held.provider)
+        return true
+    }
+    /// Resolves one entity's pending receipt if it belongs to `fingerprint` (any receipt when nil); true when it was recorded.
+    @discardableResult
+    private func settleThrottle(_ key: String, fingerprint: String?, record: Bool) -> Bool {
+        guard let pending = entities[key]?.pendingThrottle, fingerprint == nil || pending.fingerprint == fingerprint,
+              let provider = entities[key]?.provider else { return false }
+        if record { recordThrottle(pending, provider) }
+        entities[key]?.pendingThrottle = nil
+        return record
+    }
+
+    /// Settles an alias-replacement receipt wherever it now sits (an entity or a sole-replacement hold); nothing when already consumed.
+    private func settleReplacedAlias(_ receipt: Int, record: Bool) {
+        if let key = entities.first(where: { $0.value.pendingThrottle?.id == receipt })?.key {
+            settleThrottle(key, fingerprint: nil, record: record)
+        } else if let hold = replacedThrottle.first(where: { $0.value.pending.id == receipt }) {
+            if record { recordThrottle(hold.value.pending, hold.value.provider) }
+            replacedThrottle[hold.key] = nil
+        }
     }
 
     public func changes() -> AsyncStream<MonitorDisplay> {
@@ -384,6 +429,7 @@ public actor Monitor {
         }
         sleepRevalidation = replay
         profileFailures = profileFailures.filter { newIDs.contains($0.key) }
+        aliasReplaced = aliasReplaced.filter { newIDs.contains($0.key) }
         recheckDue = recheckDue.intersection(newIDs)
         busyRetry = busyRetry.filter { newIDs.contains($0.key) }
         for profile in profiles where profile.enabled {
@@ -394,7 +440,17 @@ public actor Monitor {
                 loading[profile.id]?.1 = profile
                 continue
             }
+            if let old = bindings[profile.id], let entity = entities[old.entityKey], entity.subscribers == [profile.id],
+               let pending = entity.pendingThrottle {
+                replacedThrottle[profile.id] = (pending, entity.provider)
+                entities[old.entityKey]?.pendingThrottle = nil
+            }
+            let oldBinding = bindings[profile.id]
             detach(profile.id, rejecting: false)
+            if let old = oldBinding, let pending = entities[old.entityKey]?.pendingThrottle,
+               pending.fingerprint == old.credential.fingerprint {
+                aliasReplaced[profile.id] = (pending.fingerprint, pending.id)
+            }
             if let pending = loading[profile.id] {
                 if credentialEquivalent(pending.1, profile) { loading[profile.id]?.1 = profile; continue }
                 pending.2.cancel()
@@ -489,6 +545,12 @@ public actor Monitor {
         if busy && reactiveRecheck {
             if origin.isRecheck { recheckDue.insert(profile.id) } else { busyRetry[profile.id] = clearPause }
             return
+        }
+        let before = bindings[profile.id]?.credential.fingerprint, beforeKey = bindings[profile.id]?.entityKey
+        defer {
+            if settleReplaced(profile.id) { publish() }
+            if origin.isRecheck, let before, let beforeKey, bindings[profile.id]?.credential.fingerprint == before,
+               settleThrottle(beforeKey, fingerprint: before, record: true) { publish() }
         }
         var result = loadResult
         if case .success(let credential) = result, let expiry = credential.expiresAt, expiry <= clock.wallNow() {
@@ -595,6 +657,10 @@ public actor Monitor {
                 let carried = bindings[id].flatMap { entities[$0.entityKey] }
                 let rotation = bindings[id].map { !$0.authPaused } ?? false
                 let oldThrottle = carried?.throttleUntil ?? 0
+                if let old = bindings[id] {
+                    settleThrottle(old.entityKey, fingerprint: old.credential.fingerprint,
+                                   record: full || old.credential.fingerprint == credential.fingerprint)
+                }
                 detach(id)
                 if full {
                     profileFailures[id] = (.unavailable, "Account capacity reached; retry after throttles expire")
@@ -626,8 +692,15 @@ public actor Monitor {
                 rejectedFingerprint[id] = nil
                 if origin.isRecheck { eligibilityCounts[rotation ? "credentialRotations" : "credentialResumes", default: 0] += 1 }
             }
+            if let bound = bindings[id] {
+                settleThrottle(bound.entityKey, fingerprint: bound.credential.fingerprint, record: true)
+                if let held = aliasReplaced.removeValue(forKey: id) {
+                    settleReplacedAlias(held.receipt, record: bound.credential.fingerprint == held.fingerprint)
+                }
+            }
             profileFailures[id] = nil
         }
+        _ = settleReplaced(id)
         publish()
         if let key = bindings[id]?.entityKey {
             await refreshEntities(force: true, minimumSuccessAge: clearPause ? nil : 10, onlyKey: key, driver: .internal)
@@ -645,8 +718,12 @@ public actor Monitor {
         if entity.subscribers.isEmpty {
             entity.epoch = freshEpoch()
             entity.task?.cancel(); entity.task = nil
+            if let pending = entity.pendingThrottle { recordThrottle(pending, entity.provider); entity.pendingThrottle = nil }
             entity.snapshot = nil; entity.successfulInstant = nil; entity.retention = nil
             entity.snapshotGeneration = nil; entity.expirations = SnapshotExpirations()
+        } else if let pending = entity.pendingThrottle,
+                  !entity.subscribers.contains(where: { bindings[$0]?.credential.fingerprint == pending.fingerprint }) {
+            recordThrottle(pending, entity.provider); entity.pendingThrottle = nil
         }
         entities[old.entityKey] = entity
         pruneEntities()
@@ -742,13 +819,23 @@ public actor Monitor {
                                  driver: RefreshDriver) async {
         guard awake else { return }
         pruneEntities()
+        for key in entities.keys {
+            if let pending = entities[key]?.pendingThrottle, clock.monotonicNow() - pending.receivedMono >= 60 {
+                settleThrottle(key, fingerprint: nil, record: true)
+            }
+        }
+        for (id, held) in replacedThrottle where clock.monotonicNow() - held.pending.receivedMono >= 60 {
+            recordThrottle(held.pending, held.provider); replacedThrottle[id] = nil
+        }
         recheckCredentials(driver: driver)
         for key in entities.keys.sorted() {
             if let onlyKey, key != onlyKey { continue }
             guard var entity = entities[key], !entity.subscribers.isEmpty, entity.task == nil else { continue }
             let now = clock.monotonicNow()
             guard now >= entity.throttleUntil else { continue }
-            if !force && now - entity.lastAttempt < 30 { continue }
+            let name = entity.provider.rawValue
+            let minimum = (driver == .cycle ? policies[name].map { max(30, $0.interval) - 1.5 } : nil) ?? 30
+            if !force && now - entity.lastAttempt < minimum { continue }
             if let minimumSuccessAge, entity.successfulInstant.map({ now - $0 < minimumSuccessAge }) == true { continue }
             for id in entity.subscribers {
                 if var binding = bindings[id], let expiry = binding.credential.expiresAt,
@@ -771,6 +858,7 @@ public actor Monitor {
             entity.epoch = freshEpoch()
             let epoch = entity.epoch
             entity.lastAttempt = now
+            entity.dispatchInterval = driver == .cycle ? policies[name]?.interval : nil
             entity.alternateUsed = false
             let dispatchDeadline = entity.throttleUntil
             let transport = self.transport
@@ -830,6 +918,13 @@ public actor Monitor {
                            verified != selected { throw CredentialFailure.accountMismatch }
                     }
                     entity.snapshot = snapshot; entity.successfulInstant = mono
+                    let name = entity.provider.rawValue
+                    entity.freshnessHorizon = policies[name].map { max(90, $0.interval + 20) } ?? 90
+                    if let used = entity.dispatchInterval, used == policies[name]?.interval {
+                        let held = entities.values.contains { $0.provider == entity.provider && $0.pendingThrottle != nil } ||
+                            replacedThrottle.values.contains { $0.provider == entity.provider }
+                        _ = policies[name]?.recordClean(now: wall, reductionAllowed: !held)
+                    }
                     entity.retryAfterUntil = nil; entity.retention = nil
                     snapshotGeneration += 1
                     entity.snapshotGeneration = snapshotGeneration
@@ -856,6 +951,10 @@ public actor Monitor {
                     }
                     entity.health = .unauthenticated
                     entity.message = "Configured account does not match session"
+                    if let pending = entity.pendingThrottle,
+                       !entity.subscribers.contains(where: { bindings[$0]?.credential.fingerprint == pending.fingerprint }) {
+                        recordThrottle(pending, entity.provider); entity.pendingThrottle = nil
+                    }
                     if entity.subscribers.isEmpty {
                         entity.epoch = freshEpoch()
                         entity.snapshot = nil
@@ -900,7 +999,7 @@ public actor Monitor {
                        return x == y ? a < b : x < y
                    }).first(where: { bindings[$0]?.authPaused == false && bindings[$0]?.credential.fingerprint != fingerprint }),
                    let other = bindings[alternate], mono >= entity.throttleUntil {
-                    entity.alternateUsed = true
+                    entity.alternateUsed = true; entity.dispatchInterval = nil
                     let alternateDeadline = entity.throttleUntil
                     entity.epoch = freshEpoch()
                     let nextEpoch = entity.epoch
@@ -921,12 +1020,18 @@ public actor Monitor {
                 count(entity.provider, "throttled")
                 entity.health = .throttled; entity.message = "Provider throttled"
                 backoff(&entity, now: mono)
-                if let value = response.headers["retry-after"], let delay = retryDelay(value, wall: wall) {
+                let parsed = response.headers["retry-after"].flatMap { retryDelay($0, wall: wall) }
+                if let delay = parsed {
                     entity.throttleUntil = max(entity.throttleUntil, mono + delay)
                     entity.retryAfterUntil = max(entity.retryAfterUntil ?? 0, mono + delay)
                 }
                 entity.retryDate = wall.addingTimeInterval(max(0, entity.throttleUntil - mono))
-                latchRetention(&entity, shown: shownBefore)
+                latchRetention(&entity, shown: shownBefore, interval: policies[entity.provider.rawValue]?.interval)
+                if policies[entity.provider.rawValue] != nil {
+                    let received: PendingThrottle = (receivedWall: wall, receivedMono: mono, retryAfter: parsed, fingerprint: fingerprint, id: freshEpoch())
+                    if !reactiveRecheck { recordThrottle(received, entity.provider) }
+                    else { if let older = entity.pendingThrottle { recordThrottle(older, entity.provider) }; entity.pendingThrottle = received }
+                }
                 if reactiveRecheck {
                     for id in entity.subscribers where bindings[id]?.credential.fingerprint == fingerprint { recheckDue.insert(id) }
                 }
@@ -944,6 +1049,8 @@ public actor Monitor {
     }
     private func count(_ provider: ProviderID, _ outcome: String) {
         outcomeCounts[provider.rawValue, default: [:]][outcome, default: 0] += 1
+        // Every outcome other than success, partial and throttled breaks the clean streak.
+        if ["failed", "unauthenticated", "unavailable"].contains(outcome) { policies[provider.rawValue]?.recordOther() }
     }
     public func statistics() -> [String: [String: Int]] {
         var result = outcomeCounts
@@ -1061,9 +1168,17 @@ public actor Monitor {
                 existing.snapshotGeneration = entity.snapshotGeneration
                 existing.expirations = entity.expirations
                 existing.health = entity.health; existing.message = entity.message
-                existing.retention = entity.retention
+                existing.retention = entity.retention; existing.freshnessHorizon = entity.freshnessHorizon
             }
-            latchRetention(&existing, shown: freshnessDeadline(existing).map { clock.monotonicNow() < $0 } ?? false)
+            if let mine = entity.pendingThrottle {
+                if let theirs = existing.pendingThrottle {
+                    let mineIsNewer = mine.receivedMono > theirs.receivedMono
+                    recordThrottle(mineIsNewer ? theirs : mine, existing.provider)
+                    existing.pendingThrottle = mineIsNewer ? mine : theirs
+                } else { existing.pendingThrottle = mine }
+            }
+            latchRetention(&existing, shown: freshnessDeadline(existing).map { clock.monotonicNow() < $0 } ?? false,
+                           interval: policies[existing.provider.rawValue]?.interval)
             existing.subscribers.formUnion(entity.subscribers)
             entity.task?.cancel(); entity.epoch = freshEpoch()
             entities[key] = nil; entities[target] = existing
@@ -1228,7 +1343,7 @@ public actor Monitor {
                 let shift = deadline.map { $0 - ((entity.successfulInstant ?? 0) + 90) } ?? 0
                 ages[key] = age.map { max(0, $0 - shift) }
                 if proof[key] == nil, let deadline, let instant = entity.successfulInstant, let id = entity.snapshotGeneration {
-                    proof[key] = (deadline, id, entity.expirations, instant + 90)
+                    proof[key] = (deadline, id, entity.expirations, instant + entity.freshnessHorizon)
                 }
                 if let deadline, mono < deadline {
                     next = min(next ?? .infinity, deadline)
@@ -1273,7 +1388,7 @@ public actor Monitor {
                                              nominalDeadline: nominal)
             }
         return MonitorDisplay(profiles: rows.sorted { ($0.profile.providerID.rawValue, $0.profile.id) < ($1.profile.providerID.rawValue, $1.profile.id) },
-                              candidates: candidates, revision: displayRevision, nextDisplayDeadline: next)
+                              candidates: candidates, revision: displayRevision, nextDisplayDeadline: next, polling: policies)
     }
     private func configuredProfile(_ id: String) -> AccountProfile? { configuredProfiles[id] }
     private func sourceMatches(_ profile: AccountProfile) -> Bool {

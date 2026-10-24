@@ -309,6 +309,7 @@ private struct FrozenDemoClock: MonitorClock {
     var settingsAction: (() -> Void)?
     var quitAction: (() -> Void)?
     var renderNow: Date?
+    var polling: [String: PollingPolicy] = [:]
     override init(frame: NSRect) {
         super.init(frame: frame)
         wantsLayer = true
@@ -383,6 +384,8 @@ private struct FrozenDemoClock: MonitorClock {
             let provider = row.profile.providerID.rawValue.capitalized
             if provider != currentProvider { line(provider, bold: true); currentProvider = provider }
             line("\(row.profile.label) · \(row.health.rawValue)", bold: true)
+            let interval = polling[row.profile.providerID.rawValue]?.interval
+            let fetchAge = row.fetchedAge.flatMap { $0.isFinite && $0 >= 0 ? $0 : nil }
             if let snapshot = row.snapshot {
                 if snapshot.metrics.isEmpty { line("Quota metrics unavailable") }
                 for metric in snapshot.metrics {
@@ -440,11 +443,10 @@ private struct FrozenDemoClock: MonitorClock {
                     } else { line("  Reset detail and expiry unknown") }
                 }
                 for capability in snapshot.capabilities { line("  \(capability)") }
-                if let age = row.fetchedAge, age.isFinite, age >= 0 {
-                    line(age < Double(Int.max) ? "  Fetched \(Int(age))s ago" : "  Fetched time unavailable")
-                }
+                if let age = fetchAge { line(fetchedLine(age: age, interval: interval)) }
                 for warning in snapshot.warnings { line("  \(warning)") }
             }
+            if fetchAge == nil, let interval { line(pollsLine(interval: interval)) }
             if let message = row.message { line("  \(message)") }
             if row.health == .unauthenticated && !demo {
                 button("Connect / Authorize \(row.profile.label)") { [weak self] in self?.reconnectAction?(row.profile.id) }
@@ -467,8 +469,11 @@ private struct FrozenDemoClock: MonitorClock {
     }
 }
 
+extension UserDefaults: PollingStorage {}
+
 @MainActor final class AppController: NSObject, NSApplicationDelegate {
     private let monitor: Monitor
+    private var pollingPersistence: PollingPersistence?
     private let presentationClock: any MonitorClock
     private let countStore: any IndicatorPreferenceStore
     private var count: Int
@@ -572,7 +577,10 @@ private struct FrozenDemoClock: MonitorClock {
                     }
                 }
             }
-            Task { await monitor.setProfiles(profiles) }
+            let persistence = PollingPersistence(UserDefaults.standard)
+            pollingPersistence = persistence
+            let initial = persistence.load(["claude", "codex"])
+            Task { await monitor.setPolling(initial); await monitor.setProfiles(profiles) }
             scheduleCadence()
             NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(sleep), name: NSWorkspace.willSleepNotification, object: nil)
             NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(wake), name: NSWorkspace.didWakeNotification, object: nil)
@@ -613,13 +621,8 @@ private struct FrozenDemoClock: MonitorClock {
     }
     private func scheduleCadence() {
         cadence?.invalidate()
-        let interval = pollInterval(jitter: Double.random(in: 0...1.5))
-        let timer = Timer(timeInterval: interval, repeats: false) { [weak self] _ in
-            guard let self else { return }
-            Task { @MainActor in
-                await self.monitor.refresh()
-                self.scheduleCadence()
-            }
+        let timer = Timer(timeInterval: cycleTick, repeats: true) { [weak self] _ in
+            Task { @MainActor in await self?.monitor.refresh() }
         }
         timer.tolerance = cadenceTolerance
         cadence = timer
@@ -711,7 +714,10 @@ private struct FrozenDemoClock: MonitorClock {
         guard value.revision >= latestRevision else { return }
         latestRevision = value.revision
         lastDisplay = value
-        refreshProjection()
+        let changed = intervalsDiffer(dropdown.polling, value.polling)
+        dropdown.polling = value.polling
+        pollingPersistence?.save(value.polling)
+        refreshProjection(rebuild: changed)
     }
     private func validateBeforeStatusDraw() {
         guard lastDisplay != nil else { return }
@@ -725,7 +731,7 @@ private struct FrozenDemoClock: MonitorClock {
             requestLocalDisplay()
         }
     }
-    private func refreshProjection() {
+    private func refreshProjection(rebuild: Bool = false) {
         guard let value = lastDisplay else { return }
         let wall = presentationClock.wallNow(), mono = presentationClock.monotonicNow()
         let before = observations
@@ -746,7 +752,7 @@ private struct FrozenDemoClock: MonitorClock {
             item.button?.toolTip = projected.accessibilitySummary
             rings.toolTip = projected.accessibilitySummary
         }
-        if popover.isShown && !sameDropdownRows(lastDropdownRows, projected.profiles) {
+        if popover.isShown && (rebuild || !sameDropdownRows(lastDropdownRows, projected.profiles)) {
             dropdown.renderNow = wall
             updateDropdown(projected.profiles)
             lastDropdownRows = projected.profiles
@@ -903,7 +909,7 @@ private struct FrozenDemoClock: MonitorClock {
             guard let generation = identity[key] else { return nil }
             return PresentationCandidate(metric: metric, freshnessDeadline: freshUntil, snapshotGeneration: generation)
         }
-        let display = MonitorDisplay(profiles: rows, candidates: candidates, revision: 1, nextDisplayDeadline: nil)
+        let display = MonitorDisplay(profiles: rows, candidates: candidates, revision: 1, nextDisplayDeadline: nil, polling: demoPolling)
         apply(display)
         if let lastProjection { dropdown.renderNow = now; updateDropdown(lastProjection.profiles) }
     }
