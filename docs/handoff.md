@@ -1,6 +1,6 @@
 # Limitaur handoff
 
-Updated 2026-10-24 ~23:15Z (16:15 America/Los_Angeles). Discussion IDs continue from P511.
+Updated 2026-10-24 ~23:15Z (16:15 America/Los_Angeles). Discussion IDs continue from P514.
 
 ## Product state
 
@@ -113,7 +113,7 @@ Part C (expiry nudge) accepted under the operator's pre-approval (P506.4 "accept
 
 Open, in order:
 1. Build 75 (revision 5dfdbe9, signed Limitaur Dev) relaunched 23:12Z detached (PID 10030 at launch), both providers healthy on the first poll, no `claudeNudgeEnabled` key stored so the nudge is on; build 54 counters in `live/stats-build54-final.json`; sampler still running. Watch overnight: L1 (token expiry 2026-10-25T00:54:45Z; `credentialRotations`/`credentialResumes`), L3 (`nudges` 1 then a resume within two minutes if the token expires while `claude` is not run; `nudge.lastAttempts` holds the time), L2 (interval persistence across relaunch, two machines).
-2. P510 (operator's call, recommended before any push): settings-guard light increment, the nudger refuses to run with its own row wording when the user's Claude Code settings configure `apiKeyHelper`, `awsAuthRefresh`, `awsCredentialExport`, `otelHeadersHelper` or set `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, `CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_USE_VERTEX` in an `env` block (R-C1). Also check those keys on the other machine before relying on the nudge there.
+2. P510 DECIDED 2026-10-24 23:2xZ: the operator accepts the residual (one context-free Haiku "hi" per hour for an API-key user who leaves the setting on; well under a cent each); no guard increment. For the record the proposal was: settings-guard light increment, the nudger refuses to run with its own row wording when the user's Claude Code settings configure `apiKeyHelper`, `awsAuthRefresh`, `awsCredentialExport`, `otelHeadersHelper` or set `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, `CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_USE_VERTEX` in an `env` block (R-C1). Also check those keys on the other machine before relying on the nudge there.
 3. Release and push: the operator said (P508) "we'll release and push at the end of this work"; push only on the explicit word in that turn; `origin` is still empty. Before pushing: CHANGELOG version entry and `AppVersion.swift` bump are the P73 procedure (one constant, `--version`, build script stamps).
 4. P408 (unhealthy-provider bar marker), light run; backlogs R-A*, R-B*, R-C*, P350–P353, P383–P386, P396–P398 on the operator's call.
 
