@@ -40,3 +40,18 @@ Build 41 of `dist/Limitaur.app` (0.1.0, revision 8024a83, source-identical to th
 | Classification | smoke or nonqualifying workload | qualifying |
 
 The run is nonqualifying for three reasons, none of them the sampler: the Claude usage endpoint answered three consecutive polls with 429 from 00:47Z after eight clean 45-second polls, the Claude token's known expiry (00:52:06Z) fell inside the window and paused the account, and at 45 seconds a 600-second window yields at most 13 or 14 polls per provider against the 18 that specification A7 requires at its 30-second cadence (see backlog P398). CPU is three orders of magnitude under budget. RSS sits about 1 MiB above the budget and is flat (max minus median 0.5 MiB), consistent with the 52.5 MiB startup value of the 2026-10-19 prototype; the overrun is baseline footprint, not growth. Whether the RSS budget is revised or the footprint reduced is an operator decision; no target pass is claimed.
+
+## L4 smoke on build 51 with the learned interval and the 10 s tick, 2026-10-24 (America/Los_Angeles)
+
+Build 51 of `dist/Limitaur.app` (0.1.0, revision 4a76f6d, signed `Limitaur Dev`, Parts A and B of session continuity live) was launched at 13:59 with `--stats` and sampled by `scripts/measure-resources.py` with the default 60-second warmup and 600-second window from 14:00; result `live/measure-l4-1.json` in the 2026-10-24-session-continuity evidence root. The script still judged against the 50 MiB budget; the 56 MiB budget (P487) was applied to the script afterwards.
+
+| Quantity | Value | Target |
+| --- | --- | --- |
+| Max sampled aggregate RSS | 53.42 MiB | < 56 MiB (P487), met; < 50 MiB under the old budget, not met |
+| Mean / median RSS | 52.84 / 53.23 MiB | reported |
+| CPU, one core | 0.00081 % (0.0049 s over 600 s) | < 0.1 %, met |
+| Descendants / unaccounted children | 0 observed / exited children between samples | see note |
+| Refresh outcomes in window | Codex 12 success; Claude 5 success, 2 throttled | ≥ 10 success each, no throttle |
+| Classification | smoke or nonqualifying workload | qualifying |
+
+Nonqualifying because Claude was throttled twice in the window and completed only five polls (its learned interval had already grown from the 429s), and because the exited-children flag is set: under Part A every Claude 429 triggers a re-read of the Keychain item through a short-lived `/usr/bin/security` child, which the two-second sampler sees only in the process counters. That child is part of the accepted design, so the flag no longer by itself disqualifies a run once Claude polls cleanly; the sampler does not yet distinguish it. Codex reached the amended A7 count. The 10-second cycle tick added no measurable CPU (0.00081 % against 0.00063 % on build 41 with a 45-second timer).

@@ -246,7 +246,7 @@ def qualifying_counters(initial, final, start_clock, end_clock, expected_pid):
         return False
     outcomes = outcome_deltas({key: value for key, value in initial.items() if key != '__eligibility'},
                               {key: value for key, value in final.items() if key != '__eligibility'})
-    return all(outcomes.get(provider, {}).get('success', 0) >= 18 and
+    return all(outcomes.get(provider, {}).get('success', 0) >= 10 and
                sum(count for name, count in outcomes.get(provider, {}).items() if name != 'success') == 0
                for provider in ('codex', 'claude'))
 
@@ -326,7 +326,7 @@ def main():
         'medianRSSMiB': statistics.median(rss) / mib,
         'cpuSeconds': cpu_delta,
         'cpuPercentOneCore': 100 * cpu_delta / elapsed,
-        'rssTargetMet': max(rss) / mib < 50,
+        'rssTargetMet': max(rss) / mib < 56,
         'cpuTargetMet': 100 * cpu_delta / elapsed < 0.1,
         'descendantCountObserved': len(observed_children),
         'unaccountedExitedChild': missing_child or child_counter_change,
