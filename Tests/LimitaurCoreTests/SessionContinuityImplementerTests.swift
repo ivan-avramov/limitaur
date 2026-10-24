@@ -27,6 +27,13 @@ private func gone(_ pid: pid_t?) -> Bool {
 }
 
 @Suite(.serialized) struct IARunnerTests {
+    @Test func reportsTheLowByteOfTheExitStatusAsAShellDoes() {
+        let perl = SystemProcessRunner().run(executable: "/usr/bin/perl", arguments: ["-e", "exit(-25300)"], environment: [:], workingDirectory: nil,
+                                             timeout: 5, graceAfterTerm: 1, output: .discard, registry: nil)
+        #expect(perl.exitCode == 44 && !perl.signaled)
+        #expect(sh("exit 7").0.exitCode == 7)
+    }
+
     @Test func capturesOutputAndExitCode() {
         let (r, _) = sh("printf abc")
         // Captured child output is compared into a Boolean so that a failure can never render it.

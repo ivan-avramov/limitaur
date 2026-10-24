@@ -166,7 +166,7 @@ public struct SystemProcessRunner: ProcessRunning {
         let normal = info.si_code == CLD_EXITED
         return state.withLock { s in
             defer { s.data = Data() }
-            return ProcessResult(exitCode: normal ? info.si_status : nil, signaled: !normal, output: s.oversized ? Data() : s.data,
+            return ProcessResult(exitCode: normal ? info.si_status & 0xFF : nil, signaled: !normal, output: s.oversized ? Data() : s.data,
                                  timedOut: s.timedOut, oversized: s.oversized)
         }
     }
