@@ -1,6 +1,6 @@
 # Limitaur handoff
 
-Updated 2026-10-24 ~20:40Z (13:40 America/Los_Angeles). Discussion IDs continue from P480.
+Updated 2026-10-24 ~21:15Z (14:15 America/Los_Angeles). Discussion IDs continue from P488.
 
 ## Product state
 
@@ -78,6 +78,18 @@ Open, in order, for the next session:
 4. Then P408 (unhealthy-provider bar marker), light run; backlogs on the operator's call.
 
 Helper copies under `/tmp/limitaur-sc/` and `/private/tmp/limitaur-review-checkout*` are disposable. Specification file `docs/proposals/session-continuity.md` is committed at revision 10.
+
+## C7 continued session (2026-10-24 21:15Z): Part C in flight, build 51 live, operator decisions P481–P487
+
+Committed this session: 4a76f6d (reset and expiry countdowns of a day or more read `in 7d 7h`; small edit, four-eyes skipped and said so), 7445705 (the severity tag `(normal)` etc. removed from dropdown rows at the operator's decision P482), and the documentation amendments below.
+
+Operator decisions (P486/P487, "go with your recs"): keep the app and the sampler detached through `perl -MPOSIX -e 'POSIX::setsid(); exec @ARGV'` rather than a launchd agent (a login item is forbidden by the rules; logout or reboot stops both the app and the recorder alike); RSS budget revised to 56 MiB and A7 to at least 10 successful refreshes per provider at the learned cadence (specification.md A7, performance.md, README, spec L4 amended, marked P487); P396 orphan certificate: the operator deletes the `Limitaur Dev` certificate with SHA-1 066B570BD53824FAE504D1E884C1E5F1EDF29AC7 (the one without a private key); the identity 600C37E7F36A4B023376DB72F468664189832D60 stays; P397, the earlier residual backlogs and the nudge-setting/L3 question (L3 belongs on the operator's other machine) stay in the backlog.
+
+Live: build 51 (revision 4a76f6d, signed Limitaur Dev) replaced build 48 at 20:59Z and runs with `--stats live/stats.json` (PID 6661 at launch). Two facts for any relaunch: the stats file is opened `O_EXCL`, so delete or move it first or the app exits 2 with "Statistics output unavailable"; and `open -n` did not start the bundle in this environment, the executable is run directly. Build 48's final counters are `live/stats-build48-final.json`: no `credentialRotations`/`credentialResumes` in three hours, `keychainSuspensions` absent (0), 64 `credentialRechecks` all from the reactive re-read after Claude 429s. L1 is still unobserved; the bound token expires 2026-10-25T00:54:45Z. The sampler `live/sample.sh` (change-driven, 15 s) runs detached; the earlier one died at the session boundary, gap 20:47–20:58Z in `stats-timeline.log`. L4 smoke against build 51 started 21:00Z (`live/measure-l4-1.json`). Build 52 (7445705 plus the doc edits) is to be built and relaunched after that measurement ends; the same `verify`/relaunch rules apply.
+
+Part C (expiry nudge) under the standing Go, baseline 4a76f6d: implementer claude-sonnet-5-5 (session aad79ae6-3f37-48ee-ac1f-0c2f08f00dac, 20:56–21:05Z) delivered candidate C (`implementer-c/candidate-c.diff`, sha256 in `candidate-c-sha256.txt`; report in `implementer-c/out.json`): Nudge.swift 80 lines (on budget), Monitor +57 (budget 50), AppUI +32, implementer tests 184 (budget 90), one UI test amended for the new menu item count, C5 "another nudge running" untested, a launch-time persistence race noted. Designer verification of the candidate alone in a clean copy (`implementer-c/verify-c0.txt`): 26 UI + 359 core three times, release build clean, 49 frozen Python (`AdversarialBars` needs `LIMITAUR_BIN` set to the release binary) and 12 collector tests pass; `/tmp/limitaur-sc/verify.sh <copy> <baseline> <diff> [frozen-dir]` repeats this. Blind test-writer: codex session 01a16c11-3b07-7e42-b5b6-d58fb0224a09 resumed at 20:56Z in `/tmp/limitaur-sc/tests` (at 4a76f6d) for the first delivery into `Tests/LimitaurCoreTests/SessionContinuityC/`; brief `testwriter/brief-c.md`, output `testwriter/out-c.txt`, `err-c.txt`, `exit-c.txt`.
+
+Next, in order: (1) when the first delivery returns, freeze the suite (copy with sha256 and time into `testwriter/frozen-c/`) before revealing the candidate; (2) second delivery (`codex exec ... resume 01a16c11-…`) with the candidate diff and the implementer's report staged under `/tmp/limitaur-sc/tests/.candidate/`; (3) change review, opinion mode, codex gpt-6-astra + claude-opus-5-5 from a read-only checkout with the candidate and the frozen suite applied, sensitive hunks: the nudge trigger and gate in `Monitor.loaded()`/`startNudge`, the child spawn, PATH and environment in `ClaudeCLINudger.run()`, the work-directory preparation, the attempts persistence in `AppUI.apply`, the quit wait; (4) fix rounds need the operator's approval after the first; (5) Accept: apply the final diff and the frozen suite to the operator tree, verify three times, commit, rebuild, relaunch with the nudge setting OFF on this machine. Then P408 (unhealthy-provider bar marker), light run.
 
 ## Still pending, in order
 
