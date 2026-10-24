@@ -1,6 +1,6 @@
 # Limitaur handoff
 
-Updated 2026-10-24 ~17:00Z (10:00 America/Los_Angeles). Discussion IDs continue from P451.
+Updated 2026-10-24 ~20:40Z (13:40 America/Los_Angeles). Discussion IDs continue from P480.
 
 ## Product state
 
@@ -64,6 +64,20 @@ Open, in order:
 1. Operator live steps for Part A: build and sign the bundle (`scripts/build-app.sh`, one codesign prompt); run `scripts/keychain-acl-probe.sh` once (it creates and deletes scratch items in the login keychain and includes one deliberate denied case; type the dialog answer it asks for; record the output in README's authentication paragraph); relaunch `dist/Limitaur.app`; L1: over the next Claude Code token refresh (item `mdat` changes), the new token is bound within 30 s plus one tick of the first failing poll, or within one tick plus five minutes of the old expiry, with no denied wording and `keychainSuspensions` 0; record the outcome in README.
 2. Part B (learned polling interval) and Part C (expiry nudge) of the same specification, each its own implementer/test-writer/change-review cycle under the standing Go (go.txt), with the frozen test-writer session continued if it can be resumed (codex session 01a16c11-3b07-7e42-b5b6-d58fb0224a09). Change-review 2 of Part A recorded for Part C's brief: termination cannot be cancelled after `stop()`.
 3. P408 (unhealthy-provider bar marker), separate light run; residual backlogs P350–P353, P383–P386, P396–P398, R-A1–R-A6 on the operator's call.
+
+## C6 session continuity, Part B: ACCEPTED (2026-10-24 20:40Z, strict four-eyes); Part A live; Part C next
+
+Part B (learned polling interval) accepted and committed (see git log, "feat: learn the polling interval …"); record `docs/reviews/session-continuity-part-b-review.md`, residuals `docs/backlog/session-continuity-part-b-residuals.md`, specification revision 10. Tests after Accept: 25 UI + 352 core native (frozen blind suites under `Tests/LimitaurCoreTests/SessionContinuity/` (48) and `SessionContinuityB/` (49), never edit them; earlier 42 + 43 unchanged), 49 frozen Python, 12 collector, three times in the operator tree (`accept-verify-operator-tree-b.txt`).
+
+Part A live: build 48 (revision 6619311) running since 18:01Z with `--stats /Users/ivan/ws/limitaur-review/2026-10-24-session-continuity/live/stats.json`; first poll read the real Keychain item through `security` with no dialog, both providers healthy. Probe run recorded in README (steps 0–4 and 6 passed; step 5 exposed the exit-code normalisation fixed in 45b66e1; the step-6 dialog stayed until answered, so A-3 is false and the per-launch suspension is the bound). L1 (bind within 30 s plus one tick of the first failing poll after the next Claude Code token refresh, no denied wording, `keychainSuspensions` 0) not yet observed: read `live/stats-timeline.log` (change-driven samples) for `credentialRotations`/`credentialResumes`. The build 48 bundle does not yet contain Part B.
+
+Open, in order, for the next session:
+1. Read `live/stats-timeline.log`: has a token refresh happened (`credentialRotations` or `credentialResumes` incremented, `keychainSuspensions` 0, no denied wording)? Record L1 in README.
+2. Rebuild and sign (`sh scripts/build-app.sh`), relaunch with `--stats`, and start the Part B live gates: L2 (interval and blocks persist across relaunch; reductions at least 24 h apart; ideally on two machines) and L4 (resource smoke with the 10 s tick, `scripts/measure-resources.py`).
+3. Part C (expiry nudge, specification Part C, revision 10) under the standing Go (go.txt): implementer claude-sonnet-5-5 in a fresh copy at the new HEAD; blind test-writer codex session 01a16c11-3b07-7e42-b5b6-d58fb0224a09 continued (its copy `/tmp/limitaur-sc/tests` must be fetched and checked out at the new HEAD first, and the Part B directory there removed since it is now tracked); change review codex gpt-6-astra + claude-opus-5-5; fix rounds need the operator's approval after the first. Carry into the Part C brief: termination cannot be cancelled after `stop()` (change-review 2 of Part A); the nudge child is unregistered and not killed at quit; the verified flags `--safe-mode --no-session-persistence --strict-mcp-config --tools ""`.
+4. Then P408 (unhealthy-provider bar marker), light run; backlogs on the operator's call.
+
+Helper copies under `/tmp/limitaur-sc/` and `/private/tmp/limitaur-review-checkout*` are disposable. Specification file `docs/proposals/session-continuity.md` is committed at revision 10.
 
 ## Still pending, in order
 
