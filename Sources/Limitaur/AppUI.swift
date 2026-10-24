@@ -402,7 +402,6 @@ private struct FrozenDemoClock: MonitorClock {
                         continue
                     }
                     let percent = metric.usedPercent.map { String(format: "%.2f%%", $0) } ?? "unknown"
-                    let level = severity(metric.usedPercent).rawValue
                     let time = row.expirations.metrics.contains(metric.id) ? "reset due" :
                         (metric.resetsAt.map { resetText($0) } ?? "reset unknown")
                     let absolute = metric.resetsAt.flatMap(displayableResetDate).map {
@@ -413,7 +412,7 @@ private struct FrozenDemoClock: MonitorClock {
                     case .critical: .systemRed
                     default: nil
                     }
-                    line("  \(metric.label): \(percent) (\(level)) · \(time)", tooltip: absolute, color: color)
+                    line("  \(metric.label): \(percent) · \(time)", tooltip: absolute, color: color)
                 }
                 for (index, balance) in snapshot.balances.enumerated() {
                     let unknown: String
