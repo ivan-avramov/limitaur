@@ -1,6 +1,6 @@
 # Limitaur handoff
 
-Updated 2026-10-23 (America/Los_Angeles). Discussion IDs continue from P387.
+Updated 2026-10-23 ~16:45Z (America/Los_Angeles). Discussion IDs continue from P391.
 
 ## Product state
 
@@ -36,7 +36,15 @@ Open: M1 (spec R-list) is the operator's manual gate: relaunch the rebuilt signe
 
 Light four-eyes run complete (record `docs/reviews/throttle-paced-freshness-review.md`; residuals P383–P386 in `docs/backlog/throttle-paced-freshness-residuals.md`, operator's call whether any becomes a requirement). Cause: the Claude usage endpoint answers polls with 429 and a Retry-After about 100 s after the last success. Shipped: cadence 45 s (92e3e68) and, while an entity holds a parsed Retry-After, its last snapshot stays ranked until the deadline plus 48.5 s, cap 300 s after the fetch (8c3056a). Tests after the change: 25 UI + 198 core native (43 frozen blind under `Tests/LimitaurCoreTests/ThrottleFreshness/`, never edit them; 14 implementer), 49 frozen independent Python, 12 collector, all passing three times in the operator tree at Accept. Evidence root `/Users/ivan/ws/limitaur-review/2026-10-23-throttle-freshness/`. Helper copies `/tmp/limitaur-fe2/` and `/private/tmp/limitaur-review-checkout` are disposable.
 
-`dist/Limitaur.app` is rebuilt and signed with "Limitaur Dev" (0.1.0, build 40, revision 8c3056a). Open: the operator relaunches it and watches the Claude row under throttle (expected: "throttled" in the dropdown, bars stay); then M1 as in C2 (the operator chose Allow, not Always Allow, on the Keychain dialogs, so a Connect with Always Allow is needed before the non-interactive re-check can pass).
+`dist/Limitaur.app` (0.1.0, build 40, revision 8c3056a, signed "Limitaur Dev") is running on the operator's machine since 2026-10-23 ~16:40Z; on this launch the operator chose Always Allow on the two Keychain dialogs (the item's data entry and its wrapping key; two prompts per new signing identity, none afterwards), so Claude is bound and the non-interactive re-check can pass.
+
+Open, in order, for the next session:
+1. Throttle observation (P390): over a few hours of use, does the Claude row stay in the bars during "throttled" periods? If a blink is seen, note the dropdown's Retry-After and fetch age; P383 (backoff longer than a repeat Retry-After) is the likely cause and its fix is specified in the backlog.
+2. M1 (spec C2 R-list): when the Claude row shows "Session expired or rejected; resumes automatically …", the operator runs one `claude` command; Limitaur must resume within about 5.5 minutes with no dialog. Then README line "Automatic resume of a paused account (M1 …) … not yet observed live" is replaced with the outcome (date, interval observed, no dialog), and the Keychain-prompt behaviour (two Always Allow prompts once per signing identity) is recorded in README's authentication paragraph.
+3. Backlog decisions, only when the operator raises them: credential re-check P350–P353, throttle P383–P386 (designer's recommendation: none becomes a requirement until observation 1 or 2 shows a need; P383 first if a blink is seen).
+4. Release gates (section below) and the P339 orphaned keyless trust entry (delete or ignore).
+
+
 
 ## Still pending, in order
 
