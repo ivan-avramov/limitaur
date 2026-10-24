@@ -137,7 +137,10 @@ public func resetCountdownText(resetAt date: Date, now: Date) -> String {
     if seconds <= 0 { return "reset due" }
     if seconds < 3600 { return "in \(Int(ceil(seconds / 60)))m" }
     guard seconds / 3600 < Double(Int.max) else { return "reset time unavailable" }
-    return "in \(Int(ceil(seconds / 3600)))h"
+    let hours = Int(ceil(seconds / 3600))
+    if hours < 24 { return "in \(hours)h" }
+    let days = hours / 24, rest = hours % 24
+    return rest == 0 ? "in \(days)d" : "in \(days)d \(rest)h"
 }
 
 /// Nominal UI cadence: 45 s plus bounded jitter, above the scheduler's 30-second
