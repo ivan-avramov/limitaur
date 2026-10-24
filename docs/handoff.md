@@ -1,6 +1,6 @@
 # Limitaur handoff
 
-Updated 2026-10-24 ~23:15Z (16:15 America/Los_Angeles). Discussion IDs continue from P514.
+Updated 2026-10-24 ~23:15Z (16:15 America/Los_Angeles). Discussion IDs continue from P517.
 
 ## Product state
 
@@ -114,8 +114,11 @@ Part C (expiry nudge) accepted under the operator's pre-approval (P506.4 "accept
 Open, in order:
 1. Build 75 (revision 5dfdbe9, signed Limitaur Dev) relaunched 23:12Z detached (PID 10030 at launch), both providers healthy on the first poll, no `claudeNudgeEnabled` key stored so the nudge is on; build 54 counters in `live/stats-build54-final.json`; sampler still running. Watch overnight: L1 (token expiry 2026-10-25T00:54:45Z; `credentialRotations`/`credentialResumes`), L3 (`nudges` 1 then a resume within two minutes if the token expires while `claude` is not run; `nudge.lastAttempts` holds the time), L2 (interval persistence across relaunch, two machines).
 2. P510 DECIDED 2026-10-24 23:2xZ: the operator accepts the residual (one context-free Haiku "hi" per hour for an API-key user who leaves the setting on; well under a cent each); no guard increment. For the record the proposal was: settings-guard light increment, the nudger refuses to run with its own row wording when the user's Claude Code settings configure `apiKeyHelper`, `awsAuthRefresh`, `awsCredentialExport`, `otelHeadersHelper` or set `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, `CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_USE_VERTEX` in an `env` block (R-C1). Also check those keys on the other machine before relying on the nudge there.
-3. Release and push: the operator said (P508) "we'll release and push at the end of this work"; push only on the explicit word in that turn; `origin` is still empty. Before pushing: CHANGELOG version entry and `AppVersion.swift` bump are the P73 procedure (one constant, `--version`, build script stamps).
-4. P408 (unhealthy-provider bar marker), light run; backlogs R-A*, R-B*, R-C*, P350–P353, P383–P386, P396–P398 on the operator's call.
+3. Release 0.2.0 and first push: DONE 2026-10-24 ~23:3xZ on the operator's word ("release and push", P516): `AppVersion.swift` 0.2.0, CHANGELOG `[0.2.0] - 2026-10-24`, annotated tag `v0.2.0`, `main` and the tag pushed to `origin` (public). The running bundle is the 0.2.0 build (see the C8 live line). Future releases follow the same P73 procedure: one constant, `--version`, CHANGELOG entry, tag, push on the operator's word only.
+4. Overnight observation (next session, first thing): read `live/stats-timeline.log`; L1 (`credentialRotations`/`credentialResumes` after the 2026-10-25T00:54:45Z expiry, `keychainSuspensions` 0, no denied wording), L3 (`nudges` 1 then a resume within two minutes, only if the token expired while `claude` was idle; `nudge.lastAttempts` in `defaults read local.limitaur.app` holds the time), L2 (learned interval and blocks persist across the relaunches of this evening; reductions at least 24 h apart; second machine still to run). Record each in README's authentication and cadence paragraphs and in docs/performance.md where relevant.
+5. P408 (unhealthy-provider bar marker), light four-eyes run, next increment.
+6. Backlogs on the operator's call: R-A1–R-A6, R-B1–R-B7, R-C1–R-C11 (R-C1 accepted as residual), P350–P353, P383–P386, P396 done, P397, P398 superseded by P487; P492/P508 closed; `LSMultipleInstancesProhibited` (R-C5) and the measurement sampler recognising the `security` child are small candidates.
+7. Other machine: install the 0.2.0 bundle (build from the tag with `scripts/build-app.sh`, signing identity per machine), run L2 there and check the P510 settings keys before trusting the nudge; API-metered accounts backlog is to be implemented there.
 
 Helper copies under `/tmp/limitaur-sc/` and `/private/tmp/limitaur-review-checkout*` are disposable.
 
@@ -128,7 +131,7 @@ Helper copies under `/tmp/limitaur-sc/` and `/private/tmp/limitaur-review-checko
 5. Experimental jar and logo layouts: retained by operator request; delete after a period on the beside layout.
 6. Cursor: deferred.
 
-Remote: `origin` is `git@github.com:ivan-avramov/limitaur.git`, public, MIT, created 2026-10-21 and still empty. Push only on explicit instruction in that turn.
+Remote: `origin` is `git@github.com:ivan-avramov/limitaur.git`, public, MIT; first push 2026-10-24 (0.2.0, tag v0.2.0). Push only on explicit instruction in that turn.
 4. Known build warnings: two deprecated classic Keychain calls in `Credentials.swift` (SecKeychainGet/SetUserInteractionAllowed). Deliberate: they are the only way to guarantee no background prompt for the file-based login-keychain item Claude Code writes. Replacing them is a credential-boundary change needing strict four-eyes and empirical prompt verification; not planned (P330).
 
 ## Rules of the road

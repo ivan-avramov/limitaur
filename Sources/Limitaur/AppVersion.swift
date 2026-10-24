@@ -3,7 +3,7 @@ import AppKit
 /// Single source of truth for the app version. `scripts/build-app.sh` reads the
 /// `string` line below with sed, so keep it on one line in this exact form.
 enum AppVersion {
-    static let string = "0.1.0"
+    static let string = "0.2.0"
 
     /// True for a Semantic Versioning 2.0.0 string: three numeric core components
     /// without leading zeros, optional dot-separated prerelease identifiers (numeric
