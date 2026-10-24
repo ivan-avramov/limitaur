@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import Synchronization
 import Testing
 @testable import LimitaurCore
 @testable import Limitaur
@@ -306,6 +307,141 @@ private final class PresentationClock: MonitorClock, @unchecked Sendable {
         #expect(await transport.count() == 1)
         if mode == .pending { await transport.finish() }
         #expect(await monitor.settle())
+        await monitor.stop()
+    }
+}
+
+private final class NudgeOrderProbe: SessionNudging, @unchecked Sendable {
+    let log = Mutex<[String]>([])
+    func nudge() async -> NudgeOutcome { .ran(exitCode: 0) }
+    func waitForCompletion(upTo: TimeInterval) { log.withLock { $0.append("wait \(Int(upTo))") } }
+}
+
+@MainActor @Test func nudgeSettingPersistenceAndQuitOrder() async throws {
+    _ = NSApplication.shared
+    let suite = "limitaur-synthetic-" + UUID().uuidString
+    let defaults = UserDefaults(suiteName: suite)!
+    defer { defaults.removePersistentDomain(forName: suite) }
+    let clock = PresentationClock(), probe = NudgeOrderProbe()
+    defaults.set(try JSONEncoder().encode(["claude-default": Date.distantFuture]), forKey: "nudge.lastAttempts")
+    let monitor = Monitor(clock: clock, reactiveRecheck: true, nudger: probe)
+    let controller = AppController(monitor: monitor, presentationClock: clock, countStore: CountStoreProbe(3), defaults: defaults, nudger: probe)
+    var toggles: [Bool] = []
+    controller.nudgeToggled = { toggles.append($0) }
+    var item = controller.settingsMenu().item(at: 4)!
+    #expect(item.title == "Run claude when the Claude session has expired" && item.state == .on && item.isEnabled)   // r15: an absent key means on
+    #expect(NSApp.sendAction(item.action!, to: item.target, from: item))
+    #expect(toggles == [false] && defaults.object(forKey: "claudeNudgeEnabled") as? Bool == false)
+    item = controller.settingsMenu().item(at: 4)!
+    #expect(item.state == .off)
+    #expect(NSApp.sendAction(item.action!, to: item.target, from: item))
+    #expect(toggles == [false, true] && defaults.bool(forKey: "claudeNudgeEnabled"))
+    await controller.restoreNudge()   // a stored future attempt is clamped to the clock's now
+    #expect(await monitor.display().nudgeAttempts == ["claude-default": clock.wallNow()])
+    let before = defaults.data(forKey: "nudge.lastAttempts")   // only the monitor's attemptStore writes this key
+    let stamp = clock.wallNow().addingTimeInterval(-60)
+    controller.receiveDisplay(MonitorDisplay(profiles: [], candidates: [], revision: 5, nextDisplayDeadline: nil, nudgeAttempts: ["claude-default": stamp]))
+    #expect(defaults.data(forKey: "nudge.lastAttempts") == before)
+    var order: [String] = []
+    controller.terminateProcesses = { order = probe.log.withLock { $0 } + ["terminate"] }
+    controller.applicationWillTerminate(Notification(name: NSApplication.willTerminateNotification))
+    #expect(order == ["wait 5", "terminate"])
+    let demo = AppController(demo: true, countStore: CountStoreProbe(3), defaults: defaults, nudger: probe)
+    #expect(demo.settingsMenu().item(at: 4)?.isEnabled == false)
+    demo.terminateProcesses = {}
+    demo.applicationWillTerminate(Notification(name: NSApplication.willTerminateNotification))
+    #expect(probe.log.withLock { $0 } == ["wait 5"])
+    await monitor.stop()
+}
+
+@MainActor @Test func displaysNeverWriteAttemptsAndDemoToggleIsInert() async throws {
+    _ = NSApplication.shared
+    let suite = "limitaur-synthetic-" + UUID().uuidString
+    let defaults = UserDefaults(suiteName: suite)!
+    defer { defaults.removePersistentDomain(forName: suite) }
+    let clock = PresentationClock(), stamp = clock.wallNow().addingTimeInterval(-60)
+    let stored = try JSONEncoder().encode(["claude-default": stamp])
+    defaults.set(stored, forKey: "nudge.lastAttempts")
+    let monitor = Monitor(clock: clock, reactiveRecheck: true)
+    let controller = AppController(monitor: monitor, presentationClock: clock, countStore: CountStoreProbe(3), defaults: defaults, nudger: nil)
+    controller.receiveDisplay(MonitorDisplay(profiles: [], candidates: [], revision: 1, nextDisplayDeadline: nil))   // a display delivered before the restore
+    #expect(defaults.data(forKey: "nudge.lastAttempts") == stored)
+    await controller.restoreNudge()
+    controller.receiveDisplay(MonitorDisplay(profiles: [], candidates: [], revision: 2, nextDisplayDeadline: nil, nudgeAttempts: ["claude-default": stamp.addingTimeInterval(30)]))
+    controller.receiveDisplay(MonitorDisplay(profiles: [], candidates: [], revision: 3, nextDisplayDeadline: nil))   // a stale, empty display after it
+    #expect(defaults.data(forKey: "nudge.lastAttempts") == stored)   // a display, early, late or stale, never writes
+    await monitor.stop()
+
+    let demo = AppController(demo: true, countStore: CountStoreProbe(3), defaults: defaults, nudger: nil)
+    var toggles: [Bool] = []
+    demo.nudgeToggled = { toggles.append($0) }
+    let menu = demo.settingsMenu()
+    menu.update()   // automatic enabling must not re-enable the item
+    let item = menu.item(at: 4)!
+    #expect(!menu.autoenablesItems && !item.isEnabled)
+    #expect(NSApp.sendAction(item.action!, to: item.target, from: item))
+    #expect(toggles.isEmpty && defaults.object(forKey: "claudeNudgeEnabled") == nil && item.state == .on)
+}
+
+private final class CountingNudger: SessionNudging, @unchecked Sendable {
+    let calls = Mutex(0)
+    func nudge() async -> NudgeOutcome { calls.withLock { $0 += 1 }; return .ran(exitCode: 0) }
+    func waitForCompletion(upTo: TimeInterval) {}
+}
+
+/// r15: with no stored key the item is checked and `setNudgeEnabled(true)` is called; a stored false unchecks it and calls false.
+/// The call is observed through an expired re-check, which runs the nudger only when the monitor was told true.
+@MainActor @Test(arguments: [nil, false, true] as [Bool?])
+func nudgeDefaultsToOnAndAStoredValueWins(_ stored: Bool?) async throws {
+    _ = NSApplication.shared
+    let suite = "limitaur-synthetic-" + UUID().uuidString
+    let defaults = UserDefaults(suiteName: suite)!
+    defer { defaults.removePersistentDomain(forName: suite) }
+    if let stored { defaults.set(stored, forKey: "claudeNudgeEnabled") }
+    let expected = stored ?? true
+    let clock = PresentationClock()
+    let nudger = CountingNudger()
+    let monitor = Monitor(clock: clock, credentials: CredentialStore(files: CountingFiles(), keychain: UnexpiredKeychain(expiry: clock.wallNow().addingTimeInterval(-10))),
+                          transport: CountingTransport(.healthy), reactiveRecheck: true, nudger: nudger)
+    let controller = AppController(monitor: monitor, presentationClock: clock, countStore: CountStoreProbe(3), defaults: defaults, nudger: nil)
+    #expect(controller.settingsMenu().item(at: 4)?.state == (expected ? .on : .off))
+    await controller.restoreNudge()
+    await monitor.setProfiles([AccountProfile(id: "a", providerID: "claude", label: "Synthetic", source: .claudeDefaultDiscovery)])
+    #expect(await monitor.settle())
+    clock.move(wall: 301, mono: 301)
+    await monitor.refresh(driver: .cycle)
+    #expect(await monitor.settle())
+    for _ in 0..<(expected ? 500 : 40) where nudger.calls.withLock({ $0 }) == 0 { try await Task.sleep(for: .milliseconds(10)) }
+    #expect(nudger.calls.withLock { $0 } == (expected ? 1 : 0))
+    await monitor.stop()
+}
+
+private struct UnexpiredKeychain: KeychainReading {
+    let expiry: Date
+    func claudeCredential() -> KeychainResult {
+        .found(try! JSONSerialization.data(withJSONObject: ["claudeAiOauth": ["accessToken": "synthetic-token-1", "expiresAt": Int64(expiry.timeIntervalSince1970 * 1000)]]))
+    }
+}
+
+/// The wiring: the app's `attemptWriter` is the monitor's `attemptStore`, so a launch bind of an unexpired token writes nothing
+/// when no attempt exists and replaces a restored attempt with the cleared map when one does.
+@MainActor @Test func unexpiredLaunchBindClearsStoredAttemptsThroughTheAppWiring() async throws {
+    _ = NSApplication.shared
+    for restored in [false, true] {
+        let suite = "limitaur-synthetic-" + UUID().uuidString
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let clock = PresentationClock()
+        if restored { defaults.set(try JSONEncoder().encode(["claude:default": clock.wallNow().addingTimeInterval(-60)]), forKey: "nudge.lastAttempts") }
+        let monitor = Monitor(clock: clock, credentials: CredentialStore(files: CountingFiles(), keychain: UnexpiredKeychain(expiry: clock.wallNow().addingTimeInterval(400))),
+                              transport: CountingTransport(.healthy), reactiveRecheck: true, nudger: NudgeOrderProbe(),
+                              attemptStore: AppController.attemptWriter(defaults))
+        let controller = AppController(monitor: monitor, presentationClock: clock, countStore: CountStoreProbe(3), defaults: defaults, nudger: nil)
+        await controller.restoreNudge()
+        await monitor.setProfiles([AccountProfile(id: "a", providerID: "claude", label: "Synthetic", source: .claudeDefaultDiscovery)])
+        #expect(await monitor.settle())
+        let stored = defaults.data(forKey: "nudge.lastAttempts")
+        if restored { #expect(try JSONDecoder().decode([String: Date].self, from: stored!).isEmpty) } else { #expect(stored == nil) }
         await monitor.stop()
     }
 }

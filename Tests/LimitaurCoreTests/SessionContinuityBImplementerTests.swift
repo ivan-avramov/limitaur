@@ -57,6 +57,16 @@ private func aged() -> PollingPolicy { var p = PollingPolicy(); _ = p.recordClea
 // MARK: monitor rig
 private struct NoKeychain: KeychainReading { func claudeCredential() -> KeychainResult { .notFound } }
 private let path = "/b/a"
+/// Polls the asserted state with yields until it holds or five seconds pass; unlike the fixed `scFlush()` sleep it does not depend on load.
+private func bWait(_ predicate: () async -> Bool) async -> Bool {
+    let deadline = ContinuousClock.now.advanced(by: .seconds(5))
+    while ContinuousClock.now < deadline {
+        if await predicate() { return true }
+        for _ in 0..<5 { await Task.yield() }
+        try? await Task.sleep(for: .milliseconds(1))
+    }
+    return await predicate()
+}
 private struct Rig {
     let clock = SCClock(), files = SCFiles(), transport: SCTransport, monitor: Monitor
     init(_ replies: [HTTPResponse] = [], policy: PollingPolicy? = PollingPolicy(), reactive: Bool = false, deferred: Bool = false, paths: [String] = [path]) async {
@@ -66,14 +76,19 @@ private struct Rig {
         if let policy { await monitor.setPolling(["claude": policy]) }
         await monitor.setProfiles(paths.enumerated().map { scProfile("p\($0.offset)", source: .claudeFile($0.element)) })
         let expected = paths.count
-        _ = await scWait { [transport] in await transport.count() >= expected }
+        _ = await bWait { [transport] in await transport.count() >= expected }
         let initial = (0..<expected).map { $0 < replies.count ? replies[$0].status : (deferred ? 0 : 200) }
         if initial.allSatisfy({ $0 == 200 }) {
-            for i in 0..<expected { _ = await scWait { [monitor] in await scRow(monitor, "p\(i)")?.snapshot != nil } }
+            for i in 0..<expected { _ = await bWait { [monitor] in await scRow(monitor, "p\(i)")?.snapshot != nil } }
         }
         await scFlush()
     }
-    func step(_ seconds: TimeInterval, _ driver: RefreshDriver = .cycle) async { clock.advance(seconds); await monitor.refresh(driver: driver); await scFlush() }
+    /// Without `until` the settling is the fixed flush (right for asserting that nothing changed); with it, the asserted state is awaited.
+    func step(_ seconds: TimeInterval, _ driver: RefreshDriver = .cycle, until: (() async -> Bool)? = nil) async {
+        clock.advance(seconds); await monitor.refresh(driver: driver)
+        if let until { _ = await bWait(until) } else { await scFlush() }
+    }
+    func manual(until: () async -> Bool) async { await monitor.manualRefresh(); _ = await bWait(until) }
     func policy() async -> PollingPolicy? { await monitor.display().polling["claude"] }
     func row() async -> ProfileDisplay? { await scRow(monitor, "p0") }
 }
@@ -82,14 +97,14 @@ private struct Rig {
     for (interval, edge) in [(50, 48.5), (120, 118.5), (30, 28.5)] as [(Int, Double)] {
         let rig = await Rig(policy: at(interval))
         await rig.step(edge - 0.5); #expect(await rig.transport.count() == 1)
-        await rig.step(0.5); #expect(await rig.transport.count() == 2)
+        await rig.step(0.5, until: { await rig.transport.count() >= 2 }); #expect(await rig.transport.count() == 2)
         await rig.step(edge - 0.5); #expect(await rig.transport.count() == 2)
-        await rig.monitor.manualRefresh(); await scFlush(); #expect(await rig.transport.count() == 3)
+        await rig.manual { await rig.transport.count() >= 3 }; #expect(await rig.transport.count() == 3)
         await rig.monitor.stop()
     }
     let plain = await Rig(policy: nil)
     await plain.step(29.5); #expect(await plain.transport.count() == 1)
-    await plain.step(0.5); #expect(await plain.transport.count() == 2)
+    await plain.step(0.5, until: { await plain.transport.count() >= 2 }); #expect(await plain.transport.count() == 2)
     #expect(await plain.policy() == nil)
     let rig = await Rig([scResponse(), scResponse(429, retry: "200")])
     await rig.step(48.5); await rig.step(60); await rig.step(60)
@@ -102,10 +117,10 @@ private struct Rig {
 @Test func cleanPollsAndResets() async {
     let rig = await Rig([scResponse(), scResponse(), scResponse(), scResponse(), HTTPResponse(status: 200, headers: [:], body: Data("x".utf8))], reactive: true)
     #expect(await rig.policy()?.consecutiveClean == 0)
-    await rig.step(48.5); #expect(await rig.policy()?.consecutiveClean == 1)
+    await rig.step(48.5, until: { await rig.policy()?.consecutiveClean == 1 }); #expect(await rig.policy()?.consecutiveClean == 1)
     await rig.monitor.manualRefresh(); await scFlush(); #expect(await rig.policy()?.consecutiveClean == 1)
-    await rig.step(50); #expect(await rig.policy()?.consecutiveClean == 2)
-    await rig.step(50, .manual); #expect(await rig.policy()?.consecutiveClean == 0)
+    await rig.step(50, until: { await rig.policy()?.consecutiveClean == 2 }); #expect(await rig.policy()?.consecutiveClean == 2)
+    await rig.step(50, .manual, until: { await rig.policy()?.consecutiveClean == 0 }); #expect(await rig.policy()?.consecutiveClean == 0)
     let under = await Rig([scResponse(), scResponse(401)], reactive: true)
     await under.step(48.5); #expect(await under.policy()?.consecutiveClean == 0)
 }
@@ -113,18 +128,18 @@ private struct Rig {
 @Test func throttleClassification() async {
     let same = await Rig([scResponse(), scResponse(429, retry: "95")], reactive: true)
     await same.step(48.5); #expect(await same.policy()?.interval == 50)
-    await same.step(30); #expect(await same.policy()?.interval == 100)
+    await same.step(30, until: { await same.policy()?.interval == 100 }); #expect(await same.policy()?.interval == 100)
     let rotated = await Rig([scResponse(), scResponse(429, retry: "95")], reactive: true)
     await rotated.step(48.5); rotated.files.set(path, scClaude(2))
     await rotated.step(30); await rotated.step(61); #expect(await rotated.policy()?.interval == 50)
     let timed = await Rig([scResponse(), scResponse(429)], reactive: true)
     await timed.step(48.5); #expect(await timed.policy()?.interval == 50)
-    await timed.step(61); #expect(await timed.policy()?.interval == 60)
+    await timed.step(61, until: { await timed.policy()?.interval == 60 }); #expect(await timed.policy()?.interval == 60)
     let second = await Rig([scResponse(), scResponse(429), scResponse(429)], reactive: true)
     second.clock.advance(20); await second.monitor.manualRefresh(); await scFlush(); #expect(await second.policy()?.interval == 50)
-    await second.step(31, .internal); #expect(await second.policy()?.interval == 60)
+    await second.step(31, .internal, until: { await second.policy()?.interval == 60 }); #expect(await second.policy()?.interval == 60)
     let direct = await Rig([scResponse(), scResponse(429, retry: "95")])
-    await direct.step(48.5); #expect(await direct.policy()?.interval == 100)
+    await direct.step(48.5, until: { await direct.policy()?.interval == 100 }); #expect(await direct.policy()?.interval == 100)
 }
 
 @Test func pendingThrottleHoldsReduction() async {
@@ -133,15 +148,15 @@ private struct Rig {
     let rig = await Rig(Array(repeating: scResponse(), count: 6), policy: old, reactive: true, deferred: true, paths: [path, "/b/b"])
     for round in 1...2 {
         rig.clock.advance(50); await rig.monitor.refresh(driver: .cycle)
-        #expect(await scWait { await rig.policy()?.consecutiveClean == round * 2 })
+        #expect(await bWait { await rig.policy()?.consecutiveClean == round * 2 })
     }
     rig.clock.advance(50); await rig.monitor.refresh(driver: .cycle)
-    #expect(await scWait { await rig.transport.count() == 8 })
+    #expect(await bWait { await rig.transport.count() == 8 })
     await rig.transport.answer(7, scResponse(429))
-    let throttled = await scWait { await rig.monitor.display().profiles.contains { $0.health == .throttled } }
+    let throttled = await bWait { await rig.monitor.display().profiles.contains { $0.health == .throttled } }
     #expect(throttled)
     await rig.transport.answer(6, scResponse())
-    #expect(await scWait { await rig.policy()?.consecutiveClean == 5 })
+    #expect(await bWait { await rig.policy()?.consecutiveClean == 5 })
     let held = await rig.policy()
     #expect(held?.consecutiveClean == 5 && held?.interval == 50)
     await rig.transport.finish(); await rig.monitor.stop()
@@ -154,11 +169,11 @@ private func span(_ r: ProfileDisplay?) -> TimeInterval? {
 @Test func horizonAndRetention() async {
     let rig = await Rig([scResponse(), scResponse(429)], policy: at(100), reactive: true)
     #expect(await span(rig.row()) == 120)
-    await rig.step(98.5); await rig.step(30)
+    await rig.step(98.5); await rig.step(30, until: { await rig.policy()?.interval == 110 })
     let (interval, kept) = (await rig.policy()?.interval, await span(rig.row()))
     #expect(interval == 110 && kept == 120)
     let held = await Rig([scResponse(), scResponse(429, retry: "5")], policy: at(110))
-    await held.step(108.5)
+    await held.step(108.5, until: { await span(held.row()) == 230.5 })
     #expect(await span(held.row()) == 230.5)
 }
 
@@ -241,20 +256,20 @@ extension UserDefaults: PollingStorage {}
     rig.clock.advance(19.5); #expect(await ranked(rig))
     rig.clock.advance(0.5); #expect(!(await ranked(rig)))
     let held = await Rig([scResponse(), scResponse(429, retry: "5")], policy: at(110))
-    #expect(await scWait { await held.row()?.snapshot != nil })
+    #expect(await bWait { await held.row()?.snapshot != nil })
     held.clock.advance(108.5); await held.monitor.refresh(driver: .cycle)
-    #expect(await scWait { await held.transport.count() == 2 })
-    #expect(await scWait { await held.row()?.health == .throttled })
+    #expect(await bWait { await held.transport.count() == 2 })
+    #expect(await bWait { await held.row()?.health == .throttled })
     held.clock.advance(121.5); #expect(await ranked(held))
     held.clock.advance(0.5); #expect(!(await ranked(held)))
 }
 
 @Test func settlementIsPerEntityAndPublishes() async {
     let rig = await Rig(policy: PollingPolicy(), reactive: true, deferred: true, paths: [path, "/b/b"])
-    #expect(await scWait { await rig.transport.count() == 2 })
+    #expect(await bWait { await rig.transport.count() == 2 })
     await rig.transport.answer(0, scResponse()); await rig.transport.answer(1, scResponse()); await scFlush()
     rig.clock.advance(50); await rig.monitor.refresh(driver: .cycle)
-    #expect(await scWait { await rig.transport.count() == 4 })
+    #expect(await bWait { await rig.transport.count() == 4 })
     await rig.transport.answer(2, scResponse(429)); await rig.transport.answer(3, scResponse(429)); await scFlush()
     let stream = await rig.monitor.changes()
     let collector = Task { () -> Double? in
@@ -264,7 +279,7 @@ extension UserDefaults: PollingStorage {}
     }
     rig.files.set(path, scClaude(11))
     await rig.step(30)
-    #expect(await scWait { await rig.policy()?.interval == 60 })
+    #expect(await bWait { await rig.policy()?.interval == 60 })
     await scFlush()
     #expect(await rig.policy()?.interval == 60)
     collector.cancel()

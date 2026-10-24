@@ -102,7 +102,7 @@ func executableVersionDispatch(arguments: [String], status: Int32, stdout: Strin
     let about = menu.item(at: 3)!
     #expect(about.title == "About Limitaur…")
     #expect(about.isEnabled)
-    #expect(menu.numberOfItems == 4)
+    #expect(menu.numberOfItems == 5)
     #expect(NSApp.sendAction(about.action!, to: about.target, from: about))
     #expect(presented.count == 1)
     #expect(presented.first?[.applicationVersion] as? String == AppVersion.string)

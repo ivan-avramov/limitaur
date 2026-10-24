@@ -4,6 +4,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 
 ## [Unreleased]
 
+### Added
+- On by default, can be turned off (Settings → "Run claude when the Claude session has expired"): when a re-check shows the default Keychain Claude token has expired, run `claude -p hi --model haiku --safe-mode --no-session-persistence --strict-mcp-config --tools ""` (at most hourly, never on a Keychain denial, 60 s limit, fixed environment, a directory group-writable by `admin` accepted, a lock so two Limitaur processes never run it together) so Claude Code renews the session; counters `nudges` and `nudgeFailures`, attempts persisted in `nudge.lastAttempts`, quit waits up to 5 s for a running nudge.
+
 ### Changed
 - Dropdown metric rows no longer carry the severity tag `(normal)`, `(warning)`, `(critical)` or `(unknown)`; the colour of the row still marks warning and critical.
 - Reset and expiry countdowns of a day or more read `in 7d 7h` instead of `in 175h`; under a day they are unchanged.

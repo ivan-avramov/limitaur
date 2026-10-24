@@ -496,14 +496,25 @@ extension UserDefaults: PollingStorage {}
     private let demoAppearance: NSAppearance.Name?
     private let statisticsPath: String?
     private var statisticsOutput: StatisticsOutput?
+    private let defaults: UserDefaults
+    private let nudger: (any SessionNudging)?
+    private let storedAttempts: [String: Date]
+    /// Seams for tests: the process termination and the nudge toggle.
+    var terminateProcesses: () -> Void = { ProcessRegistry.shared.terminateAll() }
+    var nudgeToggled: ((Bool) -> Void)?
     init(demo: Bool = false, demoAppearance: NSAppearance.Name? = nil, statisticsPath: String? = nil,
          monitor: Monitor? = nil, presentationClock: (any MonitorClock)? = nil,
          demoClockSource: any MonitorClock = SystemMonitorClock(),
-         countStore: (any IndicatorPreferenceStore)? = nil, actionRouter: AppActionRouter? = nil) {
+         countStore: (any IndicatorPreferenceStore)? = nil, actionRouter: AppActionRouter? = nil,
+         defaults: UserDefaults = .standard, nudger: (any SessionNudging)? = ClaudeCLINudger()) {
         self.demo = demo; self.demoAppearance = demoAppearance
         self.statisticsPath = statisticsPath
+        self.defaults = defaults; self.nudger = demo ? nil : nudger
+        storedAttempts = defaults.data(forKey: "nudge.lastAttempts").flatMap { try? JSONDecoder().decode([String: Date].self, from: $0) } ?? [:]
         self.monitor = demo ? Monitor(credentials: CredentialStore(files: DemoCredentialFiles(), keychain: DemoKeychain()),
-                                      transport: DemoTransport()) : (monitor ?? Monitor(reactiveRecheck: true, terminateChildren: { ProcessRegistry.shared.terminateAll() }))
+                                      transport: DemoTransport())
+            : (monitor ?? Monitor(reactiveRecheck: true, terminateChildren: { ProcessRegistry.shared.terminateAll() }, nudger: nudger,
+                                  attemptStore: Self.attemptWriter(defaults)))
         if let presentationClock { self.presentationClock = presentationClock }
         else if demo { self.presentationClock = FrozenDemoClock(base: demoClockSource) }
         else { self.presentationClock = SystemMonitorClock() }
@@ -579,7 +590,7 @@ extension UserDefaults: PollingStorage {}
             let persistence = PollingPersistence(UserDefaults.standard)
             pollingPersistence = persistence
             let initial = persistence.load(["claude", "codex"])
-            Task { await monitor.setPolling(initial); await monitor.setProfiles(profiles) }
+            Task { await monitor.setPolling(initial); await restoreNudge(); await monitor.setProfiles(profiles) }
             scheduleCadence()
             NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(sleep), name: NSWorkspace.willSleepNotification, object: nil)
             NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(wake), name: NSWorkspace.didWakeNotification, object: nil)
@@ -616,7 +627,26 @@ extension UserDefaults: PollingStorage {}
         resizeStatusItem()
     }
     func applicationWillTerminate(_ notification: Notification) {
-        cadence?.invalidate(); streamTask?.cancel(); Task { await monitor.stop() }; ProcessRegistry.shared.terminateAll()
+        cadence?.invalidate(); streamTask?.cancel(); Task { await monitor.stop() }
+        nudger?.waitForCompletion(upTo: 5)
+        terminateProcesses()
+    }
+    /// The only writer of `nudge.lastAttempts`: the monitor calls it on every change of its attempt map.
+    nonisolated static func attemptWriter(_ defaults: UserDefaults) -> @Sendable ([String: Date]) -> Void {
+        nonisolated(unsafe) let store = defaults   // UserDefaults is thread-safe
+        return { store.set(try? JSONEncoder().encode($0), forKey: "nudge.lastAttempts") }
+    }
+    private var nudgeOn: Bool { defaults.object(forKey: "claudeNudgeEnabled") as? Bool ?? true }   // an absent key means on
+    func restoreNudge() async {
+        await monitor.restoreNudgeAttempts(storedAttempts)
+        await monitor.setNudgeEnabled(nudgeOn)
+    }
+    @objc private func toggleNudge(_ sender: NSMenuItem) {
+        guard !demo else { return }
+        let enabled = sender.state != .on
+        defaults.set(enabled, forKey: "claudeNudgeEnabled")
+        nudgeToggled?(enabled)
+        Task { await monitor.setNudgeEnabled(enabled) }
     }
     private func scheduleCadence() {
         cadence?.invalidate()
@@ -687,6 +717,7 @@ extension UserDefaults: PollingStorage {}
     @objc private func showAbout() { aboutPresenter(AppVersion.aboutPanelOptions()) }
     func settingsMenu() -> NSMenu {
         let menu = NSMenu(title: "Settings")
+        menu.autoenablesItems = false
         let indicators = NSMenuItem(title: "Indicators", action: nil, keyEquivalent: "")
         let submenu = NSMenu(title: "Indicators")
         for number in 1...8 {
@@ -704,6 +735,10 @@ extension UserDefaults: PollingStorage {}
         let about = NSMenuItem(title: "About Limitaur…", action: #selector(showAbout), keyEquivalent: "")
         about.target = self
         menu.addItem(about)
+        let nudge = NSMenuItem(title: "Run claude when the Claude session has expired", action: #selector(toggleNudge(_:)), keyEquivalent: "")
+        nudge.target = self; nudge.isEnabled = !demo
+        nudge.state = nudgeOn ? .on : .off
+        menu.addItem(nudge)
         return menu
     }
     private func showSettingsMenu() {
@@ -787,7 +822,7 @@ extension UserDefaults: PollingStorage {}
         while true {
             let alert = NSAlert()
             alert.messageText = "Accounts"
-            alert.informativeText = "Paths and labels are saved locally. Connect authorizes an existing Claude Keychain item."
+            alert.informativeText = "Paths and labels are saved locally. Connect authorizes an existing Claude Keychain item. When the Claude session has expired, Limitaur runs claude (at most hourly) so Claude Code renews it; turn this off in Settings if unwanted."
             let container = NSStackView()
             container.orientation = .vertical; container.spacing = 7
             var controls: [(String, NSButton, NSTextField, NSPopUpButton, NSTextField, NSButton)] = []

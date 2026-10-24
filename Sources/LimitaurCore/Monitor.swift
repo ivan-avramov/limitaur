@@ -86,14 +86,16 @@ public struct MonitorDisplay: Sendable {
     public let revision: UInt64
     public let nextDisplayDeadline: TimeInterval?
     public let polling: [String: PollingPolicy]
+    public let nudgeAttempts: [String: Date]
     public init(profiles: [ProfileDisplay], candidates: [PresentationCandidate], revision: UInt64,
-                nextDisplayDeadline: TimeInterval?, polling: [String: PollingPolicy] = [:]) {
+                nextDisplayDeadline: TimeInterval?, polling: [String: PollingPolicy] = [:], nudgeAttempts: [String: Date] = [:]) {
         let bounded = Array(candidates.prefix(8))
         self.profiles = profiles
         self.candidates = bounded
         self.selected = Array(bounded.prefix(3)).map(\.metric)
         self.revision = revision
         self.nextDisplayDeadline = nextDisplayDeadline; self.polling = polling
+        self.nudgeAttempts = nudgeAttempts
     }
     /// Compatibility for synthetic callers. These candidates have no clock proof and
     /// are deliberately unavailable to the live presentation projector.
@@ -340,16 +342,29 @@ public actor Monitor {
     private var aliasReplaced: [String: (fingerprint: String, receipt: Int)] = [:]
     private var stopped = false
     private var policies: [String: PollingPolicy] = [:]
+    private let nudger: (any SessionNudging)?, attemptStore: (@Sendable ([String: Date]) -> Void)?
+    private var nudgeEnabled = false, nudgeRunning: String?
+    private var lastNudgeWall: [String: Date] = [:], lastNudgeMono: [String: TimeInterval] = [:]
     public init(clock: any MonitorClock = SystemMonitorClock(), credentials: CredentialStore = CredentialStore(),
                 transport: any HTTPTransport = NativeHTTPTransport(), registry: ProviderRegistry = ProviderRegistry(),
                 beforeDisplayArm: (@Sendable () -> Void)? = nil, recheckInterval: TimeInterval = 300,
-                reactiveRecheck: Bool = false, terminateChildren: (@Sendable () -> Void)? = nil) {
+                reactiveRecheck: Bool = false, terminateChildren: (@Sendable () -> Void)? = nil,
+                nudger: (any SessionNudging)? = nil, attemptStore: (@Sendable ([String: Date]) -> Void)? = nil) {
+        self.nudger = nudger; self.attemptStore = attemptStore
         self.reactiveRecheck = reactiveRecheck; self.terminateChildren = terminateChildren
         self.recheckInterval = recheckInterval.isFinite && recheckInterval >= 30 ? recheckInterval : 300
         self.clock = clock; self.credentials = credentials; self.transport = transport; self.registry = registry
         self.beforeDisplayArm = beforeDisplayArm
     }
 
+    public func setNudgeEnabled(_ enabled: Bool) { nudgeEnabled = enabled }
+    /// Applies persisted attempts only while none is held in memory; a future date counts as now.
+    public func restoreNudgeAttempts(_ attempts: [String: Date]) {
+        guard lastNudgeWall.isEmpty else { return }
+        let wall = clock.wallNow(), mono = clock.monotonicNow()
+        for (source, date) in attempts { lastNudgeWall[source] = min(date, wall); lastNudgeMono[source] = mono - max(0, wall.timeIntervalSince(date)) }
+        if attempts.contains(where: { $0.value > wall }) { attemptStore?(lastNudgeWall) }
+    }
     /// Activates learned polling for providers not yet present; an existing entry is never overwritten.
     public func setPolling(_ initial: [String: PollingPolicy]) { policies.merge(initial) { old, _ in old } }
     private func recordThrottle(_ pending: PendingThrottle, _ provider: ProviderID) {
@@ -525,7 +540,7 @@ public actor Monitor {
             next = suspendedMessage
             eligibilityCounts["keychainSuspensions", default: 0] += 1
         } else if denied {
-            guard !wake, current == pausedMessage else { return false }
+            guard !wake, let current, pausedFamily.contains(current) else { return false }
             next = deniedMessage
         } else {
             guard current == deniedMessage || current == suspendedMessage else { return false }
@@ -563,6 +578,7 @@ public actor Monitor {
                 var denied = false
                 if case CredentialFailure.keychainDenied = error { denied = true }
                 if recheckMessage(id, denied: denied, wake: origin == .wakeRecheck, suspended: suspended) { publish() }
+                if origin == .recheck, viaKeychain, case CredentialFailure.expired = error { startNudge(profile) }
                 return
             }
             eligibilityCounts["credentialFailures", default: 0] += 1
@@ -612,6 +628,7 @@ public actor Monitor {
                     binding.credential = credential
                     binding.authPaused = false; binding.pauseCause = nil; binding.message = nil
                     bindings[id] = binding
+                    clearNudge(profile)
                     publish()
                     return
                 }
@@ -621,6 +638,7 @@ public actor Monitor {
                 }
                 bindings[id] = binding
                 rejectedFingerprint[id] = nil
+                clearNudge(profile)
             } else {
                 if !clearPause, bindings.values.contains(where: {
                     $0.profile.providerID == profile.providerID && $0.pauseCause == .http401 &&
@@ -691,6 +709,7 @@ public actor Monitor {
                 entities[key]?.subscribers.insert(id)
                 rejectedFingerprint[id] = nil
                 if origin.isRecheck { eligibilityCounts[rotation ? "credentialRotations" : "credentialResumes", default: 0] += 1 }
+                clearNudge(profile)
             }
             if let bound = bindings[id] {
                 settleThrottle(bound.entityKey, fingerprint: bound.credential.fingerprint, record: true)
@@ -705,6 +724,45 @@ public actor Monitor {
         if let key = bindings[id]?.entityKey {
             await refreshEntities(force: true, minimumSuccessAge: clearPause ? nil : 10, onlyKey: key, driver: .internal)
         }
+    }
+
+    private func clearNudge(_ profile: AccountProfile) {
+        let source = profile.source.stableID
+        lastNudgeMono[source] = nil
+        if lastNudgeWall.removeValue(forKey: source) != nil { attemptStore?(lastNudgeWall) }
+    }
+    private func message(_ id: String) -> String? { bindings[id]?.message ?? profileFailures[id]?.1 }
+    private func setMessage(_ id: String, _ text: String) {
+        if bindings[id] != nil { bindings[id]?.message = text } else if let failure = profileFailures[id] { profileFailures[id] = (failure.0, text) }
+    }
+    private func startNudge(_ profile: AccountProfile) {
+        let source = profile.source.stableID, wall = clock.wallNow(), mono = clock.monotonicNow()
+        guard case .claudeDefaultDiscovery = profile.source, nudgeEnabled, let nudger, awake, !stopped, nudgeRunning == nil,
+              mono - (lastNudgeMono[source] ?? -.infinity) >= 3_600,
+              wall.timeIntervalSince(lastNudgeWall[source] ?? .distantPast) >= 3_600 else { return }
+        lastNudgeWall[source] = wall; lastNudgeMono[source] = mono; nudgeRunning = source
+        eligibilityCounts["nudges", default: 0] += 1
+        for id in configuredProfiles.keys where configuredProfiles[id]?.source.stableID == source && message(id).map(pausedFamily.contains) == true {
+            setMessage(id, nudgingMessage)
+        }
+        attemptStore?(lastNudgeWall)
+        publish()
+        Task.detached { [weak self] in await self?.nudged(source, await nudger.nudge()) }
+    }
+    private func nudged(_ source: String, _ outcome: NudgeOutcome) {
+        nudgeRunning = nil
+        let text: String, recheck: Bool
+        switch outcome {
+        case .ran(0): (text, recheck) = (pausedMessage, true)
+        case .notFound: (text, recheck) = (nudgeMissingMessage, false)
+        default: (text, recheck) = (nudgeFailedMessage, true)
+        }
+        if text != pausedMessage { eligibilityCounts["nudgeFailures", default: 0] += 1 }
+        for id in configuredProfiles.keys where configuredProfiles[id]?.source.stableID == source && message(id) == nudgingMessage {
+            setMessage(id, text)
+            if recheck { recheckDue.insert(id) }
+        }
+        publish()
     }
 
     private func detach(_ id: String, rejecting: Bool = true) {
@@ -1388,7 +1446,8 @@ public actor Monitor {
                                              nominalDeadline: nominal)
             }
         return MonitorDisplay(profiles: rows.sorted { ($0.profile.providerID.rawValue, $0.profile.id) < ($1.profile.providerID.rawValue, $1.profile.id) },
-                              candidates: candidates, revision: displayRevision, nextDisplayDeadline: next, polling: policies)
+                              candidates: candidates, revision: displayRevision, nextDisplayDeadline: next, polling: policies,
+                              nudgeAttempts: lastNudgeWall)
     }
     private func configuredProfile(_ id: String) -> AccountProfile? { configuredProfiles[id] }
     private func sourceMatches(_ profile: AccountProfile) -> Bool {
@@ -1425,6 +1484,10 @@ public actor Monitor {
 private let pausedMessage = "Session expired or rejected; resumes automatically after the provider app signs in again"
 private let suspendedMessage = "Keychain read did not finish; answer any Keychain dialog, then choose Connect / Authorize"
 private let deniedMessage = "Keychain access unavailable; choose Connect / Authorize"
+private let nudgingMessage = "Running claude to renew the session"
+private let nudgeFailedMessage = "claude exited without renewing the session; run claude to sign in"
+private let nudgeMissingMessage = "claude command not found; run claude to sign in"
+private let pausedFamily: Set<String> = [pausedMessage, nudgingMessage, nudgeFailedMessage, nudgeMissingMessage]
 
 private func credentialMessage(_ error: Error) -> String {
     switch error {
