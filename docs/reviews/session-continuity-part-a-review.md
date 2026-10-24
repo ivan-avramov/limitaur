@@ -12,7 +12,7 @@ Implementer claude-sonnet-5-5 from the specification alone (candidate A). Blind 
 
 Verification at Accept in the operator tree: see `accept-verify-operator-tree-a.txt` in the evidence root (three native runs, release build, the 49 frozen Python tests against the release binary, 12 collector tests). Residuals: `docs/backlog/session-continuity-part-a-residuals.md`. Budgets exceeded after the fix rounds (ProcessRunner 173/140, Monitor +59/50, LimitaurMain +17/15, probe 106/80, implementer tests 680/190); waived by the operator at Accept.
 
-Live gates pending the operator: probe script A10 once, relaunch of the rebuilt signed bundle, L1 over the next token refresh.
+Live steps after Accept: build 45 signed (`sh scripts/build-app.sh`); probe run 2026-10-24: steps 0–4 passed (reject path, helper read, `-U` rewrite, two-line JSON, non-ASCII), step 5 failed and exposed that `waitid`'s `si_status` carries the child's full exit value (0xFF9D2C for −25300) where the reader expects the 8-bit 44, fixed in 45b66e1 (one-line normalisation plus a perl-exit test; verified live with the diagnostic printing `notFound`; not panel-reviewed), step 6 timed out as designed and its dialog stayed until the operator answered Allow (A-3 false). Pending: relaunch of the rebuilt bundle and L1 over the next token refresh.
 
 ## Report block
 
