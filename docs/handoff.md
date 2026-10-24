@@ -1,6 +1,6 @@
 # Limitaur handoff
 
-Updated 2026-10-24 ~23:15Z (16:15 America/Los_Angeles). Discussion IDs continue from P517.
+Updated 2026-10-24 ~23:15Z (16:15 America/Los_Angeles). Discussion IDs continue from P519.
 
 ## Product state
 
@@ -118,7 +118,8 @@ Open, in order:
 4. Overnight observation (next session, first thing): read `live/stats-timeline.log`; L1 (`credentialRotations`/`credentialResumes` after the 2026-10-25T00:54:45Z expiry, `keychainSuspensions` 0, no denied wording), L3 (`nudges` 1 then a resume within two minutes, only if the token expired while `claude` was idle; `nudge.lastAttempts` in `defaults read local.limitaur.app` holds the time), L2 (learned interval and blocks persist across the relaunches of this evening; reductions at least 24 h apart; second machine still to run). Record each in README's authentication and cadence paragraphs and in docs/performance.md where relevant.
 5. P408 (unhealthy-provider bar marker), light four-eyes run, next increment.
 6. Backlogs on the operator's call: R-A1–R-A6, R-B1–R-B7, R-C1–R-C11 (R-C1 accepted as residual), P350–P353, P383–P386, P396 done, P397, P398 superseded by P487; P492/P508 closed; `LSMultipleInstancesProhibited` (R-C5) and the measurement sampler recognising the `security` child are small candidates.
-7. Other machine: install the 0.2.0 bundle (build from the tag with `scripts/build-app.sh`, signing identity per machine), run L2 there and check the P510 settings keys before trusting the nudge; API-metered accounts backlog is to be implemented there.
+7. Observation 23:26–23:28Z (P518): after the 0.2.0 relaunch the first Claude poll answered 429 (the endpoint throttles within about 100 s of the previous process's last success), a fresh process has no earlier snapshot to keep ranked, so the Claude slot was empty until the Retry-After deadline passed and the poll at 23:28:00Z succeeded; Codex unaffected; one reactive Keychain re-read (`credentialRechecks` 1), no suspension, rotation or nudge. Same pattern as every relaunch today. Backlog candidate R-G1 (operator's call): persist the last snapshot per provider so a relaunch shows the last known usage until the first success; otherwise relaunch more than two minutes after a Claude success.
+8. Other machine: install the 0.2.0 bundle (build from the tag with `scripts/build-app.sh`, signing identity per machine), run L2 there and check the P510 settings keys before trusting the nudge; API-metered accounts backlog is to be implemented there.
 
 Helper copies under `/tmp/limitaur-sc/` and `/private/tmp/limitaur-review-checkout*` are disposable.
 
