@@ -321,9 +321,17 @@ public actor Monitor {
     private var tickTask: Task<Void, Never>?
     private var crossedDeadlineQueued = false
     private let beforeDisplayArm: (@Sendable () -> Void)?
+    private let reactiveRecheck: Bool
+    private let terminateChildren: (@Sendable () -> Void)?
+    private var recheckDue = Set<String>()
+    /// Explicit or launch loads that met a busy read, with their `clearPause`; re-issued once the 30 s spacing has passed.
+    private var busyRetry: [String: Bool] = [:]
+    private var stopped = false
     public init(clock: any MonitorClock = SystemMonitorClock(), credentials: CredentialStore = CredentialStore(),
                 transport: any HTTPTransport = NativeHTTPTransport(), registry: ProviderRegistry = ProviderRegistry(),
-                beforeDisplayArm: (@Sendable () -> Void)? = nil, recheckInterval: TimeInterval = 300) {
+                beforeDisplayArm: (@Sendable () -> Void)? = nil, recheckInterval: TimeInterval = 300,
+                reactiveRecheck: Bool = false, terminateChildren: (@Sendable () -> Void)? = nil) {
+        self.reactiveRecheck = reactiveRecheck; self.terminateChildren = terminateChildren
         self.recheckInterval = recheckInterval.isFinite && recheckInterval >= 30 ? recheckInterval : 300
         self.clock = clock; self.credentials = credentials; self.transport = transport; self.registry = registry
         self.beforeDisplayArm = beforeDisplayArm
@@ -376,6 +384,8 @@ public actor Monitor {
         }
         sleepRevalidation = replay
         profileFailures = profileFailures.filter { newIDs.contains($0.key) }
+        recheckDue = recheckDue.intersection(newIDs)
+        busyRetry = busyRetry.filter { newIDs.contains($0.key) }
         for profile in profiles where profile.enabled {
             if var old = bindings[profile.id], old.profile.providerID == profile.providerID,
                old.profile.source == profile.source, old.profile.expectedAccountID == profile.expectedAccountID {
@@ -409,6 +419,7 @@ public actor Monitor {
             return false
         }
         lastLoad[profile.id] = clock.monotonicNow()
+        if !origin.isRecheck { busyRetry[profile.id] = nil }
         loadGeneration += 1
         let epoch = loadGeneration
         let store = credentials
@@ -428,19 +439,17 @@ public actor Monitor {
         let task = Task.detached { [weak self] in
             guard await capacity.acquire() else { return }
             guard !Task.isCancelled else { await capacity.release(); return }
-            let result: Result<Credential, CredentialFailure> = await withCheckedContinuation { continuation in
-                DispatchQueue.global(qos: .utility).async {
-                    do {
-                        continuation.resume(returning: .success(try store.load(profile.source, now: now,
-                                                                                interactive: interactive)))
-                    } catch {
-                        continuation.resume(returning: .failure((error as? CredentialFailure) ?? .unreadable))
+            let load: (result: Result<Credential, CredentialFailure>, viaKeychain: Bool, suspended: Bool, busy: Bool) =
+                await withCheckedContinuation { continuation in
+                    DispatchQueue.global(qos: .utility).async {
+                        continuation.resume(returning: store.loadDetailed(profile.source, now: now, interactive: interactive))
                     }
                 }
-            }
             await capacity.release()
             guard !Task.isCancelled else { return }
-            await self?.loaded(profile: profile, epoch: epoch, clearPause: clearPause, origin: origin, result: result)
+            await self?.loaded(profile: profile, epoch: epoch, clearPause: clearPause, origin: origin,
+                                 result: load.result, viaKeychain: load.viaKeychain, suspended: load.suspended,
+                                 busy: load.busy)
         }
         loading[profile.id] = (epoch, profile, task, clearPause, origin)
         return true
@@ -451,21 +460,36 @@ public actor Monitor {
     }
 
     /// A re-check may only move a still-paused account's message between the pause and denied wordings.
-    private func recheckMessage(_ id: String, denied: Bool, wake: Bool) -> Bool {
+    /// With `reactiveRecheck`, a suspended read sets the suspended wording whatever the current message.
+    private func recheckMessage(_ id: String, denied: Bool, wake: Bool, suspended: Bool = false) -> Bool {
         let current = bindings[id]?.message ?? profileFailures[id]?.1
-        let next: String
-        if denied { guard !wake, current == pausedMessage else { return false }; next = deniedMessage }
-        else { guard current == deniedMessage else { return false }; next = pausedMessage }
+        let next: String?
+        if denied && suspended && reactiveRecheck {
+            guard current != suspendedMessage else { return false }
+            next = suspendedMessage
+            eligibilityCounts["keychainSuspensions", default: 0] += 1
+        } else if denied {
+            guard !wake, current == pausedMessage else { return false }
+            next = deniedMessage
+        } else {
+            guard current == deniedMessage || current == suspendedMessage else { return false }
+            next = bindings[id].map { $0.authPaused ? pausedMessage : nil } ?? pausedMessage
+        }
         if bindings[id] != nil { bindings[id]?.message = next }
-        else if let failure = profileFailures[id] { profileFailures[id] = (failure.0, next) }
+        else if let failure = profileFailures[id] { profileFailures[id] = (failure.0, next ?? pausedMessage) }
+        else if next == suspendedMessage { profileFailures[id] = (.unauthenticated, suspendedMessage) }
         return true
     }
 
     private func loaded(profile started: AccountProfile, epoch: Int, clearPause: Bool, origin: LoadOrigin,
-                        result loadResult: Result<Credential, CredentialFailure>) async {
+                        result loadResult: Result<Credential, CredentialFailure>, viaKeychain: Bool, suspended: Bool, busy: Bool) async {
         guard let profile = configuredProfiles[started.id], profile.enabled,
               credentialEquivalent(profile, started), loading[profile.id]?.0 == epoch else { return }
         loading[profile.id] = nil
+        if busy && reactiveRecheck {
+            if origin.isRecheck { recheckDue.insert(profile.id) } else { busyRetry[profile.id] = clearPause }
+            return
+        }
         var result = loadResult
         if case .success(let credential) = result, let expiry = credential.expiresAt, expiry <= clock.wallNow() {
             result = .failure(.expired)
@@ -476,19 +500,23 @@ public actor Monitor {
             if origin.isRecheck {
                 var denied = false
                 if case CredentialFailure.keychainDenied = error { denied = true }
-                if recheckMessage(id, denied: denied, wake: origin == .wakeRecheck) { publish() }
+                if recheckMessage(id, denied: denied, wake: origin == .wakeRecheck, suspended: suspended) { publish() }
                 return
             }
             eligibilityCounts["credentialFailures", default: 0] += 1
+            let text = suspended && reactiveRecheck ? suspendedMessage : credentialMessage(error)
+            if suspended, reactiveRecheck, (bindings[id]?.message ?? profileFailures[id]?.1) != suspendedMessage {
+                eligibilityCounts["keychainSuspensions", default: 0] += 1
+            }
             if var binding = bindings[id] {
                 binding.authPaused = true
                 if binding.pauseCause != .http401 {
                     if case CredentialFailure.expired = error { binding.pauseCause = .expired } else { binding.pauseCause = .loadFailed }
                 }
-                binding.message = credentialMessage(error)
+                binding.message = text
                 bindings[id] = binding
             } else {
-                profileFailures[id] = (.unauthenticated, credentialMessage(error))
+                profileFailures[id] = (.unauthenticated, text)
             }
         case .success(let credential):
             if let expected = profile.expectedAccountID, credential.selectedAccountID != expected {
@@ -565,6 +593,7 @@ public actor Monitor {
                     return
                 }
                 let carried = bindings[id].flatMap { entities[$0.entityKey] }
+                let rotation = bindings[id].map { !$0.authPaused } ?? false
                 let oldThrottle = carried?.throttleUntil ?? 0
                 detach(id)
                 if full {
@@ -595,7 +624,7 @@ public actor Monitor {
                 }
                 entities[key]?.subscribers.insert(id)
                 rejectedFingerprint[id] = nil
-                if origin.isRecheck { eligibilityCounts["credentialResumes", default: 0] += 1 }
+                if origin.isRecheck { eligibilityCounts[rotation ? "credentialRotations" : "credentialResumes", default: 0] += 1 }
             }
             profileFailures[id] = nil
         }
@@ -606,6 +635,7 @@ public actor Monitor {
     }
 
     private func detach(_ id: String, rejecting: Bool = true) {
+        recheckDue.remove(id); busyRetry[id] = nil
         guard let old = bindings.removeValue(forKey: id) else { return }
         if rejecting, old.pauseCause == .http401 {
             rejectedFingerprint[id] = (old.credential.fingerprint, old.credential.selectedAccountID, true)
@@ -661,26 +691,47 @@ public actor Monitor {
     private func recheckCredentials(driver: RefreshDriver) {
         var due: [String: [(id: String, last: TimeInterval)]] = [:]
         for id in configuredProfiles.keys.sorted() {
-            guard let profile = configuredProfiles[id], isCredentialLess(profile) else { continue }
-            if var binding = bindings[id], !binding.authPaused {
+            guard let profile = configuredProfiles[id] else { continue }
+            let credentialLess = isCredentialLess(profile)
+            let reactive = profile.enabled && loading[id] == nil && recheckDue.contains(id)
+            guard credentialLess || reactive else { continue }
+            if credentialLess, var binding = bindings[id], !binding.authPaused {
                 eligibilityCounts["credentialExpiries", default: 0] += 1
                 binding.authPaused = true; binding.pauseCause = .expired; binding.message = pausedMessage
                 bindings[id] = binding
             }
             guard driver != .internal, awake else { continue }
             let now = clock.monotonicNow()
+            if reactive {
+                guard now - (lastLoad[id] ?? -.infinity) >= 30 else { continue }
+                due[profile.source.stableID, default: []].append((id, lastLoad[id] ?? -.infinity))
+                continue
+            }
             if lastLoad[id] == nil { lastLoad[id] = now; if driver != .manual { continue } }
             let last = lastLoad[id] ?? now
             guard driver == .manual || now - last >= recheckInterval else { continue }
             due[profile.source.stableID, default: []].append((id, last))
         }
+        var retried = Set<String>()
+        if driver != .internal, awake {
+            let now = clock.monotonicNow()
+            for id in busyRetry.keys.sorted() {
+                guard let profile = configuredProfiles[id], profile.enabled, loading[id] == nil,
+                      now - (lastLoad[id] ?? -.infinity) >= 30, let clear = busyRetry[id] else { continue }
+                busyRetry[id] = nil
+                if beginLoad(profile, interactive: false, clearPause: clear, origin: .explicit) {
+                    retried.insert(profile.source.stableID); recheckDue.remove(id)
+                }
+            }
+        }
         // One read per source per pass: the oldest last load first, ties by id.
-        for source in due.keys.sorted() {
+        for source in due.keys.sorted() where !retried.contains(source) {
             for candidate in due[source, default: []].sorted(by: { ($0.last, $0.id) < ($1.last, $1.id) }) {
                 guard let profile = configuredProfiles[candidate.id] else { continue }
                 if beginLoad(profile, interactive: false, clearPause: false,
                              origin: driver == .wake ? .wakeRecheck : .recheck) {
                     eligibilityCounts["credentialRechecks", default: 0] += 1
+                    recheckDue.remove(candidate.id)
                     break
                 }
             }
@@ -822,6 +873,7 @@ public actor Monitor {
                 for id in entity.subscribers {
                     guard var candidate = bindings[id], candidate.credential.fingerprint == fingerprint else { continue }
                     marked = true
+                    if reactiveRecheck { recheckDue.insert(id) }
                     candidate.pauseCause = .http401
                     if !candidate.authPaused { candidate.authPaused = true; candidate.message = pausedMessage }
                     bindings[id] = candidate
@@ -875,6 +927,9 @@ public actor Monitor {
                 }
                 entity.retryDate = wall.addingTimeInterval(max(0, entity.throttleUntil - mono))
                 latchRetention(&entity, shown: shownBefore)
+                if reactiveRecheck {
+                    for id in entity.subscribers where bindings[id]?.credential.fingerprint == fingerprint { recheckDue.insert(id) }
+                }
             default:
                 count(entity.provider, "unavailable")
                 entity.health = .unavailable; entity.message = "Provider unavailable"
@@ -1050,6 +1105,9 @@ public actor Monitor {
     }
     public func dropdownOpened() async { await refresh(force: true, minimumSuccessAge: 10, driver: .dropdown) }
     public func stop() {
+        stopped = true
+        recheckDue.removeAll(); busyRetry.removeAll()
+        terminateChildren?()
         sleep()
         for key in entities.keys {
             entities[key]?.snapshot = nil
@@ -1250,6 +1308,7 @@ public actor Monitor {
 }
 
 private let pausedMessage = "Session expired or rejected; resumes automatically after the provider app signs in again"
+private let suspendedMessage = "Keychain read did not finish; answer any Keychain dialog, then choose Connect / Authorize"
 private let deniedMessage = "Keychain access unavailable; choose Connect / Authorize"
 
 private func credentialMessage(_ error: Error) -> String {

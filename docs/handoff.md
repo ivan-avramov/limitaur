@@ -1,6 +1,6 @@
 # Limitaur handoff
 
-Updated 2026-10-24 01:10Z (2026-10-23 18:10 America/Los_Angeles). Discussion IDs continue from P399.
+Updated 2026-10-24 ~17:00Z (10:00 America/Los_Angeles). Discussion IDs continue from P451.
 
 ## Product state
 
@@ -55,6 +55,15 @@ Open, in order, for the operator:
 2. Throttle observation continues with the running instance; the timeline log shows counts per 15 s. If a blink is seen, P383 is the candidate fix.
 3. Decisions when raised: RSS budget (P393: revise to 56 MiB or investigate footprint), A7 cadence drift (P398), P339 orphan certificate (P396, one command), test-litter plists (P397), earlier backlogs P350–P353 and P383–P386.
 4. Release gates otherwise unchanged: keyboard, scrolling and accessibility tree unverified.
+
+## C5 session continuity, Part A: ACCEPTED (2026-10-24, strict four-eyes)
+
+Record `docs/reviews/session-continuity-part-a-review.md`; specification `docs/proposals/session-continuity.md` revision 8 (three parts; A accepted, B and C pending); residuals `docs/backlog/session-continuity-part-a-residuals.md`; evidence root `/Users/ivan/ws/limitaur-review/2026-10-24-session-continuity/`. Cause and fix: Claude Code's token refresh rewrites the Keychain item through `security add-generic-password -U`, which revoked the app's in-process access (C4); Part A reads the item through a child `/usr/bin/security` process (as openusage and mac-ai-trackers do), with a 5 s non-interactive bound, per-launch suspension of a source after a timeout or a Deny, suspension cleared only by a Connect that finds the item or finds it absent, an app-gated reactive re-read after 401/403/429, the `--read-keychain-service` diagnostic, and the operator-run probe `scripts/keychain-acl-probe.sh`. Tests after Accept: 25 UI + 277 core native (48 frozen blind under `Tests/LimitaurCoreTests/SessionContinuity/`, never edit them; the earlier 42 + 43 frozen suites unchanged), 49 frozen Python, 12 collector; see `accept-verify-operator-tree-a.txt` in the evidence root. Helper copies under `/tmp/limitaur-sc/` and `/private/tmp/limitaur-review-checkout*` are disposable.
+
+Open, in order:
+1. Operator live steps for Part A: build and sign the bundle (`scripts/build-app.sh`, one codesign prompt); run `scripts/keychain-acl-probe.sh` once (it creates and deletes scratch items in the login keychain and includes one deliberate denied case; type the dialog answer it asks for; record the output in README's authentication paragraph); relaunch `dist/Limitaur.app`; L1: over the next Claude Code token refresh (item `mdat` changes), the new token is bound within 30 s plus one tick of the first failing poll, or within one tick plus five minutes of the old expiry, with no denied wording and `keychainSuspensions` 0; record the outcome in README.
+2. Part B (learned polling interval) and Part C (expiry nudge) of the same specification, each its own implementer/test-writer/change-review cycle under the standing Go (go.txt), with the frozen test-writer session continued if it can be resumed (codex session 01a16c11-3b07-7e42-b5b6-d58fb0224a09). Change-review 2 of Part A recorded for Part C's brief: termination cannot be cancelled after `stop()`.
+3. P408 (unhealthy-provider bar marker), separate light run; residual backlogs P350–P353, P383–P386, P396–P398, R-A1–R-A6 on the operator's call.
 
 ## Still pending, in order
 

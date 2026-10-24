@@ -1,9 +1,7 @@
 import Foundation
 import Darwin
-import Security
 import CryptoKit
 import CoreFoundation
-import LocalAuthentication
 
 public enum CredentialSource: Hashable, Codable, Sendable {
     case codexFile(String)
@@ -90,95 +88,169 @@ public struct SecureFileReader: CredentialFileReading {
     }
 }
 
+public enum KeychainReadReason: Sendable, Equatable { case found, notFound, exit(Int32), timeout, signaled, oversized, launch, suspended, busy }
+public struct KeychainReadOutcome: Sendable {
+    public let result: KeychainResult, reason: KeychainReadReason
+    /// True when this read itself suspended the service; the reason stays as classified.
+    public let suspendedNow: Bool
+    public init(result: KeychainResult, reason: KeychainReadReason, suspendedNow: Bool = false) {
+        self.result = result; self.reason = reason; self.suspendedNow = suspendedNow
+    }
+}
+
+public final class KeychainSuspensions: @unchecked Sendable {
+    public static let shared = KeychainSuspensions()
+    enum Admission { case run, suspended, busy }
+    private struct Entry { var active = false, suspended = false, deferred = false; var interactive = 0 }
+    private let condition = NSCondition()
+    private var entries: [String: Entry] = [:]
+    public init() {}
+    public func isSuspended(_ service: String) -> Bool {
+        condition.lock(); defer { condition.unlock() }
+        return entries[service]?.suspended ?? false
+    }
+    func admit(_ service: String, interactive: Bool) -> Admission {
+        condition.lock(); defer { condition.unlock() }
+        if interactive { entries[service, default: Entry()].interactive += 1 }
+        else if entries[service]?.interactive ?? 0 > 0 { return .busy }
+        // Covers the active read's 5 s timeout, 1 s grace and 2 s drain bound.
+        let deadline = Date(timeIntervalSinceNow: 8.5)
+        while entries[service]?.active == true {
+            if interactive { condition.wait() }
+            else if entries[service]?.interactive ?? 0 > 0 { return .busy }
+            else if !condition.wait(until: deadline) { break }
+        }
+        let entry = entries[service, default: Entry()]
+        if !interactive {
+            if entry.interactive > 0 { return .busy }
+            if entry.suspended { return .suspended }
+            if entry.active { return .busy }
+        }
+        entries[service, default: Entry()].active = true
+        return .run
+    }
+    /// Returns true when this non-interactive completion itself suspended the service.
+    @discardableResult
+    func finish(_ service: String, interactive: Bool, suspend: Bool, clear: Bool = false) -> Bool {
+        condition.lock(); defer { condition.unlock() }
+        var suspendedNow = false
+        entries[service]?.active = false
+        if interactive {
+            entries[service]?.interactive -= 1
+            if clear { entries[service]?.suspended = false }
+            else if entries[service]?.deferred == true { entries[service]?.suspended = true }
+            entries[service]?.deferred = false
+        } else if suspend {
+            if entries[service]?.interactive == 0 { entries[service]?.suspended = true; suspendedNow = true }
+            else { entries[service]?.deferred = true }
+        }
+        condition.broadcast()
+        return suspendedNow
+    }
+}
+
 public enum KeychainResult: Sendable { case found(Data), notFound, denied }
 public protocol KeychainReading: Sendable {
     func claudeCredential() -> KeychainResult
     func claudeCredential(interactive: Bool) -> KeychainResult
+    func claudeCredentialDetailed(interactive: Bool) -> KeychainReadOutcome
 }
 public extension KeychainReading {
     func claudeCredential(interactive: Bool) -> KeychainResult { claudeCredential() }
-}
-
-protocol KeychainOperations: Sendable {
-    func interactionAllowed() -> (OSStatus, Bool)
-    func setInteractionAllowed(_ allowed: Bool) -> OSStatus
-    func copyMatching(_ query: CFDictionary) -> (OSStatus, Data?)
-}
-
-struct SecurityKeychainOperations: KeychainOperations {
-    func interactionAllowed() -> (OSStatus, Bool) {
-        var allowed = DarwinBoolean(false)
-        let status = SecKeychainGetUserInteractionAllowed(&allowed)
-        return (status, allowed.boolValue)
-    }
-    func setInteractionAllowed(_ allowed: Bool) -> OSStatus {
-        SecKeychainSetUserInteractionAllowed(allowed)
-    }
-    func copyMatching(_ query: CFDictionary) -> (OSStatus, Data?) {
-        var item: CFTypeRef?
-        let status = SecItemCopyMatching(query, &item)
-        return (status, item as? Data)
+    func claudeCredentialDetailed(interactive: Bool) -> KeychainReadOutcome {
+        switch claudeCredential(interactive: interactive) {
+        case .found(let data): return KeychainReadOutcome(result: .found(data), reason: .found)
+        case .notFound: return KeychainReadOutcome(result: .notFound, reason: .notFound)
+        case .denied: return KeychainReadOutcome(result: .denied, reason: .launch)
+        }
     }
 }
 
-public struct SystemKeychainReader: KeychainReading {
-    private static let policyLock = NSLock()
-    private let operations: any KeychainOperations
-    public init() { operations = SecurityKeychainOperations() }
-    init(operations: any KeychainOperations) { self.operations = operations }
-    public func claudeCredential() -> KeychainResult { claudeCredential(interactive: false) }
-    public func claudeCredential(interactive: Bool) -> KeychainResult {
-        var query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: "Claude Code-credentials",
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
-        ]
-        let context = LAContext()
-        context.interactionNotAllowed = !interactive
-        query[kSecUseAuthenticationContext as String] = context
-        // The classic Keychain path can ignore LAContext. Serialize the process-wide
-        // interaction policy. Every background query sets false or returns denied.
-        Self.policyLock.lock()
-        defer { Self.policyLock.unlock() }
-        let (policyStatus, previous) = operations.interactionAllowed()
-        guard policyStatus == errSecSuccess else { return .denied }
-        guard operations.setInteractionAllowed(interactive) == errSecSuccess else {
-            _ = operations.setInteractionAllowed(false)
-            return .denied
+public struct SecurityToolKeychainReader: KeychainReading {
+    private let runner: any ProcessRunning
+    private let service: String, account: String
+    private let registry: ProcessRegistry?
+    private let suspensions: KeychainSuspensions
+    public init(runner: any ProcessRunning = SystemProcessRunner(), service: String = "Claude Code-credentials",
+                account: String = NSUserName(), registry: ProcessRegistry? = .shared, suspensions: KeychainSuspensions = .shared) {
+        self.runner = runner; self.service = service; self.account = account
+        self.registry = registry; self.suspensions = suspensions
+    }
+    public func claudeCredential() -> KeychainResult { claudeCredentialDetailed(interactive: false).result }
+    public func claudeCredential(interactive: Bool) -> KeychainResult { claudeCredentialDetailed(interactive: interactive).result }
+    public func claudeCredentialDetailed(interactive: Bool) -> KeychainReadOutcome {
+        switch suspensions.admit(service, interactive: interactive) {
+        case .suspended: return KeychainReadOutcome(result: .denied, reason: .suspended)
+        case .busy: return KeychainReadOutcome(result: .denied, reason: .busy)
+        case .run: break
         }
-        let (status, data) = operations.copyMatching(query as CFDictionary)
-        guard operations.setInteractionAllowed(previous) == errSecSuccess else {
-            // A failed restore is never reported as a successful credential read.
-            // Leave the process noninteractive if the OS permits the best-effort reset.
-            _ = operations.setInteractionAllowed(false)
-            return .denied
+        let run = runner.run(executable: "/usr/bin/security", arguments: ["find-generic-password", "-a", account, "-s", service, "-w"],
+                             environment: [:], workingDirectory: nil, timeout: interactive ? 600 : 5,
+                             graceAfterTerm: interactive ? 5 : 1, output: .capture(limit: 2_097_154), registry: registry)
+        let outcome = Self.classify(run)
+        let slow = outcome.reason == .timeout || outcome.reason == .exit(51) || outcome.reason == .exit(128)
+        let clear = outcome.reason == .found || outcome.reason == .notFound
+        let suspendedNow = suspensions.finish(service, interactive: interactive, suspend: slow, clear: clear)
+        return KeychainReadOutcome(result: outcome.result, reason: outcome.reason, suspendedNow: suspendedNow)
+    }
+    static func classify(_ run: ProcessResult) -> KeychainReadOutcome {
+        func denied(_ reason: KeychainReadReason) -> KeychainReadOutcome { KeychainReadOutcome(result: .denied, reason: reason) }
+        if run.timedOut { return denied(.timeout) }
+        guard let code = run.exitCode else { return denied(run.signaled ? .signaled : .launch) }
+        if run.oversized { return denied(.oversized) }
+        if code == 44 { return KeychainReadOutcome(result: .notFound, reason: .notFound) }
+        if code != 0 { return denied(.exit(code)) }
+        var bytes = [UInt8](run.output)
+        if bytes.last == 0x0A { bytes.removeLast() }
+        func nibble(_ byte: UInt8) -> UInt8? {
+            switch byte {
+            case 0x30...0x39: return byte - 0x30
+            case 0x61...0x66: return byte - 0x57
+            case 0x41...0x46: return byte - 0x37
+            default: return nil
+            }
         }
-        if status == errSecItemNotFound { return .notFound }
-        guard status == errSecSuccess, let data, data.count <= 1_048_576 else {
-            return .denied
+        if bytes.count >= 2, bytes.count % 2 == 0, bytes.allSatisfy({ nibble($0) != nil }) {
+            bytes = stride(from: 0, to: bytes.count, by: 2).map { nibble(bytes[$0])! << 4 | nibble(bytes[$0 + 1])! }
         }
-        return .found(data)
+        if bytes.isEmpty || bytes.count > 1_048_576 { return denied(.oversized) }
+        return KeychainReadOutcome(result: .found(Data(bytes)), reason: .found)
     }
 }
 
 public struct CredentialStore: Sendable {
     public let files: any CredentialFileReading
     public let keychain: any KeychainReading
-    public init(files: any CredentialFileReading = SecureFileReader(), keychain: any KeychainReading = SystemKeychainReader()) {
+    public init(files: any CredentialFileReading = SecureFileReader(), keychain: any KeychainReading = SecurityToolKeychainReader()) {
         self.files = files; self.keychain = keychain
     }
     public func load(_ source: CredentialSource, now: Date, interactive: Bool = false) throws -> Credential {
-        let data: Data
-        switch source {
-        case .codexFile(let path), .claudeFile(let path): data = try files.read(path: path)
-        case .claudeDefaultDiscovery:
-            switch keychain.claudeCredential(interactive: interactive) {
-            case .found(let value): data = value
-            case .notFound: data = try files.read(path: Self.defaultClaudePath)
-            case .denied: throw CredentialFailure.keychainDenied
+        try loadDetailed(source, now: now, interactive: interactive).result.get()
+    }
+    public func loadDetailed(_ source: CredentialSource, now: Date, interactive: Bool = false)
+        -> (result: Result<Credential, CredentialFailure>, viaKeychain: Bool, suspended: Bool, busy: Bool) {
+        var viaKeychain = false, suspended = false, busy = false
+        do {
+            let data: Data
+            switch source {
+            case .codexFile(let path), .claudeFile(let path): data = try files.read(path: path)
+            case .claudeDefaultDiscovery:
+                let outcome = keychain.claudeCredentialDetailed(interactive: interactive)
+                switch outcome.result {
+                case .found(let value): data = value; viaKeychain = true
+                case .notFound: data = try files.read(path: Self.defaultClaudePath)
+                case .denied:
+                    suspended = outcome.reason == .suspended || outcome.suspendedNow
+                    busy = outcome.reason == .busy
+                    throw CredentialFailure.keychainDenied
+                }
             }
+            return (.success(try parse(data, source: source, now: now)), viaKeychain, suspended, busy)
+        } catch {
+            return (.failure((error as? CredentialFailure) ?? .unreadable), viaKeychain, suspended, busy)
         }
+    }
+    private func parse(_ data: Data, source: CredentialSource, now: Date) throws -> Credential {
         guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw CredentialFailure.malformed
         }

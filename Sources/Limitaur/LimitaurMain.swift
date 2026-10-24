@@ -262,12 +262,29 @@ private func checkLive() {
                 guard args.count == 2 else { fail() }
                 checkLive()
                 return
+            case "--read-keychain-service":
+                guard args.count == 3, args[2] == "Claude Code-credentials" || args[2].hasPrefix("limitaur-probe-") else {
+                    try? FileHandle.standardError.write(contentsOf: Data("unsupported service\n".utf8))
+                    exit(2)
+                }
+                let outcome = SecurityToolKeychainReader(service: args[2], registry: ProcessRegistry(),
+                                                         suspensions: KeychainSuspensions()).claudeCredentialDetailed(interactive: false)
+                switch (outcome.result, outcome.reason) {
+                case (.found(let data), _): print("found \(data.count)")
+                case (.notFound, _): print("notFound")
+                case (_, .exit(let code)): print("denied exit=\(code)")
+                case (_, .timeout): print("denied timeout")
+                case (_, .signaled): print("denied signaled")
+                case (_, .oversized): print("denied oversized")
+                default: print("denied launch")
+                }
+                return
             case "--help":
                 guard args.count == 2 else { fail() }
                 output(["diagnostics": ["--version", "--demo", "--demo-open-popover", "--demo-light", "--demo-dark",
                                         "--render-demo DIRECTORY", "--check-percent VALUE",
                                         "--inspect-fixture PROVIDER FILE", "--rank-fixture FILE --now UNIX_SECONDS [--count 1...8]",
-                                        "--check-live", "--stats FILE"]])
+                                        "--check-live", "--read-keychain-service NAME", "--stats FILE"]])
                 return
             case "--demo", "--demo-open-popover", "--demo-light", "--demo-dark":
                 guard args.count == 2 else { fail() }

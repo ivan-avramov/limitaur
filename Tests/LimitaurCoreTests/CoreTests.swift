@@ -355,38 +355,6 @@ private final class RecordingKeychain: KeychainReading, @unchecked Sendable {
     #expect(try nullExpiry.load(.claudeFile("/invented"), now: now).expiresAt == nil)
 }
 
-private final class FakeKeychainOperations: KeychainOperations, @unchecked Sendable {
-    private let lock = NSLock()
-    private var settings: [Bool] = []
-    private let restoreFails: Bool
-    private let payload: Data
-    init(restoreFails: Bool, payload: Data) {
-        self.restoreFails = restoreFails; self.payload = payload
-    }
-    func interactionAllowed() -> (OSStatus, Bool) { (errSecSuccess, true) }
-    func setInteractionAllowed(_ allowed: Bool) -> OSStatus {
-        lock.lock(); settings.append(allowed); let count = settings.count; lock.unlock()
-        return restoreFails && count == 2 ? errSecAuthFailed : errSecSuccess
-    }
-    func copyMatching(_ query: CFDictionary) -> (OSStatus, Data?) { (errSecSuccess, payload) }
-    func calls() -> [Bool] { lock.lock(); defer { lock.unlock() }; return settings }
-}
-
-@Test func classicKeychainRestoreFailureDeniesAndResetsInteraction() {
-    let operations = FakeKeychainOperations(restoreFails: true, payload: Data("invented".utf8))
-    let reader = SystemKeychainReader(operations: operations)
-    if case .denied = reader.claudeCredential(interactive: true) {} else {
-        Issue.record("Restore failure returned a credential")
-    }
-    #expect(operations.calls() == [true, true, false])
-    let background = FakeKeychainOperations(restoreFails: false, payload: Data("invented".utf8))
-    let backgroundReader = SystemKeychainReader(operations: background)
-    if case .found = backgroundReader.claudeCredential(interactive: false) {} else {
-        Issue.record("Noninteractive query failed")
-    }
-    #expect(background.calls() == [false, true])
-}
-
 @Test func productionReaderMalformedCredentialIsSanitized() throws {
     guard let root = ProcessInfo.processInfo.environment["LIMITAUR_TEST_ROOT"] ??
             ProcessInfo.processInfo.environment["TMPDIR"], root.hasPrefix("/") else {

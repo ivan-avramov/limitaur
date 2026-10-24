@@ -499,7 +499,7 @@ private struct FrozenDemoClock: MonitorClock {
         self.demo = demo; self.demoAppearance = demoAppearance
         self.statisticsPath = statisticsPath
         self.monitor = demo ? Monitor(credentials: CredentialStore(files: DemoCredentialFiles(), keychain: DemoKeychain()),
-                                      transport: DemoTransport()) : (monitor ?? Monitor())
+                                      transport: DemoTransport()) : (monitor ?? Monitor(reactiveRecheck: true, terminateChildren: { ProcessRegistry.shared.terminateAll() }))
         if let presentationClock { self.presentationClock = presentationClock }
         else if demo { self.presentationClock = FrozenDemoClock(base: demoClockSource) }
         else { self.presentationClock = SystemMonitorClock() }
@@ -608,7 +608,9 @@ private struct FrozenDemoClock: MonitorClock {
         item.button?.target = self
         resizeStatusItem()
     }
-    func applicationWillTerminate(_ notification: Notification) { cadence?.invalidate(); streamTask?.cancel(); Task { await monitor.stop() } }
+    func applicationWillTerminate(_ notification: Notification) {
+        cadence?.invalidate(); streamTask?.cancel(); Task { await monitor.stop() }; ProcessRegistry.shared.terminateAll()
+    }
     private func scheduleCadence() {
         cadence?.invalidate()
         let interval = pollInterval(jitter: Double.random(in: 0...1.5))
