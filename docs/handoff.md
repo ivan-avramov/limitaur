@@ -1,6 +1,6 @@
 # Limitaur handoff
 
-Updated 2026-10-23 ~16:45Z (America/Los_Angeles). Discussion IDs continue from P391.
+Updated 2026-10-24 01:10Z (2026-10-23 18:10 America/Los_Angeles). Discussion IDs continue from P399.
 
 ## Product state
 
@@ -38,13 +38,23 @@ Light four-eyes run complete (record `docs/reviews/throttle-paced-freshness-revi
 
 `dist/Limitaur.app` (0.1.0, build 40, revision 8c3056a, signed "Limitaur Dev") is running on the operator's machine since 2026-10-23 ~16:40Z; on this launch the operator chose Always Allow on the two Keychain dialogs (the item's data entry and its wrapping key; two prompts per new signing identity, none afterwards), so Claude is bound and the non-interactive re-check can pass.
 
-Open, in order, for the next session:
-1. Throttle observation (P390): over a few hours of use, does the Claude row stay in the bars during "throttled" periods? If a blink is seen, note the dropdown's Retry-After and fetch age; P383 (backoff longer than a repeat Retry-After) is the likely cause and its fix is specified in the backlog.
-2. M1 (spec C2 R-list): when the Claude row shows "Session expired or rejected; resumes automatically …", the operator runs one `claude` command; Limitaur must resume within about 5.5 minutes with no dialog. Then README line "Automatic resume of a paused account (M1 …) … not yet observed live" is replaced with the outcome (date, interval observed, no dialog), and the Keychain-prompt behaviour (two Always Allow prompts once per signing identity) is recorded in README's authentication paragraph.
-3. Backlog decisions, only when the operator raises them: credential re-check P350–P353, throttle P383–P386 (designer's recommendation: none becomes a requirement until observation 1 or 2 shows a need; P383 first if a blink is seen).
-4. Release gates (section below) and the P339 orphaned keyless trust entry (delete or ignore).
+Open items after this section are superseded by the C4 section below.
 
+## C4 release-gate measurement and M1 attempt (2026-10-23 evening, P392–P398)
 
+What ran. `dist/Limitaur.app` build 41 (0.1.0, revision 8024a83, source-identical to 8c3056a, signed `Limitaur Dev`) was stopped and relaunched at 17:41 local with `--stats`, so provider outcome counts and the eligibility block are recorded. It is still running as PID 19894 with that flag; the stats file, a 15-second timeline of it (`stats-timeline.log`, sampler runs until about 20:41 local or until the process exits) and the measurement result live in `/Users/ivan/ws/limitaur-review/2026-10-23-release-gates/`. No preferences file exists, so indicator count was the default 3 and the two default accounts were configured.
+
+Resource gate (P393). 60 s warmup plus 600 s: CPU 0.00063 % of one core (met), max RSS 51.42 MiB, median 50.94 MiB (budget 50 MiB, not met by about 1 MiB of flat baseline), no descendants. Nonqualifying because three Claude 429s and the token expiry fell inside the window, and because 45 s polling cannot reach A7's 18 successes in 600 s. Recorded in docs/performance.md; the A7 drift is backlog P398.
+
+Throttle observation (P394, follow-up to P390). Eight clean Claude polls at 45 s, then three consecutive 429s at about 00:47:42Z, 00:48:32Z and 00:50:02Z; no further Claude requests after that because the account paused at the token expiry. Three consecutive 429s is the P383 scenario (backoff 60 s then 120 s against a shorter Retry-After); whether the bar blinked is unobserved. The 429s began 36 s after Claude Code rewrote the Keychain item (00:47:06Z), which may be coincidence or an old-token effect; one data point only.
+
+M1 attempt (P395). Sequence from the counters: token bound at launch with expiry 00:52:06Z; Claude Code refreshed the Keychain item at 00:47:06Z (item `mdat`, metadata only); Limitaur paused the account at the expiry (credentialExpiries 1) and re-checked without interaction at about 00:52Z, 00:57Z and 01:03Z (credentialRechecks 3, credentialResumes 0); a `claude -p` run at 00:58:32Z answered in 3 s and did not modify the item again. `--check-live` from the same bundle reported Claude unavailable and Codex success at 01:03:46Z. So the app loaded the item at 00:41Z and cannot load it since the rewrite. The two candidate causes are an access list that no longer includes the app, or item contents the decoder rejects; the auto-mode permission classifier blocked both an ACL dump of that item and a read of Credentials.swift, so the discrimination is the operator's. README's M1 clause now records this outcome.
+
+Open, in order, for the operator:
+1. Open the dropdown: does the Claude row show the denied wording or the expired/rejected wording? Then use Connect / Authorize once. A Keychain prompt means the rewrite dropped the access list (M1 alternative outcome: Keychain source needs Connect after every token refresh, which is a product problem worth a design round); no prompt and still failing means a contract change in the item (run `--check-live` again after Connect). Optional: `security dump-keychain -a ~/Library/Keychains/login.keychain-db | grep -A 30 'Claude Code-credentials'` lists the trusted applications without the secret.
+2. Throttle observation continues with the running instance; the timeline log shows counts per 15 s. If a blink is seen, P383 is the candidate fix.
+3. Decisions when raised: RSS budget (P393: revise to 56 MiB or investigate footprint), A7 cadence drift (P398), P339 orphan certificate (P396, one command), test-litter plists (P397), earlier backlogs P350–P353 and P383–P386.
+4. Release gates otherwise unchanged: keyboard, scrolling and accessibility tree unverified.
 
 ## Still pending, in order
 

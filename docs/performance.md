@@ -25,3 +25,18 @@ No new live metadata or resource measurement is claimed for the bars implementat
 Additional offline guarded production probes verified redraw-time freshness invalidation and scheduling of a finite extreme reset-credit expiry. Before correction they reproduced stale bars and a duration-conversion crash respectively; the corrected paths pass. The scheduler bounds only the representable one-shot sleep interval; reported expiries and provider throttle deadlines remain uncapped.
 
 The final development candidate also tests the stable synthetic demo lifetime, preserved error health with stale cached usage, accurate enforced retry labels, named provider/account accessibility issues, and count actions with an otherwise eligible fake-clock account. Pending display delivery is bounded to the newest state per consumer; provider outcome and eligibility counters remain in the monitor.
+
+## Sustained two-provider measurement on the accepted source, 2026-10-23 (America/Los_Angeles)
+
+Build 41 of `dist/Limitaur.app` (0.1.0, revision 8024a83, source-identical to the accepted 8c3056a, signed `Limitaur Dev`) was relaunched at 17:41 with `--stats` and sampled by `scripts/measure-resources.py` with the default 60-second warmup and 600-second window, indicator count at the default 3, dropdown closed, no preferences file present. Result file: `/Users/ivan/ws/limitaur-review/2026-10-23-release-gates/measure-1.json`.
+
+| Quantity | Value | Target |
+| --- | --- | --- |
+| Max sampled aggregate RSS | 51.42 MiB | < 50 MiB, not met |
+| Mean / median RSS | 50.96 / 50.94 MiB | reported |
+| CPU, one core | 0.00063 % (0.0038 s over 600 s) | < 0.1 %, met |
+| Descendants / unaccounted children | 0 / none | none |
+| Refresh outcomes in window | Codex 13 success; Claude 5 success, 3 throttled | ≥ 18 success each, no throttle |
+| Classification | smoke or nonqualifying workload | qualifying |
+
+The run is nonqualifying for three reasons, none of them the sampler: the Claude usage endpoint answered three consecutive polls with 429 from 00:47Z after eight clean 45-second polls, the Claude token's known expiry (00:52:06Z) fell inside the window and paused the account, and at 45 seconds a 600-second window yields at most 13 or 14 polls per provider against the 18 that specification A7 requires at its 30-second cadence (see backlog P398). CPU is three orders of magnitude under budget. RSS sits about 1 MiB above the budget and is flat (max minus median 0.5 MiB), consistent with the 52.5 MiB startup value of the 2026-10-19 prototype; the overrun is baseline footprint, not growth. Whether the RSS budget is revised or the footprint reduced is an operator decision; no target pass is claimed.
