@@ -123,6 +123,17 @@ Open, in order:
 
 Helper copies under `/tmp/limitaur-sc/` and `/private/tmp/limitaur-review-checkout*` are disposable.
 
+## C9 overnight observation of build 79 (read 2026-10-25 16:37Z, P519–P522)
+
+Build 79 (PID 70834) and the sampler (PID 6685) ran 17 h without a restart; awake 23:26–05:35Z and from 16:26Z, asleep between (`sleepEvents` 1). Counters at 16:30Z: Claude success 187, throttled 3, unauthenticated 1; Codex success 451, no failure; `credentialRechecks` 5, `credentialResumes` 2, `credentialExpiries` 1, `credentialRotations`/`keychainSuspensions`/`credentialFailures`/`nudges`/`nudgeFailures` 0; no `nudge.lastAttempts` key.
+
+- L1 PASSED (401 branch): at 00:51:55Z one Claude poll answered 401 shortly before the old token's 00:54:45Z expiry (Claude Code had refreshed); the re-read bound the new token and a success followed in the same 15 s sample; one resume, no suspension, no dialog. Wake branch: the Mac woke 16:26:04Z after the token bound at 00:51Z had expired in sleep; the wake re-check counted the expiry, bound the token Claude Code had written at 08:57:45Z (item `mdat`, during a dark wake), and Claude succeeded by 16:26:10Z. Recorded in README.
+- L3 NOT EXERCISED: interactive `claude` sessions on this machine renewed the token both times, so no re-check found an expired token and no nudge ran (correct). L3 needs a machine, or a night, with no `claude` process.
+- L2 PARTIAL: Claude's interval rose 50 → 120 s through the 429s at 23:26Z, 23:41Z and 23:53Z (stored `lastChange` 23:53:40Z), then no 429 for 6 h 10 min awake; Codex stayed at 50 s. Relaunch persistence, the 24 h reduction and the second machine are still to be observed.
+- `violations` 185: one per Claude cycle, R-B6 (fixed 90 s measurement window against a 120 s interval); not a display defect: the bars use the 140 s horizon.
+- Resources: RSS 35–47 MiB (budget 56). CPU 8.21 s (`ps`) over about 22,800 s awake, about 0.036 % of one core (budget 0.1 %), startup included.
+- P520 FINDING, operator's call: `scripts/measure-resources.py` (lines 133, 165, 171) reads `ri_user_time + ri_system_time` as nanoseconds; on Apple Silicon they are mach ticks (timebase 125/3 here), so every CPU figure it produced is about 41.7× low. Verified on PID 70834: script 0.197 s × 125/3 = 8.21 s = `ps`. Corrected history: build 51 smoke 0.00081 % → about 0.034 %, build 41 0.00063 % → about 0.026 %; the 0.1 % budget is still met (about 3× margin, not three orders). Recommendation: apply the timebase in the three places (about 5 lines) and annotate the performance.md rows; no four-eyes (measurement tooling, no product or credential change).
+
 ## Still pending, in order
 
 1. P339 signing identity: done 2026-10-22 (certificate "Limitaur Dev" in the login keychain, script auto-selects it; one orphaned keyless trust entry remains for the operator to delete or ignore).
