@@ -445,3 +445,28 @@ private struct UnexpiredKeychain: KeychainReading {
         await monitor.stop()
     }
 }
+
+/// R-M1: the auth/other class reaches the bar view through the controller even when the
+/// unhealthy membership stays the same, and the marker's bottom half redraws.
+@MainActor @Test func markerClassFollowsDisplaysWithUnchangedMembership() throws {
+    _ = NSApplication.shared
+    let controller = AppController(presentationClock: PresentationClock(), countStore: CountStoreProbe(3))
+    controller.installStatusDrawing()
+    func show(_ health: Health, revision: UInt64) throws -> NSBitmapImageRep {
+        let row = ProfileDisplay(profile: AccountProfile(id: "claude-default", providerID: "claude", label: "Synthetic",
+                                                         source: .claudeFile("/invented")), snapshot: nil,
+                                 health: health, message: nil, fetchedAge: nil)
+        controller.receiveDisplay(MonitorDisplay(profiles: [row], candidates: [], revision: revision, nextDisplayDeadline: nil))
+        let view = controller.statusDrawingView
+        let bitmap = try #require(view.bitmapImageRepForCachingDisplay(in: view.bounds))
+        view.cacheDisplay(in: view.bounds, to: bitmap)
+        return bitmap
+    }
+    let other = try show(.throttled, revision: 1)
+    #expect(controller.statusDrawingView.unavailableProviders == ["claude"] && controller.statusDrawingView.signInProviders.isEmpty)
+    let auth = try show(.unauthenticated, revision: 2)
+    #expect(controller.statusDrawingView.unavailableProviders == ["claude"] && controller.statusDrawingView.signInProviders == ["claude"])
+    #expect(auth.representation(using: .png, properties: [:]) != other.representation(using: .png, properties: [:]))
+    _ = try show(.throttled, revision: 3)
+    #expect(controller.statusDrawingView.signInProviders.isEmpty)
+}
