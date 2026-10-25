@@ -296,6 +296,16 @@ private func checkLive() {
         if args.count > 1 && args[1] == "--stats" && args.count != 3 { fail() }
         let demoOptions = ["--demo", "--demo-open-popover", "--demo-light", "--demo-dark"]
         let demo = args.count == 2 && demoOptions.contains(args[1])
+        if !demo {
+            switch takeInstanceLock(directory: NSHomeDirectory() + "/Library/Application Support/Limitaur") {
+            case .held:
+                FileHandle.standardError.write(Data("Limitaur is already running\n".utf8))
+                exit(3)
+            case .unavailable:
+                FileHandle.standardError.write(Data("Limitaur cannot take its instance lock; running without it\n".utf8))
+            case .acquired: break   // the descriptor stays open for the process lifetime
+            }
+        }
         let appearance: NSAppearance.Name? = args.count == 2 && args[1] == "--demo-light" ? .aqua :
             args.count == 2 && args[1] == "--demo-dark" ? .darkAqua : nil
         let controller = AppController(demo: demo, demoAppearance: appearance,

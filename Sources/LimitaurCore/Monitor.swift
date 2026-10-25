@@ -275,10 +275,12 @@ private struct Entity {
 private typealias PendingThrottle = (receivedWall: Date, receivedMono: TimeInterval, retryAfter: TimeInterval?, fingerprint: String, id: Int)
 
 /// Deadline after which the stored snapshot is no longer shown or ranked: 90 s after the fetch, or
-/// longer (never past 300 s) while a provider-declared Retry-After holds the account.
-private func freshnessDeadline(_ entity: Entity) -> TimeInterval? {
+/// longer (never past 300 s) while a provider-declared Retry-After holds the account, unless every
+/// subscriber is paused by an authentication failure: then retention is ignored.
+private func freshnessDeadline(_ entity: Entity, _ bindings: [String: Binding]) -> TimeInterval? {
     guard let success = entity.successfulInstant else { return nil }
     let nominal = success + entity.freshnessHorizon, cap = success + 300
+    if !entity.subscribers.isEmpty, entity.subscribers.allSatisfy({ bindings[$0].map { $0.authPaused && $0.pauseCause != nil } ?? false }) { return nominal }
     guard let retention = entity.retention, retention > nominal else { return nominal }
     let held = min(retention, cap)
     if entity.task != nil, !entity.alternateUsed, let retry = entity.retryAfterUntil, entity.lastAttempt >= retry, entity.lastAttempt < held { return cap }
@@ -361,6 +363,7 @@ public actor Monitor {
     }
 
     public func setNudgeEnabled(_ enabled: Bool) { nudgeEnabled = enabled }
+    func isNudgeEnabled() -> Bool { nudgeEnabled }
     /// Applies persisted attempts only while none is held in memory; a future date counts as now.
     public func restoreNudgeAttempts(_ attempts: [String: Date]) {
         guard lastNudgeWall.isEmpty else { return }
@@ -942,7 +945,7 @@ public actor Monitor {
                           result: Result<HTTPResponse, Error>) async {
         guard var entity = entities[key], entity.epoch == epoch, entity.task != nil else { return }
         let mono = clock.monotonicNow(), wall = clock.wallNow()
-        let shownBefore = freshnessDeadline(entity).map { mono < $0 } ?? false
+        let shownBefore = freshnessDeadline(entity, bindings).map { mono < $0 } ?? false
         entity.task = nil
         let subscriber = entity.subscribers.sorted().first { id in
             guard let candidate = bindings[id] else { return false }
@@ -1130,7 +1133,7 @@ public actor Monitor {
             for id in ["codex-default", "claude-default"] {
                 guard let binding = bindings[id], let entity = entities[binding.entityKey],
                       let success = entity.successfulInstant else { continue }
-                deadline = min(deadline, success + 90)
+                deadline = min(deadline, success + entity.freshnessHorizon)
                 if let expiry = binding.credential.expiresAt {
                     deadline = min(deadline, mono + expiry.timeIntervalSince(wall))
                     wallExpiry = min(wallExpiry ?? expiry, expiry)
@@ -1159,7 +1162,7 @@ public actor Monitor {
             guard let binding = bindings[id], !binding.authPaused,
                   let entity = entities[binding.entityKey], entity.subscribers.contains(id),
                   entity.health == .healthy, entity.snapshot != nil,
-                  let success = entity.successfulInstant, mono < success + 90,
+                  let success = entity.successfulInstant, mono < success + entity.freshnessHorizon,
                   entity.throttleUntil <= mono,
                   binding.credential.expiresAt.map({ $0 > wall }) ?? true else { return false }
         }
@@ -1238,7 +1241,7 @@ public actor Monitor {
                     existing.pendingThrottle = mineIsNewer ? mine : theirs
                 } else { existing.pendingThrottle = mine }
             }
-            latchRetention(&existing, shown: freshnessDeadline(existing).map { clock.monotonicNow() < $0 } ?? false,
+            latchRetention(&existing, shown: freshnessDeadline(existing, bindings).map { clock.monotonicNow() < $0 } ?? false,
                            interval: policies[existing.provider.rawValue]?.interval)
             existing.subscribers.formUnion(entity.subscribers)
             entity.task?.cancel(); entity.epoch = freshEpoch()
@@ -1366,7 +1369,7 @@ public actor Monitor {
                 next = min(next ?? .infinity, deadline)
             }
             let age = entity.successfulInstant.map { max(0, mono - $0) }
-            let deadline = freshnessDeadline(entity)
+            let deadline = freshnessDeadline(entity, bindings)
             let stale = deadline.map { mono >= $0 } ?? false
             var health = binding.authPaused ? Health.unauthenticated : entity.health
             if stale, !binding.authPaused,

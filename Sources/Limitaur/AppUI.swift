@@ -642,7 +642,7 @@ extension UserDefaults: PollingStorage {}
         nonisolated(unsafe) let store = defaults   // UserDefaults is thread-safe
         return { store.set(try? JSONEncoder().encode($0), forKey: "nudge.lastAttempts") }
     }
-    private var nudgeOn: Bool { defaults.object(forKey: "claudeNudgeEnabled") as? Bool ?? true }   // an absent key means on
+    private var nudgeOn: Bool { defaults.object(forKey: "claudeNudgeEnabled") == nil || defaults.bool(forKey: "claudeNudgeEnabled") }   // an absent key means on
     func restoreNudge() async {
         await monitor.restoreNudgeAttempts(storedAttempts)
         await monitor.setNudgeEnabled(nudgeOn)
