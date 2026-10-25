@@ -77,13 +77,18 @@ class MeasurementTests(unittest.TestCase):
         self.assertEqual(function.argtypes,
                          [ctypes.c_int, ctypes.c_int, ctypes.POINTER(structure)])
         self.assertIs(function.restype, ctypes.c_int)
-        self.assertAlmostEqual(measure.cpu_seconds(42, proc=function), 0.0015, places=9)
+        with mock.patch.object(measure, 'native_continuous_clock', return_value=(None, None, 1, 1)):
+            self.assertAlmostEqual(measure.cpu_seconds(42, proc=function), 0.0015, places=9)
         self.assertEqual(function.calls, [(42, measure.RUSAGE_INFO_V4)])
         child_function = SyntheticChildFunction({42: [43]})
         configured_children = measure.configure_children(SyntheticLibrary(function, child_function))
         self.assertEqual(configured_children.argtypes, [ctypes.c_int, ctypes.c_void_p, ctypes.c_int])
         self.assertIs(configured_children.restype, ctypes.c_int)
         self.assertEqual(measure.child_pids(42, proc=configured_children), [43])
+
+    def test_cpu_times_are_mach_ticks_scaled_by_timebase(self):
+        with mock.patch.object(measure, 'native_continuous_clock', return_value=(None, None, 125, 3)):
+            self.assertAlmostEqual(measure.cpu_seconds(42, proc=SyntheticRusageFunction()), 0.0625, places=9)
 
     def test_failed_or_invalid_rusage_is_not_a_zero_measurement(self):
         function = SyntheticRusageFunction(result=-1)
@@ -103,8 +108,9 @@ class MeasurementTests(unittest.TestCase):
                 pointer.contents.ri_user_time = {1: 1_000_000_000, 2: 250_000_000, 3: 125_000_000}[pid]
                 pointer.contents.ri_proc_start_abstime = pid * 100
                 return 0
-        rss, cpu, start, counters, children, incomplete = measure.sample(
-            1, rusage_proc=Usage(), children_proc=SyntheticChildFunction({1: [2], 2: [3]}))
+        with mock.patch.object(measure, 'native_continuous_clock', return_value=(None, None, 1, 1)):
+            rss, cpu, start, counters, children, incomplete = measure.sample(
+                1, rusage_proc=Usage(), children_proc=SyntheticChildFunction({1: [2], 2: [3]}))
         self.assertEqual(rss, 175 * 1024)
         self.assertEqual(cpu, 1.0)
         self.assertEqual(start, 100)

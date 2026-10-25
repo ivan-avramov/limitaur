@@ -128,9 +128,14 @@ def process_usage(pid, proc=None):
     return usage
 
 
+def usage_cpu_seconds(usage):
+    # rusage_info times are mach ticks, not nanoseconds (125/3 ns per tick on Apple Silicon).
+    _, _, numer, denom = native_continuous_clock()
+    return (usage.ri_user_time + usage.ri_system_time) * numer / denom / 1_000_000_000
+
+
 def cpu_seconds(pid, proc=None):
-    usage = process_usage(pid, proc)
-    return (usage.ri_user_time + usage.ri_system_time) / 1_000_000_000
+    return usage_cpu_seconds(process_usage(pid, proc))
 
 
 def sample(root, *, rusage_proc=None, children_proc=None):
@@ -162,13 +167,13 @@ def sample(root, *, rusage_proc=None, children_proc=None):
                 incomplete = True
                 continue
             identity = (pid, usage.ri_proc_start_abstime)
-            children[identity] = (usage.ri_user_time + usage.ri_system_time) / 1_000_000_000
+            children[identity] = usage_cpu_seconds(usage)
             rss += usage.ri_resident_size
             pending.append(pid)
     last = process_usage(root, rusage_proc)
     if first.ri_proc_start_abstime != last.ri_proc_start_abstime:
         raise RuntimeError('Limitaur process identity changed')
-    root_cpu = (last.ri_user_time + last.ri_system_time) / 1_000_000_000
+    root_cpu = usage_cpu_seconds(last)
     child_counters = (last.ri_child_user_time, last.ri_child_system_time,
                       last.ri_child_elapsed_abstime)
     return rss, root_cpu, last.ri_proc_start_abstime, child_counters, children, incomplete

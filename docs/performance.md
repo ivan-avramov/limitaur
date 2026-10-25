@@ -4,6 +4,8 @@ The target workload has two default accounts, both enabled and successfully fetc
 
 `scripts/measure-resources.py` samples the app process and descendants every two seconds. It uses SDK `proc_listchildpids` for bounded native child enumeration and the `rusage_info_v4` layout with `proc_pid_rusage` for resident bytes, nanosecond user/system CPU, process start identity and child counters. Enumeration failure, a vanished process or PID reuse prevents qualification. The result still aggregates observed live descendants for a nonqualifying run. No `ps` helper is launched. The qualifying workload permits no child helpers, so any observed child or changed child counter rejects qualification. A child born and exited between samples may still escape observation if the OS counters do not change; RSS peaks can also be missed.
 
+Correction 2026-10-25 (P520/P522): until then the script read `rusage_info_v4` user and system times as nanoseconds; they are mach ticks (timebase 125/3 on this Apple Silicon host), so every CPU figure below recorded before that date is about 41.7 times too low. Corrected: the 2026-10-19 prototype smoke about 0.025 %, build 41 about 0.026 %, build 51 about 0.034 %; "three orders of magnitude under budget" should read about three times under. All remain under the 0.1 % budget, so no verdict changes. Cross-check: overnight on 0.2.0 build 79 (2026-10-24/25), `ps` reported 8.21 s over about 22,800 s awake, about 0.036 %, and the corrected script reads the same 8.21 s.
+
 Launching the executable with `--stats PATH` writes sanitized provider outcome counts and an `__eligibility` block. The block records whether exactly the intended two default sources are enabled, bound, healthy, fresh, unpaused and unexpired while awake, plus sticky counts for configuration/source/enable changes, credential failures/expiry, sleep, clock changes and eligible-state loss. It stores the current process PID as anonymous process metadata, with no account IDs, labels, source paths or fingerprints. The collector requires the PID in both the initial and final eligibility records to equal the sampled PID; missing, invalid or mismatched values prevent qualification. Native process-start identity checks continue to detect PID reuse during sampling. Each record also includes one aggregate validity deadline in `mach_continuous_time` nanoseconds, its observation time in that same clock, and an absolute wall deadline when a known credential expiry exists. The collector reads the same native continuous clock at both measurement boundaries and rejects a record whose validity expired even if no later statistics write occurred. The wall deadline also rejects a forward clock shift past a known expiry; a backwards wall shift cannot extend the continuous deadline. The app schedules its existing one-shot display invalidation at a known expiry, without a repeating short timer or an immediate rearm after expiry. The sampler requires eligibility at both interval boundaries and unchanged sticky counts during measurement; startup events before the post-warmup baseline do not disqualify an otherwise eligible interval. It also requires at least 18 successful fetches per provider and zero other provider outcomes. The collector retries a partial statistics read briefly and fails if it remains invalid.
 
 ## Recorded earlier prototype checks, 2026-10-19 (America/Los_Angeles)
@@ -34,7 +36,7 @@ Build 41 of `dist/Limitaur.app` (0.1.0, revision 8024a83, source-identical to th
 | --- | --- | --- |
 | Max sampled aggregate RSS | 51.42 MiB | < 50 MiB, not met |
 | Mean / median RSS | 50.96 / 50.94 MiB | reported |
-| CPU, one core | 0.00063 % (0.0038 s over 600 s) | < 0.1 %, met |
+| CPU, one core | about 0.026 % (0.16 s over 600 s; recorded as 0.00063 %, see the 2026-10-25 correction) | < 0.1 %, met |
 | Descendants / unaccounted children | 0 / none | none |
 | Refresh outcomes in window | Codex 13 success; Claude 5 success, 3 throttled | ≥ 18 success each, no throttle |
 | Classification | smoke or nonqualifying workload | qualifying |
@@ -49,7 +51,7 @@ Build 51 of `dist/Limitaur.app` (0.1.0, revision 4a76f6d, signed `Limitaur Dev`,
 | --- | --- | --- |
 | Max sampled aggregate RSS | 53.42 MiB | < 56 MiB (P487), met; < 50 MiB under the old budget, not met |
 | Mean / median RSS | 52.84 / 53.23 MiB | reported |
-| CPU, one core | 0.00081 % (0.0049 s over 600 s) | < 0.1 %, met |
+| CPU, one core | about 0.034 % (0.20 s over 600 s; recorded as 0.00081 %, see the 2026-10-25 correction) | < 0.1 %, met |
 | Descendants / unaccounted children | 0 observed / exited children between samples | see note |
 | Refresh outcomes in window | Codex 12 success; Claude 5 success, 2 throttled | ≥ 10 success each, no throttle |
 | Classification | smoke or nonqualifying workload | qualifying |
