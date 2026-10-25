@@ -186,14 +186,14 @@ private struct Rig {
 @Test func nudgeInteractionsWithConnectDenialAndSleep() async {
     let connect = await Rig(); await connect.step(301); #expect(await connect.called(1))
     connect.kc.state.withLock { $0.value = .found(scClaude(2, expiry: connect.clock.wallNow().addingTimeInterval(4000))) }
-    await connect.monitor.reconnect("a"); await scFlush(); #expect(await connect.message() == nil)
+    await connect.monitor.reconnect("a"); _ = await connect.monitor.settle(); await scFlush(); #expect(await connect.message() == nil)
     await connect.finish(.ran(exitCode: 0)); #expect(await connect.message() == nil)
     let denial = await Rig(); await denial.step(301)
     denial.kc.state.withLock { $0.value = .denied }; await denial.step(301)
     #expect(await denial.message() == scDeniedMessage)
     await denial.finish(.ran(exitCode: 0)); #expect(await denial.message() == scDeniedMessage)
     let asleep = await Rig(); await asleep.step(301); await asleep.monitor.sleep()
-    await asleep.finish(.ran(exitCode: 0)); #expect(scMessage(await scRow(asleep.monitor), scPaused))
+    await asleep.finish(.ran(exitCode: 0)); #expect(await scWait { scMessage(await scRow(asleep.monitor), scPaused) })
     for rig in [connect, denial, asleep] { await rig.monitor.stop() }
 }
 
@@ -214,7 +214,7 @@ func secondHourlyAttemptAfterFailureMarksTheRowAndRestoresOnSuccess(_ first: Nud
     let rig = await Rig(); await rig.step(301); #expect(await rig.called(1))
     #expect(await rig.monitor.display().nudgeAttempts[rig.source] != nil)
     rig.kc.state.withLock { $0.value = .found(scClaude(2, expiry: rig.clock.wallNow().addingTimeInterval(4000))) }
-    await rig.monitor.reconnect("a"); await scFlush()
+    await rig.monitor.reconnect("a"); _ = await rig.monitor.settle(); await scFlush()
     #expect(await rig.monitor.display().nudgeAttempts.isEmpty)
     await rig.finish(.ran(exitCode: 0)); await rig.monitor.stop()
 }
@@ -345,13 +345,13 @@ private let directoryMode = mode_t(S_IFDIR)
 @Test func everyUnexpiredBindClearsTheClocksAndStoresOnlyWhenSomethingWasRemoved() async {
     let rig = await Rig(expired: false, hold: false)   // nothing to clear: nothing stored, also for an explicit Connect with a new token
     rig.kc.state.withLock { $0.value = .found(scClaude(2, expiry: rig.clock.wallNow().addingTimeInterval(800))) }
-    await rig.monitor.reconnect("a"); await scFlush()
+    await rig.monitor.reconnect("a"); _ = await rig.monitor.settle(); await scFlush()
     #expect(rig.stores.withLock { $0 }.isEmpty)
     // the same token with a new expiry, through an explicit Connect
     let old = rig.clock.wallNow().addingTimeInterval(-60)
     await rig.monitor.restoreNudgeAttempts([rig.source: old, "other": old])
     rig.kc.state.withLock { $0.value = .found(scClaude(2, expiry: rig.clock.wallNow().addingTimeInterval(1600))) }
-    await rig.monitor.reconnect("a"); await scFlush()
+    await rig.monitor.reconnect("a"); _ = await rig.monitor.settle(); await scFlush()
     #expect(await rig.monitor.display().nudgeAttempts == ["other": old] && rig.stores.withLock { $0 } == [["other": old]])   // the full normalised map
     await rig.monitor.stop()
     // the first bind at launch with an unexpired token clears a restored attempt
@@ -369,7 +369,7 @@ private let directoryMode = mode_t(S_IFDIR)
     await rig.step(301); #expect(await rig.called(1))
     #expect(rig.stores.withLock { $0 } == [[source: rig.clock.wallNow(), "other": Date(timeIntervalSince1970: 1_700_000_100)]])
     rig.kc.state.withLock { $0.value = .found(scClaude(2, expiry: rig.clock.wallNow().addingTimeInterval(4000))) }
-    await rig.monitor.reconnect("a"); await scFlush()
+    await rig.monitor.reconnect("a"); _ = await rig.monitor.settle(); await scFlush()
     #expect(rig.stores.withLock { $0 }.last == ["other": Date(timeIntervalSince1970: 1_700_000_100)])
     await rig.finish(.ran(exitCode: 0)); await rig.monitor.stop()
 }
@@ -402,7 +402,7 @@ func theLockIsReleasedAfterATimeoutAndAfterANilExitCode(_ result: ProcessResult)
     await rig.step(301)
     #expect(rig.calls() == 0 && rig.stores.withLock { $0 }.isEmpty)   // expired re-check
     rig.kc.state.withLock { $0.value = .found(scClaude(2, expiry: rig.clock.wallNow().addingTimeInterval(4000))) }
-    await rig.monitor.reconnect("a"); await scFlush()
+    await rig.monitor.reconnect("a"); _ = await rig.monitor.settle(); await scFlush()
     #expect(rig.calls() == 0 && rig.stores.withLock { $0 }.isEmpty && rig.nudger.order.withLock { $0 }.isEmpty)   // unexpired bind
     await rig.monitor.stop()
 }

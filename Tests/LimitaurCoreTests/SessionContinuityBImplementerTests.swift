@@ -130,8 +130,10 @@ private struct Rig {
     await same.step(48.5); #expect(await same.policy()?.interval == 50)
     await same.step(30, until: { await same.policy()?.interval == 100 }); #expect(await same.policy()?.interval == 100)
     let rotated = await Rig([scResponse(), scResponse(429, retry: "95")], reactive: true)
-    await rotated.step(48.5); rotated.files.set(path, scClaude(2))
-    await rotated.step(30); await rotated.step(61); #expect(await rotated.policy()?.interval == 50)
+    // settle(): the 429 and the re-read must land before the fake clock moves on (R-M3).
+    await rotated.step(48.5); _ = await rotated.monitor.settle(); rotated.files.set(path, scClaude(2))
+    await rotated.step(30); _ = await rotated.monitor.settle(); await rotated.step(61); _ = await rotated.monitor.settle()
+    #expect(await rotated.policy()?.interval == 50)
     let timed = await Rig([scResponse(), scResponse(429)], reactive: true)
     await timed.step(48.5); #expect(await timed.policy()?.interval == 50)
     await timed.step(61, until: { await timed.policy()?.interval == 60 }); #expect(await timed.policy()?.interval == 60)
