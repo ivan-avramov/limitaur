@@ -140,6 +140,16 @@ Operator decisions 2026-10-25 (P526/P527): push 086eb81 and db697a3 (done); lear
 
 An unhealthy provider's empty slot is now its code over `×` (authentication) or `…` (other), with no track or dash (spec `docs/proposals/unhealthy-marker.md` r2, record `docs/reviews/unhealthy-marker-review.md`, residuals `docs/backlog/unhealthy-marker-residuals.md` R-M1–R-M3, evidence `limitaur-review/2026-10-25-unhealthy-marker/`). Tests after Accept in the operator tree: 32 UI + 426 core native three times (frozen UnhealthyMarker: 3 core + 3 UI, never edit them), release clean, 49 frozen Python, 13 collector. Build 85 (0.2.0, 7f1d621, signed Limitaur Dev) relaunched 17:33:42Z detached with `--stats` (PID 44953); build 79 quit 17:33:30Z, final counters `live/stats-build79-final.json`; the sampler (PID 6685) keeps running. First polls at 17:33:5xZ: Claude and Codex both succeeded (no relaunch 429 this time). L2 relaunch persistence observed on this machine: `polling.claude` interval 120 and `lastChange` 2026-10-24T23:53:40Z unchanged across the relaunch; Codex 50. Next: operator's call among the backlogs (R-M1–R-M3, R-G1, R-B6, earlier lists); L2 first reduction due after 2026-10-25T23:53:40Z.
 
+## C11 R-M1, R-M3, P396 and hygiene H1 (2026-10-25, light four-eyes for H1, commit 35bbee4)
+
+Done and pushed earlier: R-M1 (576bdff, controller-path marker test), R-M3 (c454fac, settle() instead of fixed flushes; load-test script `/tmp/limitaur-p408/loadtest.sh`, one busy loop per core, trap cleanup). P396 done (eeaf174): the operator removed the orphaned trust entry. The "(normal)" dropdown tag was already removed (7445705, P482); the operator reconfirmed: percentage and colour only.
+
+H1 accepted (P555): spec `docs/proposals/hygiene-h1.md` r3, record `docs/reviews/hygiene-h1-review.md`, residuals `docs/backlog/hygiene-h1-residuals.md` (R-H1, R-C11 second half, P353 remainder). R-C5 in-app lock `~/Library/Application Support/Limitaur/instance.lock` (a second app-mode launch exits 3; unavailable lock runs unguarded); P385 retention bounded by authentication failure; R-B6 stats use the horizon; R-C10; P398 docs. Tests: 35 UI + 436 core three times, frozen HygieneH1 (never edit), 49 Python, 13 collector.
+
+Incident (designer, 18:25Z): an unverified stand-in lock holder let a candidate binary run as a second live instance for about 2.5 min; one extra Claude 429 and persisted Claude `lastChange` reset to 2026-10-25T18:27:40Z, so the first L2 reduction is due after 2026-10-26T18:27:40Z. Rule: verify a stand-in holder before launching and run every app-mode launch under a kill timer.
+
+Live: build 90 (0.2.0, 35bbee4) relaunched 21:21:48Z detached with `--stats` (PID 51345), holds the instance lock; build 85 quit 21:21:44Z (`live/stats-build85-final.json`). Post-Accept check: a second `--stats` or plain launch printed "Limitaur is already running" and exited 3; `--demo` still started. Sampler PID 6685 still running.
+
 ## Still pending, in order
 
 1. P339 signing identity: done 2026-10-22 (certificate "Limitaur Dev" in the login keychain, script auto-selects it; one orphaned keyless trust entry remains for the operator to delete or ignore).
