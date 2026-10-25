@@ -134,6 +134,8 @@ Build 79 (PID 70834) and the sampler (PID 6685) ran 17 h without a restart; awak
 - Resources: RSS 35–47 MiB (budget 56). CPU 8.21 s (`ps`) over about 22,800 s awake, about 0.036 % of one core (budget 0.1 %), startup included.
 - P520 FIXED on the operator's go (P522, 2026-10-25): `usage_cpu_seconds` applies the timebase, a collector test covers 125/3 (13 collector tests), performance.md carries a correction note and corrected rows. The finding: `scripts/measure-resources.py` (lines 133, 165, 171) reads `ri_user_time + ri_system_time` as nanoseconds; on Apple Silicon they are mach ticks (timebase 125/3 here), so every CPU figure it produced is about 41.7× low. Verified on PID 70834: script 0.197 s × 125/3 = 8.21 s = `ps`. Corrected history: build 51 smoke 0.00081 % → about 0.034 %, build 41 0.00063 % → about 0.026 %; the 0.1 % budget is still met (about 3× margin, not three orders). Recommendation: apply the timebase in the three places (about 5 lines) and annotate the performance.md rows; no four-eyes (measurement tooling, no product or credential change).
 
+Operator decisions 2026-10-25 (P526/P527): push 086eb81 and db697a3 (done); learned interval stays as specified (10 s per 24 h descent); R-G1 stays on the backlog, the operator prefers a blank slot to stale data after a relaunch (weigh this against any proposal to carry snapshots); proceed with P408 as a light four-eyes run.
+
 ## Still pending, in order
 
 1. P339 signing identity: done 2026-10-22 (certificate "Limitaur Dev" in the login keychain, script auto-selects it; one orphaned keyless trust entry remains for the operator to delete or ignore).
