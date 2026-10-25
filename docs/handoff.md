@@ -150,6 +150,10 @@ Incident (designer, 18:25Z): an unverified stand-in lock holder let a candidate 
 
 Live: build 90 (0.2.0, 35bbee4) relaunched 21:21:48Z detached with `--stats` (PID 51345), holds the instance lock; build 85 quit 21:21:44Z (`live/stats-build85-final.json`). Post-Accept check: a second `--stats` or plain launch printed "Limitaur is already running" and exited 3; `--demo` still started. Sampler PID 6685 still running.
 
+## C12 Release 0.2.1 (2026-10-25 21:2xZ, operator: "build the 0.2.1 release now and push")
+
+P73 procedure: `AppVersion.swift` and Info.plist 0.2.1, CHANGELOG `[0.2.1] - 2026-10-25`, release commit 9eda796, annotated tag `v0.2.1`, `main` and the tag pushed to `origin`. Tests at release: 35 UI + 436 core, 49 Python, 13 collector. Live: build 92 (0.2.1, 9eda796) relaunched 21:26:22Z detached with `--stats` (PID 54567), holds the instance lock; build 90 quit 21:26:13Z (`live/stats-build90-final.json`). Next: other machine (build from `v0.2.1`, R-C1 settings check, L2 second machine, L3, API-metered backlog); first L2 reduction here after 2026-10-26T18:27:40Z.
+
 ## Still pending, in order
 
 1. P339 signing identity: done 2026-10-22 (certificate "Limitaur Dev" in the login keychain, script auto-selects it; one orphaned keyless trust entry remains for the operator to delete or ignore).
