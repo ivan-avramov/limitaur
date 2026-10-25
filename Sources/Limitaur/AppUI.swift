@@ -118,6 +118,8 @@ private struct FrozenDemoClock: MonitorClock {
     var selected: [RankedMetric] = [] { didSet { needsDisplay = true } }
     /// Providers that are configured but not healthy; the first empty slots carry their codes.
     var unavailableProviders: [ProviderID] = [] { didSet { needsDisplay = true } }
+    /// Subset of `unavailableProviders` whose marker shows the authentication glyph.
+    var signInProviders: Set<ProviderID> = [] { didSet { needsDisplay = true } }
     var appearanceChanged: (() -> Void)?
     var willDraw: (() -> Void)?
     override var isFlipped: Bool { false }
@@ -237,9 +239,21 @@ private struct FrozenDemoClock: MonitorClock {
             let bar = Self.layout == .beside ? NSRect(x: slot.minX, y: slot.minY, width: Self.barWidth, height: slot.height) : slot
             let radius: CGFloat = Self.layout == .beside ? 1.5 : 3
             let outline = NSBezierPath(roundedRect: bar, xRadius: radius, yRadius: radius)
-            track.setFill(); outline.fill()
             let glyphArea = Self.layout == .beside
                 ? NSRect(x: bar.maxX + 1, y: slot.minY, width: slot.width - Self.barWidth - 1, height: slot.height) : bar
+            // A provider that is not healthy takes an empty slot without a track: its code over
+            // "×" (authentication) or "…" (anything else), so it cannot read as a usage bar.
+            let missing = index - selected.count
+            if missing >= 0, missing < unavailableProviders.count {
+                let provider = unavailableProviders[missing], code = providerGlyph(for: provider)
+                let rects = Self.glyphRects(in: glyphArea)
+                Self.draw(text: code, font: code.count > 1 ? Self.pairGlyphFont : Self.glyphFont,
+                          color: .secondaryLabelColor, centeredIn: rects.provider)
+                Self.draw(text: signInProviders.contains(provider) ? "×" : "…", font: Self.codeFont,
+                          color: .secondaryLabelColor, centeredIn: rects.code)
+                continue
+            }
+            track.setFill(); outline.fill()
             guard index < selected.count, let fill = ringFill(selected[index].metric.usedPercent) else {
                 let dash = NSBezierPath()
                 dash.lineWidth = 1
@@ -247,14 +261,6 @@ private struct FrozenDemoClock: MonitorClock {
                 dash.line(to: NSPoint(x: bar.maxX - 1.5, y: bar.midY))
                 NSColor.secondaryLabelColor.setStroke()
                 dash.stroke()
-                // An empty slot names a provider that is configured but not healthy, dimmed.
-                let missing = index - selected.count
-                if missing >= 0, missing < unavailableProviders.count {
-                    let code = providerGlyph(for: unavailableProviders[missing])
-                    let area = Self.layout == .beside ? glyphArea : NSRect(x: bar.minX, y: bar.minY + Self.barWidth, width: bar.width, height: bar.height - Self.barWidth)
-                    Self.draw(text: code, font: code.count > 1 ? Self.pairGlyphFont : Self.glyphFont,
-                              color: .secondaryLabelColor, centeredIn: Self.glyphRects(in: area).provider)
-                }
                 continue
             }
             let ranked = selected[index]
@@ -760,6 +766,7 @@ extension UserDefaults: PollingStorage {}
         guard let current = lastProjection else { return }
         if previous == nil || previous?.selected != current.selected ||
            previous?.providerWarning != current.providerWarning || previous?.unavailableProviders != current.unavailableProviders ||
+           previous?.signInProviders != current.signInProviders ||
            previous?.accessibilitySummary != current.accessibilitySummary ||
            !sameDropdownRows(previous?.profiles ?? [], current.profiles) {
             requestLocalDisplay()
@@ -779,6 +786,7 @@ extension UserDefaults: PollingStorage {}
         lastProjection = projected
         if rings.selected != projected.selected { rings.selected = projected.selected }
         if rings.unavailableProviders != projected.unavailableProviders { rings.unavailableProviders = projected.unavailableProviders }
+        if rings.signInProviders != projected.signInProviders { rings.signInProviders = projected.signInProviders }
         if item.button?.accessibilityLabel() != projected.accessibilitySummary {
             item.button?.setAccessibilityLabel(projected.accessibilitySummary)
         }

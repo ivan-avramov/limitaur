@@ -114,6 +114,8 @@ public struct PresentationState: Sendable {
     public let providerWarning: Bool
     /// Providers with at least one profile that is not healthy, in row order, unique.
     public let unavailableProviders: [ProviderID]
+    /// The subset of `unavailableProviders` with a projected row that is unauthenticated.
+    public let signInProviders: Set<ProviderID>
     public let accessibilitySummary: String
 }
 
@@ -186,6 +188,7 @@ public func projectDisplay(_ display: MonitorDisplay, count requestedCount: Int,
     }
     return PresentationState(revision: display.revision, count: count, profiles: rows,
                              selected: chosen, providerWarning: warning, unavailableProviders: unavailable,
+                             signInProviders: Set(unavailable.filter { id in rows.contains { $0.profile.providerID == id && $0.health == .unauthenticated } }),
                              accessibilitySummary: labels.joined(separator: "; "))
 }
 

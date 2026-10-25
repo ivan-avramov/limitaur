@@ -1,0 +1,9 @@
+# Unhealthy-marker residuals (P408)
+
+Operator's call; none is a requirement until decided.
+
+- R-M1 (change review, both members, major as a test gap): no test drives the controller path `receiveDisplay` → `projectDisplay` → `rings.signInProviders`; a later edit that drops or gates the copy at `AppUI.swift` (the `rings.signInProviders` line) would pass. Candidate verified correct by reading. Fix: one test through `installStatusDrawing()`/`statusDrawingView` (pattern in `PresentationActionTests.swift`) that changes one provider from `throttled` to `unauthenticated` with membership unchanged. Budget about 30 test lines.
+- R-M2 (change review, codex, major as a test gap): marker slots are not tested with installed provider images in jar/logo layouts. Images in marker slots are a non-goal; the candidate draws letters only. Fix: inject a synthetic provider-image bundle, compare marker pixels with the letters-only reference. Budget about 25 test lines.
+- R-M3 (observed during the run): `SessionContinuityCImplementerTests` and `SessionContinuityBImplementerTests` (e.g. `nudgeInteractionsWithConnectDenialAndSleep`, `recordAndClearStoreTheFullMapEachTime`, `throttleClassification`) fail intermittently while other builds load the machine; they pass on a quiet machine (three clean runs). Fix: the bounded-wait helper the Part B tests got (P502). Budget about 20 test lines.
+- Specification residuals: the authentication glyph also shows while recovery is under way (connecting, nudging, waiting for a new token); an unsupported provider/source configuration shows `…`.
+- Budget: product diff 31 changed lines against 30 (a two-line comment), tests 157 lines against 100 (pixel helpers); accepted as is by the operator.
