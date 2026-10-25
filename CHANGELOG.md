@@ -4,6 +4,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-25
+
+### Added
+- Single-instance guard: a menu-bar launch (with or without `--stats`) takes an advisory lock on `~/Library/Application Support/Limitaur/instance.lock`; a second launch prints `Limitaur is already running` and exits with status 3 before any credential read or request. A lock that cannot be taken for another reason is reported on stderr and the app runs unguarded. Demo and diagnostic modes take no lock.
+
+### Changed
+- An unhealthy provider's empty slot no longer draws a track or dash: it shows the provider code over `×` (authentication) or `…` (any other state), so it cannot be read as a usage bar.
+- After an authentication failure (every profile on the account paused by a 401/403, an expired token or a failed load) the last usage leaves the bars at its normal freshness horizon instead of staying up to 300 s under a provider `Retry-After`.
+- `--stats` eligibility uses each snapshot's freshness horizon (`max(90, interval + 20)` s under a learned interval) instead of a fixed 90 s, so a 120 s interval no longer counts a violation every cycle.
+- The expiry-nudge setting stored as an integer or string (`defaults write … NO`) is read as `bool(forKey:)` reads it; an absent key still means on.
+- `scripts/measure-resources.py` converts process CPU times from mach ticks (timebase 125/3 on Apple Silicon); earlier CPU figures were about 41.7 times too low (corrected in docs/performance.md, all still under budget).
+- Documentation: the learned cadence and exact freshness horizon in the specification, README and performance notes; quit the running instance before a `--stats` measurement.
+
 ## [0.2.0] - 2026-10-24
 
 ### Added
