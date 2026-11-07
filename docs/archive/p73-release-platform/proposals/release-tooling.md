@@ -1,5 +1,7 @@
 # P73: version and local release tooling
 
+Historical record: commands and outside-repository evidence instructions below are retired. See [retained records and omissions](../../../evidence/README.md); durable new evidence belongs in the repository.
+
 Status: proposed; four design rounds completed, including the operator-authorized extra review at P174. Changes after the fourth dispatch are NOT RE-REVIEWED; see docs/reviews/release-tooling-design.md and its ledger. No convergence or implementation approval claimed. The proposed Go below keeps the first unguarded execution of new release tooling behind approval of its frozen code. P119 remains accepted. Current documentation baseline: `3e2b6b14590fe703c7dc18309c7539cb4d06db1c`; recover actual HEAD before dispatch.
 
 ## Goal and authority

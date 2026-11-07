@@ -1,6 +1,8 @@
 # Backlog: session continuity Part A residuals
 
-Status: backlog, recorded at the Accept ask of Part A (2026-10-24, strict four-eyes; specification `docs/proposals/session-continuity.md` revision 8). None becomes a requirement without an operator decision. Evidence: `/Users/ivan/ws/limitaur-review/2026-10-24-session-continuity/`.
+Historical evidence consolidation (2026-11-07): [retained records and omissions](../evidence/README.md). References marked historical/omitted are not available in the curated repository; historical commands and approvals are not current instructions.
+
+Status: backlog, recorded at the Accept ask of Part A (2026-10-24, strict four-eyes; specification `docs/proposals/session-continuity.md` revision 8). None becomes a requirement without an operator decision. Evidence: [retained records](../evidence/README.md) (historical source `2026-10-24-session-continuity`; unselected material omitted).
 
 - **R-A1** Two enabled profiles on one credential source that both met a busy reader are both retried in one scheduling pass (change review 4, P82). Needs two profiles on one source, which the supported configuration (one Claude profile) does not have; the reader serialises the reads and the second sees any suspension. Candidate fix: check the `retried` set before consuming a second `busyRetry` entry.
 - **R-A2** `SessionContinuityImplementerTests.swift`, the injected wait-failure case: after the group kill and the leader's reap, cleanup also signals the saved grandchild PID, which could by then be reused (P83). Test-only; fix is deleting that one line.

@@ -1,0 +1,20 @@
+> Historical record imported 2026-11-07 from `2026-10-23-throttle-freshness/accept-verify-operator-tree.txt`. Commands, approvals and next steps describe the original run and grant no current authority. Only files listed in the [manifest](../../manifest.json) are retained; other artifact names denote omitted historical material. See [evidence limitations](../../README.md).
+
+2026-10-23T16:29:53Z
+--- build
+Build complete! (10.10 sec)
+--- swift test run 1
+✔ Test run with 25 tests in 0 suites passed after 0.214 seconds.
+✔ Test run with 198 tests in 7 suites passed after 5.018 seconds.
+--- swift test run 2
+✔ Test run with 25 tests in 0 suites passed after 0.207 seconds.
+✔ Test run with 198 tests in 7 suites passed after 5.017 seconds.
+--- swift test run 3
+✔ Test run with 25 tests in 0 suites passed after 0.195 seconds.
+✔ Test run with 198 tests in 7 suites passed after 5.023 seconds.
+--- python
+Adversarial: OK
+AdversarialClaude: OK
+Tests/MeasurementTests: OK
+AdversarialBars: OK
+2026-10-23T16:30:27Z

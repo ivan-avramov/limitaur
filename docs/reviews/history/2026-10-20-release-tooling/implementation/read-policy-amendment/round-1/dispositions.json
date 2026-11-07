@@ -1,0 +1,152 @@
+[
+  {
+    "id": "astra-P1",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "Explicit precedence covers home-tool exceptions, policy identity and changed aggregate procedures."
+  },
+  {
+    "id": "astra-P2",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "Actual executable write/link controls precede every diagnostic discovery/test/version/suite; artifacts bound separately."
+  },
+  {
+    "id": "astra-P3",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "No-op must run normally with all applicable successes, and be rejected specifically for absent denials; crash/missing JSON fails batch."
+  },
+  {
+    "id": "astra-P4",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "Bounded NFC literal encoder rejects quotes/backslashes/controls; component containment and deterministic complete aliases/exclusions have acceptance cases."
+  },
+  {
+    "id": "astra-P5",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "Known unresolved auth roots block guard qualification with guard_unavailable; unknown unexcluded secrets remain disclosed risk."
+  },
+  {
+    "id": "astra-P6",
+    "reviewerSeverity": "major",
+    "disposition": "adapt",
+    "reason": "SOURCE moves to read-only TRUST; use actual harmless tracked Package.swift write-open without data mutation, no synthetic export contamination. Placeholder STAGE removed before absent-output build; finally cleanup every exit."
+  },
+  {
+    "id": "astra-P7",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "Offline fixed version/demo/black-box routes remain conditionally permitted; live auth/UI/performance remain outside batch."
+  },
+  {
+    "id": "astra-P8",
+    "reviewerSeverity": "minor",
+    "disposition": "adopt",
+    "reason": "Pilot one attempt/template and one controller-only retry total; later mandatory phase probes only after pilot success. No root budget resets."
+  },
+  {
+    "id": "opus-1",
+    "reviewerSeverity": "blocker",
+    "disposition": "adopt",
+    "reason": "Name pre-final-review model-generated payloads and artifact output channel. Disclose readable host config classes; add service/log/core exclusions. Approval covers later phases too."
+  },
+  {
+    "id": "opus-2",
+    "reviewerSeverity": "major",
+    "disposition": "adapt",
+    "reason": "Paired temp aliases used consistently for TRUST/WORK/SOURCE/STAGE. Same-inode alias tests include available case/Data/tmp spellings; unavailable paths not passing evidence. Universal alias coverage unproven."
+  },
+  {
+    "id": "opus-3",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "Temp exclusion is data-read only; metadata/readlink stays default-allowed outside sensitive roots, WORK realpath/getcwd positive control added."
+  },
+  {
+    "id": "opus-4",
+    "reviewerSeverity": "major",
+    "disposition": "adapt",
+    "reason": "SOURCE outside writable WORK, diagnostics write filter excludes STAGE without ordering reliance. Global file-link denial plus positive/guarded source/actual executable link controls and audits. Decline0444 as a substitute because it confounds attribution and alters audited modes."
+  },
+  {
+    "id": "opus-5",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "Fixed account-home/optional env-path inputs only, no contents/config scans; known unresolved/overlap fail. Every prepare creates/removes private nonce home/Darwin-temp sentinels; disclose trusted-parent side effects."
+  },
+  {
+    "id": "opus-6",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "environmentPolicy becomes isolated-read-exclusions-v2 with invalid_manifest on other values; old fixtures historical until implementation update, no new schema field."
+  },
+  {
+    "id": "opus-7",
+    "reviewerSeverity": "major",
+    "disposition": "adapt",
+    "reason": "Deterministic generation/golden checks cover all fixed/configured exclusions. Checkout harmless tracked-file open and driver-only record canary add direct evidence; secret roots remain declared unprobed policy."
+  },
+  {
+    "id": "opus-8",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "Every role/record root under excluded home/temp prefix, no cross-role exceptions; sibling sentinel and placement checks. Normal CLI candidate-blindness remains cooperative."
+  },
+  {
+    "id": "opus-9",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "Precedence explicitly removes both home-tool exceptions; tool/exclusion collision fails guard_unavailable."
+  },
+  {
+    "id": "opus-10",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "Normative record grammar correction must be recorded/presented before worker freeze/dispatch; wording/controller edits only are routine. No counts relaxed."
+  },
+  {
+    "id": "opus-11",
+    "reviewerSeverity": "major",
+    "disposition": "adapt",
+    "reason": "Retry only demonstrated unguarded/no-op argv/serialization failure with no guarded result. Any signal abort/failed no-op/guard result disqualifies retry; one total pilot retry, restricted diff."
+  },
+  {
+    "id": "opus-12",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "Disclose new untested temp/private-var-folders data restriction and additional exclusions; no feasibility success inferred from old broader marker profile."
+  },
+  {
+    "id": "opus-13",
+    "reviewerSeverity": "minor",
+    "disposition": "adapt",
+    "reason": "Retain original EPERM/EACCES contract, record actual errno and same-resource identity/mode/bytes/link controls. Do not adopt unsupported universal EPERM-only distinction."
+  },
+  {
+    "id": "opus-14",
+    "reviewerSeverity": "minor",
+    "disposition": "adopt",
+    "reason": "Add TRUST/peer writes, own Darwin-user-temp sentinel and alias checks; /dev/null remains prior exception."
+  },
+  {
+    "id": "opus-15",
+    "reviewerSeverity": "minor",
+    "disposition": "adopt",
+    "reason": "Order unguarded then functioning no-op then guarded startup/matrix; no-op once per recipe with explicit inventory."
+  },
+  {
+    "id": "opus-16",
+    "reviewerSeverity": "minor",
+    "disposition": "adapt",
+    "reason": "Driver durable sanitized records outside checkout/excluded; prepare in-memory names then existing aggregates only. Owned-root finally cleanup, no escalation or publication on unresolved required cleanup; bounded WORK Unix path, no socket relocation."
+  },
+  {
+    "id": "opus-17",
+    "reviewerSeverity": "minor",
+    "disposition": "adopt",
+    "reason": "R2 driver acceptance explicitly binds build recipe without new manifest key."
+  }
+]

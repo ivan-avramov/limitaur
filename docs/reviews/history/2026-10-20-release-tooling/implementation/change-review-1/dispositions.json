@@ -1,0 +1,1605 @@
+{
+  "allMembersCollectedBeforePanelJudgement": true,
+  "candidateSHA256": "5b6b49541311ba8446bea7df1cccfbe9b5448ba1c200ac31ce55c69242c70f96",
+  "declinedApprovalRequests": [
+    {
+      "decision": "fixed informational help within current scope; frozen files preserved",
+      "operatorAuthority": "P244 and latest proceed; routine CLI clarification, no new execution right",
+      "origin": "OPUS-04"
+    },
+    {
+      "decision": "implement real Foundation controls already required by operational note",
+      "operatorAuthority": "approved private-volume note and existing implementation Go",
+      "origin": "OPUS-07"
+    }
+  ],
+  "fixGroups": [
+    {
+      "disposition": "adopt",
+      "id": "RF01",
+      "origins": {
+        "astra": [
+          "P1"
+        ],
+        "driver": [
+          "DRV-2"
+        ],
+        "opus": [
+          "OPUS-01"
+        ],
+        "writer": [
+          "P8"
+        ]
+      },
+      "reason": "Actual valid-root failures and independent trusted O_SEARCH canary establish a concrete correction mechanism.",
+      "requiredChange": "Use qualified Darwin O_SEARCH|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC for absolute ancestors, opening final directory with read access wherever listing is required. Keep nofollow and fstat identity checks; fix package_app own output descent too. Do not globally replace enumeration flags or widen guards.",
+      "severity": "blocker",
+      "title": "Search-only ancestor traversal"
+    },
+    {
+      "disposition": "adopt",
+      "id": "RF02",
+      "origins": {
+        "astra": [
+          "P2"
+        ],
+        "driver": [
+          "DRV-1"
+        ],
+        "opus": [
+          "OPUS-02"
+        ],
+        "writer": [
+          "P9"
+        ]
+      },
+      "reason": "Frozen boundary failure and real R2 build reproduce the defect.",
+      "requiredChange": "Check raw4096 bytes including optional terminalLF before trimming in Python and both Swift parsers/readers. Correct nonfrozen author tests expecting4097LF acceptance; preserve all shared/frozen vectors.",
+      "severity": "major",
+      "title": "Raw VERSION byte limit"
+    },
+    {
+      "disposition": "adopt",
+      "id": "RF03",
+      "origins": {
+        "astra": [
+          "P12"
+        ],
+        "opus": [
+          "OPUS-03"
+        ],
+        "writer": [
+          "P11"
+        ]
+      },
+      "reason": "Literal source calls differ from approved argv grammar and are rejected by the observer once traversal succeeds.",
+      "requiredChange": "Use exact prescribed HEAD query forms without --verify. Keep --verify only in enumerated hexadecimal tag-object peeling. Tighten full argv author assertions; do not broaden the frozen observer.",
+      "severity": "major",
+      "title": "Exact fixed Git commands"
+    },
+    {
+      "disposition": "adapt",
+      "id": "RF04",
+      "origins": {
+        "astra": [
+          "P10"
+        ],
+        "opus": [
+          "OPUS-17"
+        ],
+        "writer": [
+          "P12"
+        ]
+      },
+      "reason": "R6 explicitly binds mode mutations; normalized Git modes miss changed input identity even if artifact bytes are unaffected. The raw-mode policy is chosen over the reviewer alternative of only rejecting writable modes.",
+      "requiredChange": "Bind actual permission bits in sourceFilesSHA256, reject special modes and require owner-exec relationship to Git mode; preserve actual accepted modes during export and final source audits. Add 0644-to0600/0666 identity-change cases. Do not silently normalize raw modes away.",
+      "severity": "major",
+      "title": "Bind actual source permissions"
+    },
+    {
+      "disposition": "adopt",
+      "id": "RF05",
+      "origins": {
+        "astra": [
+          "P11"
+        ],
+        "opus": [
+          "OPUS-16"
+        ],
+        "writer": [
+          "P13"
+        ]
+      },
+      "reason": "The current prefix exception is broader than the specified content-addressed-object exception; no new hardlink fixture creation inside guarded suites.",
+      "requiredChange": "Restrict multilink exceptions to validated content-addressed object storage paths, not arbitrary objects/info metadata. Validate loose/pack/index naming and required content identity as applicable. Reject replacement refs including packed forms and unsupported mechanisms before queries. Retain/recheck relevant .git/root/directory identities.",
+      "severity": "major",
+      "title": "Git metadata identity and object-link exception"
+    },
+    {
+      "disposition": "adopt",
+      "id": "RF06",
+      "origins": {
+        "astra": [
+          "P13"
+        ],
+        "opus": [
+          "OPUS-05"
+        ],
+        "writer": [
+          "P14"
+        ]
+      },
+      "reason": "Identity string equality does not prove current tag resolution or count validity.",
+      "requiredChange": "Verify non-null proposed tags through fixed enumeration/hex peel; validate git-count origin with current full-history count and nonshallow state. Respect explicit origin. Add fully bound retarget/shallow cases to source tests/driver obligations.",
+      "severity": "major",
+      "title": "Verify tag and build-number origin"
+    },
+    {
+      "disposition": "adopt",
+      "id": "RF07",
+      "origins": {
+        "astra": [
+          "P7"
+        ],
+        "opus": [
+          "OPUS-06"
+        ],
+        "writer": [
+          "P15"
+        ]
+      },
+      "reason": "Invalid known declarations and changed symlinks must not disappear from the protection model.",
+      "requiredChange": "Reject nonempty relative/unsafe/dot-component config declarations before normalization. Bounded metadata-only resolution must retain targets and component identities and recheck them around each payload. No auth contents, home enumeration or new read roots.",
+      "severity": "major",
+      "title": "Declared roots and symlink observations"
+    },
+    {
+      "disposition": "adopt",
+      "id": "RF08",
+      "origins": {
+        "astra": [
+          "P21"
+        ],
+        "opus": [
+          "OPUS-06",
+          "OPUS-20"
+        ],
+        "writer": [
+          "P15"
+        ]
+      },
+      "reason": "Trusted source data remains an input boundary; current validators accept omitted exclusions and malformed catalogue data. Root requires measured counts, not constant estimates.",
+      "requiredChange": "Enforce exact trusted template/catalogue shapes, frozen generation negative vectors, sorted complete exclusions and canonical aliases/containment/nonce ancestry. Validate bounded relative catalogue targets and actual seeded byte/entry totals, exact mode0644 where specified, pair identities/nlink and inert repository validity before suites. Preserve exact public schemas and all data hashes.",
+      "severity": "major",
+      "title": "Exact renderer and catalogue validation"
+    },
+    {
+      "disposition": "adapt",
+      "id": "RF09",
+      "origins": {
+        "astra": [
+          "P5"
+        ],
+        "opus": [
+          "OPUS-07"
+        ],
+        "writer": [
+          "P16"
+        ]
+      },
+      "reason": "The approved private-volume note requires volume controls and around-payload mount/source/artifact checks; implementing the actual Foundation control needs no new host right or scope approval. Opus request for another operator decision is declined as redundant with the existing contract.",
+      "requiredChange": "Implement genuine Foundation NSData plain/atomic absent/present controls on private-volume scratch (stdlib ctypes permitted, qualified reference available). Retain full original controls including TRUST writes and SOURCE/actual-executable write/link operations for every available equivalent alias. Bind every pair/control to inode/device/mode/bytes/nlink. No Python-rename substitution or borrowed driver qualification, no new public GUARDS keys.",
+      "severity": "blocker",
+      "title": "Complete actual supervisor qualification"
+    },
+    {
+      "disposition": "adopt",
+      "id": "RF10",
+      "origins": {
+        "astra": [
+          "P6"
+        ],
+        "opus": [
+          "OPUS-08"
+        ],
+        "writer": [
+          "P17"
+        ]
+      },
+      "reason": "ENOENT, boolean errno and invalid elapsed values currently qualify bad controls.",
+      "requiredChange": "Before no-op rejection require every fixed operation to succeed with complete unique consistent records. Enforce exact bool/int types, errno semantics, finite nonnegative bounded time and complete inventory. Only then reject specifically missing denials.",
+      "severity": "major",
+      "title": "Strict probe and no-op records"
+    },
+    {
+      "disposition": "adopt",
+      "id": "RF11",
+      "origins": {
+        "astra": [
+          "P8"
+        ],
+        "opus": [
+          "OPUS-09"
+        ],
+        "writer": [
+          "P18"
+        ]
+      },
+      "reason": "Prelaunch-only checks are insufficient; mount and ancestry checks must remain effective across stages.",
+      "requiredChange": "Centralize checks around every launch for profile bytes/metadata, resolution observations, owned mount identity, SOURCE map and STAGE identity/protection. Prevent further payloads/publication on any change.",
+      "severity": "major",
+      "title": "Before and after launch bindings"
+    },
+    {
+      "disposition": "adopt",
+      "id": "RF12",
+      "origins": {
+        "astra": [
+          "P9"
+        ],
+        "opus": [
+          "OPUS-09"
+        ],
+        "writer": [
+          "P18"
+        ]
+      },
+      "reason": "Current collector silently suppresses unresolved known-group cleanup.",
+      "requiredChange": "Use while-reading32MiB caps and process-group deadlines everywhere; verify known group termination, propagate unresolved survivors/reap/kill failure and stop later work. Do not return leader success with unresolved inherited pipes or truncate successful terminal output. Preserve no-comprehensive-detached/brokered-descendant claim.",
+      "severity": "major",
+      "title": "Bounded collector and known group closure"
+    },
+    {
+      "disposition": "adopt",
+      "id": "RF13",
+      "origins": {
+        "astra": [
+          "P3"
+        ],
+        "opus": [
+          "OPUS-10"
+        ],
+        "writer": [
+          "P19"
+        ]
+      },
+      "reason": "Timeout/nonzero/output-cap after actual mount currently leaves attached=false and unsafe bulk cleanup.",
+      "requiredChange": "Set attachment uncertainty before attach dispatch. Reconcile exact owned image/mount/device before detach/delete, or retain owned roots and fail internal_error. Never recurse through an uncertain attachment or delete its image. No force or unrelated attachment enumeration/cleanup.",
+      "severity": "blocker",
+      "title": "Attachment uncertainty"
+    },
+    {
+      "disposition": "adopt",
+      "id": "RF14",
+      "origins": {
+        "astra": [
+          "P4"
+        ],
+        "opus": [
+          "OPUS-11"
+        ],
+        "writer": [
+          "P20"
+        ]
+      },
+      "reason": "The recipe expressly makes mandatory cleanup outcome material.",
+      "requiredChange": "Track canonical created roots and identities, including Darwin aliases. Close held dist/other descriptors on constructor failures and all paths. Attempt bounded owned cleanup; mandatory failure must surface under internal_error/probe policy and prevent publication, retaining unresolved roots. Do not swallow cleanup errors behind the earlier build failure or delete replacement roots.",
+      "severity": "major",
+      "title": "Owned cleanup and descriptor lifecycle"
+    },
+    {
+      "disposition": "adopt",
+      "id": "RF15",
+      "origins": {
+        "astra": [
+          "P17",
+          "P18"
+        ],
+        "driver": [
+          "DRV-3"
+        ],
+        "opus": [
+          "OPUS-12"
+        ],
+        "writer": [
+          "P21"
+        ]
+      },
+      "reason": "FIFO/growing binary, dropped role environment and path-based cleanup are concrete weaknesses.",
+      "requiredChange": "Use shared nofollow/nonblocking single-link regular bounded descriptor reading with before/after metadata and a running byte cap for binary inputs. Carry the minimal role HOME/CFFIXED/TMP/cache environment through nested fixed tools. Use shared bounded group collector. Remove only the created output through retained parent descriptor/identity, never path rmtree.",
+      "severity": "major",
+      "title": "Packaging input, environment and cleanup boundaries"
+    },
+    {
+      "disposition": "adapt",
+      "id": "RF16",
+      "origins": {
+        "astra": [
+          "P16"
+        ],
+        "opus": [
+          "OPUS-13"
+        ],
+        "writer": [
+          "P22"
+        ]
+      },
+      "reason": "No-public-override is explicit; private function calls remain possible by definition and must not be turned into an invented hostile-user authentication protocol.",
+      "requiredChange": "Share captured Git discovery and metadata/config/capability policy while preserving documented ordinary dirty-build support. Verify completed standalone binary/plist and codesign --verify --strict. Remove advertised/public --revision/--build-normalized override flags; pass prepared verified metadata to a private shared packaging function in a fixed guarded child. No custom/evidence code, extra TCB file, public bypass flag or permission. A fixed TCB-owned Python bootstrap with argv data and fixed sibling loader is acceptable if needed; never interpolate data into code.",
+      "severity": "major",
+      "title": "Safe standalone packaging and internal handoff"
+    },
+    {
+      "disposition": "adopt",
+      "id": "RF17",
+      "origins": {
+        "astra": [
+          "P19"
+        ],
+        "opus": [
+          "OPUS-14"
+        ],
+        "writer": [
+          "P23"
+        ]
+      },
+      "reason": "Known benign numeric tags do not validate their payloads; successful otool/vtool alone is not sufficient.",
+      "requiredChange": "Validate recognized command structures, command sizes/counts/referenced bounds and container consistency; reject unknown/unsupported unsafe forms. Enforce one executable and no embedded helpers/dylibs/frameworks/code. Preserve complete SDK table handling, system dependency/deployment policies and actual captured tool checks. Add malformed commands and extra code cases.",
+      "severity": "major",
+      "title": "Mach-O table and code closure"
+    },
+    {
+      "disposition": "adopt",
+      "id": "RF18",
+      "origins": {
+        "astra": [
+          "P23"
+        ],
+        "opus": [
+          "OPUS-15"
+        ],
+        "writer": [
+          "P24"
+        ]
+      },
+      "reason": "Unknown apparent records currently disappear.",
+      "requiredChange": "Reject malformed/unknown apparent terminal-marker records while allowing ordinary compiler/start chatter. Keep actual approved grammar, source discovery inventory/counts and all original names. Correct nonfrozen near-miss author oracle.",
+      "severity": "major",
+      "title": "Fail closed on apparent native records"
+    },
+    {
+      "disposition": "adopt",
+      "id": "RF19",
+      "origins": {
+        "astra": [
+          "P24"
+        ],
+        "opus": [
+          "OPUS-19"
+        ],
+        "writer": [
+          "P25"
+        ]
+      },
+      "reason": "Several failures are invalid author constructions; passing incorrect author expectations must not overrule the specification.",
+      "requiredChange": "Use bounded stdlib inert index fixtures, no Git writes/custom commands. Compare production stdout with parsed fullSemVer plus LF, not raw VERSION. Build malformed raw JSON independently of canonical_json. Correct raw-limit, near-miss and weak argv tests consistently. Keep every old/frozen/independent file unchanged; add meaningful regression coverage in allowed new test files and update inventory to actual names.",
+      "severity": "major",
+      "title": "Correct nonfrozen author test setup/oracles"
+    },
+    {
+      "disposition": "adopt",
+      "id": "RF20",
+      "origins": {
+        "astra": [
+          "P22"
+        ],
+        "opus": [
+          "OPUS-20"
+        ],
+        "writer": [
+          "P26"
+        ]
+      },
+      "reason": "The limit must apply before unbounded allocation.",
+      "requiredChange": "Bound enumeration incrementally before retaining/sorting entire directory lists in artifact/Git/candidate/evidence walkers. Keep descriptor confinement and deterministic accepted order. Measure and validate seeded fixtures, not estimates.",
+      "severity": "major",
+      "title": "Bound directory enumeration and fixtures"
+    },
+    {
+      "disposition": "adopt",
+      "id": "RF21",
+      "origins": {
+        "astra": [
+          "P14"
+        ]
+      },
+      "reason": "Only final app hashing misses replacement manifest/evidence/entry changes during allowed queries.",
+      "requiredChange": "Retain selected candidate/evidence root/member descriptors and metadata; at completion compare bytes, identities and exact entry sets as well as app tree. Bracket path-based codesign with checks and re-audit source. No hostile-concurrent-writer completeness claim.",
+      "severity": "major",
+      "title": "Verify completion bindings"
+    },
+    {
+      "disposition": "adopt",
+      "id": "RF22",
+      "origins": {
+        "astra": [
+          "P15"
+        ]
+      },
+      "reason": "Exclusive rename prevents overwrite but does not prove the staged candidate stayed bound during cleanup.",
+      "requiredChange": "Keep publication staging identity/descriptor; finish mandatory cleanup/final source audit, then revalidate complete staged app/manifest and held output parent immediately before exclusive rename. Preserve original modes/signature/manifest and output refusal. Register fault/race checks for separately approved smoke.",
+      "severity": "major",
+      "title": "Publication after cleanup"
+    },
+    {
+      "disposition": "adopt",
+      "id": "RF23",
+      "origins": {
+        "astra": [
+          "P20"
+        ],
+        "opus": [
+          "OPUS-18"
+        ]
+      },
+      "reason": "The documented fresh-checkout command currently cannot reach the already-approved safe creation branch.",
+      "requiredChange": "Permit only the approved absent repo/dist component in precheck, safely validate existing repo ancestry/target absence, validate ignore policy, then exclusive0700 dist creation via held descriptors. Never mkdir arbitrary ancestors or follow a symlink.",
+      "severity": "major",
+      "title": "Safe fresh-checkout dist creation"
+    },
+    {
+      "disposition": "adapt",
+      "id": "RF24",
+      "origins": {
+        "astra": [
+          "P25"
+        ],
+        "opus": [
+          "OPUS-04"
+        ],
+        "writer": [
+          "P10"
+        ]
+      },
+      "reason": "The original spec leaves this route unstated: the old exit2 is not an isolation bug. Under the operator latest proceed/no-micro-approval direction, a compatible informational single-file CLI detail is resolved autonomously. Designer adapts the requested amendment/re-freeze decision; no frozen test modification, no retroactive pass claim.",
+      "requiredChange": "Preserve frozen bytes and recorded21 failures. Provide a fixed informational release-CLI --help route, after isolated flags/version validation, using the fixed sibling helper-loading path without constructing services or running queries/builds. No new report phase, public execution/bypass flag, command/evidence action or host permission. Document it in new docs/release.md. Ensure shadowing coverage actually reaches helper loading, not a superficial pre-import success.",
+      "severity": "minor",
+      "title": "Help oracle compatibility clarification"
+    },
+    {
+      "disposition": "adopt",
+      "id": "RF25",
+      "origins": {
+        "driver": [
+          "DRV-4"
+        ]
+      },
+      "reason": "R3 explicitly omits the version key for unbundled tests; current implementation accepts any Bundle info key without app qualification.",
+      "requiredChange": "bundleBuildNumber must omit build metadata for non-app/unbundled test bundles even if they contain CFBundleVersion; keep actual app build display and explicit full compiled version. Add a meaningful new test using inert bundle metadata, not a modal UI/provider call.",
+      "severity": "minor",
+      "title": "Production unbundled About build metadata"
+    }
+  ],
+  "fixRoundsDispatched": 0,
+  "members": {
+    "astra": {
+      "costUSD": null,
+      "model": "gpt-6-astra",
+      "provider": "openai",
+      "seconds": 454.01902720797807,
+      "session": "01a15c22-71c1-7e10-8606-d26482b17533",
+      "tokens": 247973
+    },
+    "opus": {
+      "costUSD": 4.4866578,
+      "model": "claude-opus-5-5",
+      "seconds": 635.2336189169437,
+      "session": "de710a85-2763-4ea5-90e3-829f3d0a10d9"
+    },
+    "writer": {
+      "configuredModel": "gpt-6.1-sol",
+      "costUSD": null,
+      "runtimeExactModel": "unreported by JSON header",
+      "session": "01a15bb5-7ceb-77f1-99c7-22a0481d7d9e",
+      "verdict": "reject"
+    }
+  },
+  "next": "One fresh Sonnet correction from these judged requirements, then guarded validation and same-writer/change review.",
+  "normalNewTCBExecutionApproved": false,
+  "reviewerFindings": [
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF01"
+      ],
+      "origin": "writer",
+      "originID": "P8",
+      "originalFinding": {
+        "location": "scripts/release_support.py: open_directory_nofollow, read_input_file, hash_artifact_tree; driver failure location line 500",
+        "problem": "Observed: valid WORK/TRUST filesystem operations fail with unsafe_path, blocking the production primitives and many downstream tests. The implementation read-opens every absolute ancestor, including temporary directories whose data reads the approved profile denies. That is a plausible explanation, not a measured syscall attribution.",
+        "requiredChange": "Make descriptor traversal function under the unchanged approved profile while retaining no-follow confinement and metadata checks. Qualify valid-root positives before interpreting negative results. Do not broaden temporary-directory read permissions.",
+        "scenario": "The driver recorded unsafe_path on ordinary reader/tree positives and failures across the corresponding Git/member tests. Passing unsafe-root negatives does not establish that safe roots work.",
+        "severity": "blocking",
+        "stableID": "P8"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF02"
+      ],
+      "origin": "writer",
+      "originID": "P9",
+      "originalFinding": {
+        "location": "scripts/release_support.py: Version.parse, _strip_one_lf, read_version; Tools/VersionGenerator/main.swift: parseVersion; Sources/Limitaur/AppVersion.swift: parse",
+        "problem": "Observed and source-confirmed: all three parsers enforce the length limit after stripping LF, accepting 4097 raw bytes when the last byte is LF.",
+        "requiredChange": "Check the 4096-byte raw-input limit before stripping the optional LF in every parser. Correct the non-frozen author tests to the approved raw-byte rule; preserve the frozen independent test.",
+        "scenario": "The driver’s raw_4097_lf regeneration case built successfully although rejection was required. The frozen test_version_limits also failed. The author Python/native length tests incorrectly require this acceptance.",
+        "severity": "high",
+        "stableID": "P9"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adapt",
+      "groups": [
+        "RF24"
+      ],
+      "origin": "writer",
+      "originID": "P10",
+      "originalFinding": {
+        "location": "AdversarialRelease/test_acceptance.py: test_cli_shadowing, line 1171; scripts/release-check.py: _parse",
+        "problem": "Invalid frozen-test assertion identified: my Phase A test requires release-check.py --help to exit zero. The specification mandates app --help behavior but does not require a release-CLI --help route. This failure is not evidence that isolation or shadow resistance failed.",
+        "requiredChange": "Record an explicit invalid-test disposition without changing the frozen files during this review. Do not require a new CLI feature to fit this oracle. Any separately authorized correction should retain startup/shadowing checks through a specified entry route that actually loads the helper.",
+        "scenario": "The candidate correctly treats the unspecified release-CLI invocation as misuse and exits 2 before the assertion expecting 0.",
+        "severity": "medium",
+        "stableID": "P10"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF03"
+      ],
+      "origin": "writer",
+      "originID": "P11",
+      "originalFinding": {
+        "location": "scripts/release_support.py: audit_git_full",
+        "problem": "Source inference: HEAD queries add --verify, exceeding the preregistered fixed argv set. That form is specified for peeling an enumerated hexadecimal tag object, not for these HEAD queries.",
+        "requiredChange": "Use the prescribed fixed query forms. Do not silently broaden the frozen command observer to accommodate the candidate.",
+        "scenario": "After filesystem traversal works, audit_git_full issues rev-parse --verify HEAD^{commit} and HEAD^{tree}; the frozen observer permits the specified HEAD forms without --verify.",
+        "severity": "medium",
+        "stableID": "P11"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adapt",
+      "groups": [
+        "RF04"
+      ],
+      "origin": "writer",
+      "originID": "P12",
+      "originalFinding": {
+        "location": "scripts/release_support.py: audit_git_full, files map construction",
+        "problem": "Source inference: source auditing checks only the owner-executable bit and records normalized Git modes, discarding actual permission bits. The implementer explicitly disclosed this deviation.",
+        "requiredChange": "Audit and bind the actual permission modes, enforce their relationship to the accepted Git mode policy, and preserve/check those modes through export and final source audits.",
+        "scenario": "Changing a tracked non-executable file from 0644 to 0600 or 0666 can leave Git status and sourceFilesSHA256 unchanged. Prepare/verify can consequently miss a source-mode change that requires renewed preparation.",
+        "severity": "high",
+        "stableID": "P12"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF05"
+      ],
+      "origin": "writer",
+      "originID": "P13",
+      "originalFinding": {
+        "location": "scripts/release_support.py: _walk_git",
+        "problem": "Source inference: the multiple-link exception covers every regular file below objects/, rather than only content-addressed object files.",
+        "requiredChange": "Restrict the exception to validated content-addressed object paths. Reject other linked metadata before Git invocation and test that distinction using trusted synthetic fixtures.",
+        "scenario": "A multiply-linked objects/info metadata file passes preflight because its path starts with objects/. The specified exception does not authorize arbitrary metadata links there.",
+        "severity": "high",
+        "stableID": "P13"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF06"
+      ],
+      "origin": "writer",
+      "originID": "P14",
+      "originalFinding": {
+        "location": "scripts/release_support.py: _verify",
+        "problem": "Source inference: verify compares the proposed-tag option to the recorded string but never calls check_proposed_tag to revalidate an existing tag against HEAD.",
+        "requiredChange": "Recheck non-null proposed tags using the fixed enumeration/hex-peeling protocol during verification. Cover the retargeted-tag case with fully bound driver fixtures.",
+        "scenario": "After preparation, an existing proposed tag can be retargeted while source commit/tree, tracked bytes and config remain unchanged. The current verify flow does not detect that tag disagreement.",
+        "severity": "high",
+        "stableID": "P14"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF07",
+        "RF08"
+      ],
+      "origin": "writer",
+      "originID": "P15",
+      "originalFinding": {
+        "location": "scripts/release_supervisor.py: declared_roots, resolve_spellings, render_profile, load_guard_template, Guard.wrap",
+        "problem": "Source inference: known nonempty relative configuration declarations are silently ignored; declared paths are normalized before unsafe dot components can be rejected; resolved symlink identities/targets are not retained and rechecked before launches. Rendering also omits required fixed-exclusion and alias-map invariant checks.",
+        "requiredChange": "Reject invalid declarations rather than dropping or silently normalizing them. Retain/recheck resolution identities before each launch and validate the frozen exclusion/alias/containment invariants and trusted-data shapes.",
+        "scenario": "A relative configured auth root disappears from the exclusion model, or a configured symlink changes after generation without invalidating a launch. A renderer parameter map missing a mandatory exclusion is accepted.",
+        "severity": "high",
+        "stableID": "P15"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adapt",
+      "groups": [
+        "RF09"
+      ],
+      "origin": "writer",
+      "originID": "P16",
+      "originalFinding": {
+        "location": "scripts/release_supervisor.py: ProbeResources.ops, actual_ops, verify_intact, _run_probe",
+        "problem": "Source inference, partly acknowledged by the author: the production supervisor does not implement the complete approved qualification inventory. Python rename substitutes for the Foundation atomic-write controls; actual executable link controls are not repeated for available aliases; required identity/mode checks are incomplete.",
+        "requiredChange": "Implement the actual approved controls, including volume compatibility controls, applicable alias write/link controls and identity/mode/byte/link-count bindings. Do not inherit qualification from the independent driver or count a substitute mechanism as equivalent.",
+        "scenario": "Python os.rename can succeed in an environment where the pilot demonstrated Foundation atomic writes failing. Actual executable aliases receive write-open controls but only the canonical executable receives a link control. Canary checks do not establish unchanged inode/mode identity across paired controls.",
+        "severity": "blocking",
+        "stableID": "P16"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF10"
+      ],
+      "origin": "writer",
+      "originID": "P17",
+      "originalFinding": {
+        "location": "scripts/release_supervisor.py: Guard.noop_rejected, Guard.probe, group_results",
+        "problem": "Source inference: no-op validation does not require every operation to succeed. An erroneous denial-target operation can be counted as a missing denial. Probe validation also accepts invalid numeric records, including boolean errno values and negative elapsed values.",
+        "requiredChange": "Require every no-op operation to return a successful, complete, consistent record before validating missing denials. Enforce exact types, finite nonnegative elapsed time, valid errno semantics and operation-specific record consistency.",
+        "scenario": "A no-op denial-target record reporting ENOENT or an operation failure can leave its group false and satisfy noop_rejected. Boolean true compares equal to EPERM, and negative elapsed time satisfies the denial deadline.",
+        "severity": "high",
+        "stableID": "P17"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF11",
+        "RF12"
+      ],
+      "origin": "writer",
+      "originID": "P18",
+      "originalFinding": {
+        "location": "scripts/release_support.py: _collect, _kill_group; scripts/release_supervisor.py: run_guarded, Guard.probe",
+        "problem": "Source inference: launched groups are killed without checking/reporting known survivors; cleanup errors are suppressed. Profiles are checked before wrapping but not verified after every launch as required.",
+        "requiredChange": "Validate known-group termination and fail before further diagnostics/publication on unresolved survivors. Check bound profile bytes/metadata before and after each launch. Preserve the explicit limit that detached/brokered descendants are not comprehensively discovered.",
+        "scenario": "_collect can stop draining after its post-exit grace period, suppress group-kill/reap failures and return the leader’s success. A changed profile during a launch is not checked afterward.",
+        "severity": "high",
+        "stableID": "P18"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF13"
+      ],
+      "origin": "writer",
+      "originID": "P19",
+      "originalFinding": {
+        "location": "scripts/release_supervisor.py: provision_volume, cleanup, remove_tree",
+        "problem": "Source inference: attachment ownership/state can become uncertain while run.attached remains false. Cleanup then recursively removes the run root without first proving that no owned attachment remains.",
+        "requiredChange": "Track attachment uncertainty before invoking attach. Reconcile only the owned image/attachment, or retain owned roots and fail closed when ownership/detachment is unresolved. Never bulk-delete through an unresolved mount.",
+        "scenario": "hdiutil attach mounts successfully but times out or exits unsuccessfully before run_checked returns. run.attached is never set, so cleanup skips detach and may descend into the mounted filesystem or delete its backing image/root.",
+        "severity": "blocking",
+        "stableID": "P19"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF14"
+      ],
+      "origin": "writer",
+      "originID": "P20",
+      "originalFinding": {
+        "location": "scripts/release_supervisor.py: run_prepare exception handling and cleanup",
+        "problem": "Source inference: mandatory cleanup failures on error paths are swallowed, leaving the original build or other failure as the public result instead of reporting the required cleanup failure.",
+        "requiredChange": "Make cleanup outcomes explicit on every ordinary exit, report mandatory cleanup failure according to the approved internal_error/probe-failure policy, retain unresolved owned roots, and close held descriptors on constructor failures. Publication must remain impossible on cleanup failure.",
+        "scenario": "A build fails, then removal of an owned canary/root fails. run_prepare suppresses that cleanup exception and reports build_failed, hiding the detected cleanup failure. Run construction also occurs outside the held dist descriptor’s cleanup scope.",
+        "severity": "high",
+        "stableID": "P20"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF15"
+      ],
+      "origin": "writer",
+      "originID": "P21",
+      "originalFinding": {
+        "location": "scripts/release_support.py: _local_git, _tool_output, package_app; Tests/ReleaseToolingTests/test_cli_runner.py: launch",
+        "problem": "Source inference: several inner subprocess captures still use unbounded subprocess.run PIPE buffering. The package binary reader can also block on a FIFO and does not enforce its byte bound while reading or recheck descriptor metadata.",
+        "requiredChange": "Use bounded while-reading capture and process-group deadlines consistently in helpers and non-frozen author infrastructure. Read packaging inputs through the shared safe descriptor implementation with type/link/size and before/after checks.",
+        "scenario": "An inner command can accumulate output unseen by the outer capture cap. A FIFO binary blocks before fstat because O_NONBLOCK is absent; a regular binary growing after the initial size check bypasses the read bound.",
+        "severity": "high",
+        "stableID": "P21"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adapt",
+      "groups": [
+        "RF16"
+      ],
+      "origin": "writer",
+      "originID": "P22",
+      "originalFinding": {
+        "location": "scripts/release_support.py: _local_git, resolve_packaging_metadata, package_app",
+        "problem": "Source inference: standalone packaging bypasses the captured-Git metadata/config/capability policy, invoking the /usr/bin/git shim directly. Its successful signing path also omits signature verification.",
+        "requiredChange": "Share the safe Git policy and captured executable discovery while retaining ordinary dirty-build support. Use the prescribed captured tools and verify the completed standalone bundle’s executable/signature.",
+        "scenario": "Standalone preflight evaluates repository metadata without the prescribed preflight and canonical config policy. package_app treats codesign signing success as sufficient and never performs codesign --verify --strict.",
+        "severity": "high",
+        "stableID": "P22"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF17"
+      ],
+      "origin": "writer",
+      "originID": "P23",
+      "originalFinding": {
+        "location": "scripts/release_support.py: _inspect_slice, _BENIGN_COMMANDS; scripts/release_supervisor.py: inspect_bundle",
+        "problem": "Source inference: recognized Mach-O commands categorized as benign receive no command-specific payload validation. Higher bundle checks inspect only the main executable and do not explicitly enforce the prohibition on embedded dylibs/frameworks/helpers.",
+        "requiredChange": "Validate recognized command encodings and bounds sufficiently to support the complete-table inspection claim, and enforce the approved bundle closure policy. Add malformed-command and extra-code cases; successful otool/vtool exit status is not a substitute.",
+        "scenario": "A truncated eight-byte LC_SEGMENT_64 is accepted by the native parser alongside a valid deployment command. Additional executable/code files can be represented in the artifact tree without undergoing an explicit closure-policy rejection.",
+        "severity": "high",
+        "stableID": "P23"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF18"
+      ],
+      "origin": "writer",
+      "originID": "P24",
+      "originalFinding": {
+        "location": "scripts/release_supervisor.py: parse_native_records; Tests/ReleaseToolingTests/test_guard_supervisor.py: test_near_miss_lines_are_not_records",
+        "problem": "Source inference: malformed apparent native terminal records are silently ignored, and an author test explicitly requires that behavior.",
+        "requiredChange": "Distinguish ordinary compiler/test chatter from malformed or unknown terminal records and reject the latter. Correct the non-frozen author oracle without relaxing counts or the approved native grammar.",
+        "scenario": "A near-miss line beginning with the native pass marker can accompany otherwise matching names/counts without failing parsing, contrary to the unknown-record fail-closed requirement.",
+        "severity": "medium",
+        "stableID": "P24"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF19"
+      ],
+      "origin": "writer",
+      "originID": "P25",
+      "originalFinding": {
+        "location": "Tests/ReleaseToolingTests/test_git_audit.py: GitAuditCase.git, test_hidden_index_flags_are_unsupported_even_when_the_tree_looks_clean; test_manifest_evidence.py: ManifestTests.test_artifact_entry_rules",
+        "problem": "Source-confirmed author-test deviations: index-state tests dispatch Git write commands outside the fixed command set/prefix. A separate malformed-manifest case raises during canonical_json construction before reaching its intended assertion.",
+        "requiredChange": "Use bounded stdlib-written inert index fixtures and permitted read-only validation. Construct malformed raw JSON independently when testing validator rejection. Keep these author-test corrections separate from frozen independent tests.",
+        "scenario": "The Git tests use update-index; their bodies were not reached because setup failed. The manifest helper tries to canonicalize an intentionally non-NFC mutation, so the recorded failure does not demonstrate a validator defect.",
+        "severity": "medium",
+        "stableID": "P25"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF20"
+      ],
+      "origin": "writer",
+      "originID": "P26",
+      "originalFinding": {
+        "location": "scripts/release_support.py: _walk_tree, _walk_git",
+        "problem": "Source inference: directory entry limits are applied only after os.listdir has materialized and sorting has processed the complete directory.",
+        "requiredChange": "Bound enumeration before retaining/sorting the entire listing, while preserving deterministic ordering and no-follow traversal.",
+        "scenario": "An oversized selected directory can consume unbounded listing memory/work before the 4096/16384-entry rejection is reached.",
+        "severity": "medium",
+        "stableID": "P26"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF01"
+      ],
+      "origin": "astra",
+      "originID": "P1",
+      "originalFinding": {
+        "location": "scripts/release_support.py: _DIR_FLAGS, open_directory_nofollow",
+        "problem": "The descriptor traversal cannot reach valid TRUST/WORK roots under the approved guard. It opens every ancestor with O_RDONLY, including temporary ancestors whose directory-data reads are denied. Ordinary reader/tree positives failed with unsafe_path. The additional trusted canary independently supports this mechanism: data-mode traversal failed with EPERM at depth 2, while search-mode traversal succeeded and still rejected a symlink.",
+        "proposedChange": "Use qualified search-only ancestor traversal, retaining no-follow checks and opening the selected directory for enumeration only where needed. Revalidate positive and negative paths under the unchanged profile; do not broaden ancestor read permissions.",
+        "scenario": "A guarded packaging helper or filesystem test traverses /private/tmp to its permitted source or scratch directory and fails before reaching that directory. Many recorded negative tests therefore never exercised their intended boundary.",
+        "severity": "blocker",
+        "stableID": "P1"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF02"
+      ],
+      "origin": "astra",
+      "originID": "P2",
+      "originalFinding": {
+        "location": "scripts/release_support.py: Version.parse, _strip_one_lf, read_version; Tools/VersionGenerator/main.swift: parseVersion; Sources/Limitaur/AppVersion.swift: parse",
+        "problem": "All three parsers apply the 4096-byte limit after removing LF. This is an observed specification failure, not merely an inferred edge case: the driver successfully built raw_4097_lf, and the frozen independent test_version_limits failed.",
+        "proposedChange": "Check raw length before stripping LF in every parser and enforce the same boundary in file reading. Correct the non-frozen author expectations; preserve the frozen independent test.",
+        "scenario": "A 4096-byte SemVer followed by LF is accepted despite the maximum being 4096 raw bytes including that LF. The new author Python and Swift tests explicitly require the incorrect behavior.",
+        "severity": "major",
+        "stableID": "P2"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF13"
+      ],
+      "origin": "astra",
+      "originID": "P3",
+      "originalFinding": {
+        "location": "scripts/release_supervisor.py: provision_volume, detach_volume, cleanup",
+        "problem": "Attachment uncertainty is represented as unattached. run.attached becomes true only after run_checked successfully returns from hdiutil attach. Cleanup trusts that boolean when deciding whether recursive deletion is safe.",
+        "proposedChange": "Record attachment uncertainty before dispatch. Reconcile the exact owned image, mount and device before detaching or deleting anything. If ownership or detachment cannot be established, retain owned roots and report internal_error. Add the approved fault-injection cases after the execution gate.",
+        "scenario": "Attach mounts the image but then times out, exceeds its output cap, or exits unsuccessfully. Cleanup skips detach and can recurse into the mounted filesystem while removing the run root. A successful attach with unusable attachment metadata instead permits a path-based detach without first establishing the image/device binding.",
+        "severity": "blocker",
+        "stableID": "P3"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF14"
+      ],
+      "origin": "astra",
+      "originID": "P4",
+      "originalFinding": {
+        "location": "scripts/release_supervisor.py: run_prepare exception handling, cleanup, remove_tree",
+        "problem": "Detected cleanup failures are suppressed on failure paths. Cleanup also uses recorded path strings without retaining the created-root identities, and Run construction occurs outside the dist descriptor's finally scope.",
+        "proposedChange": "Track canonical owned roots and their identities, close descriptors on every path, and make cleanup outcomes explicit. Preserve guard_probe_failed where required, but surface mandatory cleanup failure according to the approved policy. Never report successful cleanup or delete a substituted root.",
+        "scenario": "A build fails and removal of a home canary then fails; run_prepare discards the cleanup exception and reports only build_failed. A confstr path containing an internal /var alias can be created through ordinary path APIs but subsequently rejected by remove_owned_path's no-follow traversal. Constructor failure leaks dist_fd.",
+        "severity": "major",
+        "stableID": "P4"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adapt",
+      "groups": [
+        "RF09"
+      ],
+      "origin": "astra",
+      "originID": "P5",
+      "originalFinding": {
+        "location": "scripts/release_supervisor.py: _run_probe, ProbeResources.ops, actual_ops, verify_intact",
+        "problem": "The production supervisor does not perform the approved qualification matrix. Python create-and-rename replaces the Foundation atomic-write controls; separate TRUST write controls are absent; SOURCE and actual-executable link controls cover only the canonical spelling; canary checks omit recorded inode and mode identity.",
+        "proposedChange": "Implement the approved Foundation/private-volume controls and complete per-operation alias inventories. Bind paired controls to resource identity, bytes, modes and link counts. Independently qualify this supervisor; the driver's successful implementation cannot supply its missing evidence.",
+        "scenario": "Python rename succeeds in the same kind of environment where the pilot established that Foundation atomic writes fail. An available executable alias receives a write-open probe but no link probe, yet protectedExecutableWriteOpenDenied can still become true.",
+        "severity": "blocker",
+        "stableID": "P5"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF10"
+      ],
+      "origin": "astra",
+      "originID": "P6",
+      "originalFinding": {
+        "location": "scripts/release_supervisor.py: Guard.noop_rejected, Guard.probe, group_results",
+        "problem": "No-op rejection does not require all operations to succeed. Probe parsing also accepts boolean errno values and nonfinite or negative elapsed values.",
+        "proposedChange": "Require every no-op operation to complete successfully before testing rejection specifically for missing denials. Validate exact types, finite nonnegative elapsed time, success/errno consistency and the complete bound operation inventory.",
+        "scenario": "A denial-target operation returns ENOENT under the no-op profile. Its group becomes false, satisfying the missing-denials check even though the control malfunctioned. Separately, errno=true compares equal to EPERM and a negative elapsed value satisfies the deadline.",
+        "severity": "major",
+        "stableID": "P6"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF07"
+      ],
+      "origin": "astra",
+      "originID": "P7",
+      "originalFinding": {
+        "location": "scripts/release_supervisor.py: declared_roots, resolve_spellings, compute_exclusions",
+        "problem": "Known invalid configuration declarations are silently discarded or normalized. Resolution returns spellings but retains no symlink identity/target record for the mandatory launch-time rechecks.",
+        "proposedChange": "Reject invalid nonempty declarations rather than dropping them. Validate declared spellings before normalization, perform bounded metadata resolution, retain the identities and targets encountered, and recheck them before every payload launch.",
+        "scenario": "A nonempty relative CLAUDE_CONFIG_DIR is ignored. A declared path containing dot components is normalized before validation. A configured symlink can change after profile generation while subsequent launches continue using the old exclusions.",
+        "severity": "major",
+        "stableID": "P7"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF11"
+      ],
+      "origin": "astra",
+      "originID": "P8",
+      "originalFinding": {
+        "location": "scripts/release_supervisor.py: Guard.wrap, Guard.probe, run_guarded, run_prepare",
+        "problem": "Required launch bindings are incomplete. Profiles are checked before dispatch but never after dispatch; mount identity is checked at provisioning rather than around payloads; STAGE ancestry is not independently validated before each diagnostic launch.",
+        "proposedChange": "Centralize before/after launch checks for profile bytes and metadata, owned mount identity, canonical roots, source maps and diagnostic STAGE protection. Fail before further diagnostics or publication when any binding changes.",
+        "scenario": "A profile changes during the last suite, or the private volume becomes detached before another payload. The launch can still be accepted using the previously recorded profile hash or scratch qualification.",
+        "severity": "major",
+        "stableID": "P8"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF12"
+      ],
+      "origin": "astra",
+      "originID": "P9",
+      "originalFinding": {
+        "location": "scripts/release_support.py: _collect, _kill_group",
+        "problem": "The collector kills known groups without verifying their termination and suppresses kill/reap failures. It can also stop draining inherited pipes after the leader's one-second grace period and return the leader's successful status.",
+        "proposedChange": "Check termination of each known launched group, propagate unresolved cleanup as a fixed failure and prevent subsequent payloads/publication. Do not return successful collection when the bounded terminal-output contract is unresolved. Retain the stated limitation concerning detached and brokered descendants.",
+        "scenario": "A leader exits zero while another known group member remains active. Group cleanup fails or remains unresolved, but orchestration proceeds to another suite or publication without a survivor failure.",
+        "severity": "major",
+        "stableID": "P9"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adapt",
+      "groups": [
+        "RF04"
+      ],
+      "origin": "astra",
+      "originID": "P10",
+      "originalFinding": {
+        "location": "scripts/release_support.py: audit_git_full working-mode checks and files map",
+        "problem": "The source audit discards actual permission bits. It checks only owner-executable status and records 0644 or 0755 derived from Git.",
+        "proposedChange": "Bind actual permission modes, enforce their accepted relationship to Git modes, and preserve them through export and completion audits. Add source-mode cases beyond toggling the owner-executable bit.",
+        "scenario": "A tracked file changes from 0644 to 0600 or 0666 without a content or owner-executable change. Git status and sourceFilesSHA256 can remain unchanged, so prepare/verify miss the required mode identity change and export a different mode.",
+        "severity": "major",
+        "stableID": "P10"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF05"
+      ],
+      "origin": "astra",
+      "originID": "P11",
+      "originalFinding": {
+        "location": "scripts/release_support.py: _walk_git, _preflight_git",
+        "problem": "The hard-link exception applies to every regular file beneath objects/, rather than only validated content-addressed object files. Metadata snapshots also omit directory identities.",
+        "proposedChange": "Restrict allowed multiple links to explicitly validated object-storage paths and reject other metadata links before Git invocation. Retain and recheck relevant directory identities, including the .git root, without expanding the concurrent-writer guarantee.",
+        "scenario": "A multiply-linked objects/info/commit-graph or another non-object metadata file passes the link-count exception before Git reads it. Replacing an otherwise empty metadata directory is invisible to the recorded file-only snapshot.",
+        "severity": "major",
+        "stableID": "P11"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF03"
+      ],
+      "origin": "astra",
+      "originID": "P12",
+      "originalFinding": {
+        "location": "scripts/release_support.py: audit_git_full HEAD queries",
+        "problem": "The implementation exceeds the frozen command grammar by issuing rev-parse --verify HEAD^{commit} and HEAD^{tree}. The prescribed HEAD queries omit --verify; that option is separately prescribed for peeling an enumerated hexadecimal tag object.",
+        "proposedChange": "Use the exact approved HEAD query forms. Preserve the observer and fixed dispatch contract rather than expanding them to fit the implementation.",
+        "scenario": "Once traversal succeeds, the frozen independent Services observer rejects these calls as forbidden dispatch. Current early filesystem failures conceal this later incompatibility.",
+        "severity": "major",
+        "stableID": "P12"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF06"
+      ],
+      "origin": "astra",
+      "originID": "P13",
+      "originalFinding": {
+        "location": "scripts/release_support.py: _verify",
+        "problem": "Verification does not revalidate proposed-tag resolution or the current validity of a Git-count build-number origin.",
+        "proposedChange": "Recheck non-null tags through the approved enumeration/hex-peeling protocol. For git-count origin, require nonshallow history and recompute the normalized count. Exercise both cases with fully bound driver fixtures.",
+        "scenario": "A proposed tag is retargeted after prepare while HEAD, source bytes and config stay unchanged; verify only compares the option string with the manifest. Likewise, introducing a shallow boundary can leave those identities unchanged while invalidating the full-history count used for buildNumber.",
+        "severity": "major",
+        "stableID": "P13"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF21"
+      ],
+      "origin": "astra",
+      "originID": "P14",
+      "originalFinding": {
+        "location": "scripts/release_support.py: _verify candidate/evidence reads and final checks",
+        "problem": "Verify closes candidate/evidence descriptors after initial reads and never rechecks manifest bytes, evidence bytes, their file identities or the candidate/evidence entry sets. Its final snapshot covers only the app tree.",
+        "proposedChange": "Retain descriptor and metadata bindings for the selected roots and members, and compare manifest/evidence bytes, identities and exact entry sets at completion. Keep path-based codesign explicitly bracketed by artifact checks; do not claim hostile concurrent-writer safety.",
+        "scenario": "During permitted tool queries, manifest.json is replaced or an extra candidate entry appears. Verification can return releaseReady=true for the earlier manifest while the selected candidate now contains different input data.",
+        "severity": "major",
+        "stableID": "P14"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF22"
+      ],
+      "origin": "astra",
+      "originID": "P15",
+      "originalFinding": {
+        "location": "scripts/release_supervisor.py: run_prepare publication staging and exclusive_rename",
+        "problem": "Publication staging is rehashed before bulk cleanup, but not after cleanup and the final source audit. The staging descriptor is closed, and the manifest and staging identity are not revalidated immediately before the filesystem commit.",
+        "proposedChange": "Retain staging identity and descriptor confinement, finish mandatory cleanup, then revalidate the complete staged candidate and held output parent before rename. Add publication fault/race checks at the separately approved smoke stage.",
+        "scenario": "The staged app or manifest changes during cleanup or the subsequent Git queries. Exclusive rename correctly avoids replacing an existing target, but can publish a candidate that no longer matches the validated manifest.",
+        "severity": "major",
+        "stableID": "P15"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adapt",
+      "groups": [
+        "RF16"
+      ],
+      "origin": "astra",
+      "originID": "P16",
+      "originalFinding": {
+        "location": "scripts/release_support.py: _local_git, resolve_packaging_metadata, _parse_package_arguments, package_app; scripts/build-app.sh",
+        "problem": "Standalone packaging bypasses the safe Git metadata/config/capability policy, exposes a public --revision override, and treats signing success as sufficient without strict signature verification.",
+        "proposedChange": "Share captured Git discovery and safe metadata/config policy while retaining authorized dirty-build support. Keep the prepared revision/build handoff internal, remove the public revision override, and verify the completed standalone bundle using the prescribed tools.",
+        "scenario": "Standalone preflight invokes the /usr/bin/git shim against a repository containing a config include before any policy check. Direct helper invocation can stamp an arbitrary revision instead of HEAD. A completed signing command is never followed by codesign --verify --strict.",
+        "severity": "major",
+        "stableID": "P16"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF15"
+      ],
+      "origin": "astra",
+      "originID": "P17",
+      "originalFinding": {
+        "location": "scripts/release_support.py: package_app, _local_git, _tool_output",
+        "problem": "Packaging has weaker input and process boundaries than the shared production primitives. Its binary open lacks O_NONBLOCK and intermediate no-follow traversal, permits multiple links, checks size only once and omits metadata rechecks. Its subprocess.run PIPE captures are unbounded while reading.",
+        "proposedChange": "Use the shared bounded descriptor reader for packaging inputs and the bounded process-group collector for all helper queries/signing. Enforce limits while reading, validate link counts and recheck metadata.",
+        "scenario": "A FIFO supplied as the binary blocks before fstat. A regular file grows after the initial size check and is read without a running cap. An inner helper accumulates output in memory without exposing it to the outer collector's cap.",
+        "severity": "major",
+        "stableID": "P17"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF15"
+      ],
+      "origin": "astra",
+      "originID": "P18",
+      "originalFinding": {
+        "location": "scripts/release_support.py: package_app failure cleanup",
+        "problem": "Packaging creates output relative to held descriptors but cleans it through shutil.rmtree(output), abandoning the ownership and parent binding used for creation.",
+        "proposedChange": "Clean only the created output through its held parent descriptor after checking its recorded identity. Do not follow changed ancestors or delete a replacement directory. Preserve existing-output refusal.",
+        "scenario": "An output ancestor is substituted after creation and a later packaging step fails. Path-based cleanup can address another directory rather than the bundle this invocation created.",
+        "severity": "major",
+        "stableID": "P18"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF17"
+      ],
+      "origin": "astra",
+      "originID": "P19",
+      "originalFinding": {
+        "location": "scripts/release_support.py: _inspect_slice, _BENIGN_COMMANDS, inspect_executable; scripts/release_supervisor.py: inspect_bundle",
+        "problem": "The Mach-O parser accepts recognized 'benign' commands without validating their command-specific structures. Bundle inspection also lacks an explicit rejection of additional embedded code.",
+        "proposedChange": "Validate command-specific sizes, counts and referenced bounds, including fat-container consistency. Enforce the approved bundle closure and required executable mode. Add malformed-table and extra-code cases; otool/vtool exit status alone does not establish correctness.",
+        "scenario": "An eight-byte LC_SEGMENT_64 is accepted alongside a valid deployment command despite lacking its required payload. An additional helper executable or embedded dylib can enter the hashed app tree without being inspected or rejected by the closure policy. These are source-derived cases, not recorded driver failures.",
+        "severity": "major",
+        "stableID": "P19"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF23"
+      ],
+      "origin": "astra",
+      "originID": "P20",
+      "originalFinding": {
+        "location": "scripts/release_support.py: _output_precheck; scripts/release_supervisor.py: prepare_distribution",
+        "problem": "The absent-dist creation path is unreachable. _output_precheck requires output.parent to exist before prepare_distribution can validate ignore policy and create dist.",
+        "proposedChange": "Preflight the existing repository ancestry and target absence without requiring dist to exist, then perform ignore-policy validation and exclusive 0700 dist creation through held descriptors.",
+        "scenario": "The documented prepare command against a fresh checkout with no dist directory fails unsafe_path, even though the implementation contains the approved safe dist-creation branch.",
+        "severity": "major",
+        "stableID": "P20"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF08"
+      ],
+      "origin": "astra",
+      "originID": "P21",
+      "originalFinding": {
+        "location": "scripts/release_supervisor.py: load_guard_template, render_profile, load_catalogue, seed_fixtures",
+        "problem": "Trusted-data validation does not enforce the frozen parameter/catalogue contracts. Rendering accepts omitted fixed exclusions and inconsistent WORK/TRUST/STAGE aliases. Catalogue target strings and much of its shape are unchecked, seeding uses estimated bounds and performs no prescribed fixture validation. The git-object target is created 0444 although the catalogue specifies 0644.",
+        "proposedChange": "Validate exact trusted-data schemas and approved fixed values, complete sorted exclusions, alias order/containment and bounded relative targets. Measure the actual seeded inventory, honor catalogue modes, and validate pairs and inert repositories before suites.",
+        "scenario": "Removing /Library/Keychains from EXCLUDED or substituting a prefix-sibling WORK alias still renders successfully. A changed git-case target containing traversal reaches os.link without path validation. Existing tests miss the object-mode disagreement.",
+        "severity": "major",
+        "stableID": "P21"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF20"
+      ],
+      "origin": "astra",
+      "originID": "P22",
+      "originalFinding": {
+        "location": "scripts/release_support.py: _walk_tree, _walk_git, _list_directory",
+        "problem": "Traversal bounds are enforced after os.listdir has allocated the entire directory listing, and sometimes after sorting it.",
+        "proposedChange": "Bound enumeration incrementally before retaining or sorting the complete listing. Preserve descriptor confinement and deterministic ordering for accepted inputs.",
+        "scenario": "A selected artifact, metadata or evidence directory contains an excessive number of entries. Memory and enumeration work grow without the advertised bound before rejection occurs.",
+        "severity": "major",
+        "stableID": "P22"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF18"
+      ],
+      "origin": "astra",
+      "originID": "P23",
+      "originalFinding": {
+        "location": "scripts/release_supervisor.py: parse_native_records; Tests/ReleaseToolingTests/test_guard_supervisor.py: test_near_miss_lines_are_not_records",
+        "problem": "Malformed apparent terminal records are silently ignored. An author test explicitly requires acceptance of that behavior.",
+        "proposedChange": "Reject malformed or unknown terminal-record lines while continuing to allow ordinary compiler chatter. Correct the non-frozen author oracle without changing the approved grammar or counts.",
+        "scenario": "A line beginning with the native pass marker has an unrecognized name or timing format, while the remaining recognized names and summary match the inventory. The parser returns success instead of reporting the required unknown-record failure.",
+        "severity": "major",
+        "stableID": "P23"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF19"
+      ],
+      "origin": "astra",
+      "originID": "P24",
+      "originalFinding": {
+        "location": "Tests/ReleaseToolingTests/test_cli_runner.py: ProductionVersionTests.test_version_prints_exactly_the_authored_version_and_lf; Tests/ReleaseToolingTests/test_manifest_evidence.py: ManifestTests.test_artifact_entry_rules",
+        "problem": "Two author oracles test the wrong boundary. The CLI test compares stdout directly with raw VERSION bytes, although VERSION may omit LF and CLI output must include it. The malformed-manifest helper canonicalizes a non-NFC mutation before entering the validator assertion.",
+        "proposedChange": "Compare CLI output with parsed full SemVer plus LF. Construct intentionally malformed raw JSON independently of the canonical encoder. Correct these non-frozen author tests without altering frozen independent material.",
+        "scenario": "A valid LF-free VERSION makes a correct production executable fail the suite. The non-NFC test raises from canonical_json rather than testing validate_manifest; the supplied driver record confirms this construction-stage failure.",
+        "severity": "major",
+        "stableID": "P24"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adapt",
+      "groups": [
+        "RF24"
+      ],
+      "origin": "astra",
+      "originID": "P25",
+      "originalFinding": {
+        "location": "AdversarialRelease/test_acceptance.py: test_cli_shadowing",
+        "problem": "The frozen test requires release-check.py --help to exit zero, but the specification requires --help for the application and does not define that release-tool CLI route. The observed exit-2 failure does not establish broken isolation.",
+        "proposedChange": "Record an explicit invalid-oracle disposition while preserving the frozen file and its recorded failure. Do not require a new CLI feature merely to satisfy it. Any separately authorized replacement coverage should exercise a specified route that actually loads the helper.",
+        "scenario": "The candidate rejects --help as CLI misuse before loading release_support. Even adding a superficial successful help route would leave the intended helper-shadowing boundary unexercised.",
+        "severity": "minor",
+        "stableID": "P25"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF01"
+      ],
+      "origin": "opus",
+      "originID": "OPUS-01",
+      "originalFinding": {
+        "location": "scripts/release_support.py open_directory_nofollow (_DIR_FLAGS = O_RDONLY|O_DIRECTORY|O_NOFOLLOW for every ancestor), used by read_input_file, hash_artifact_tree, audit_git_full and _output_precheck; package_app's own '/' descent with _DIR_FLAGS; release_supervisor.py write_fixture_git_repository and load_guard_template",
+        "problem": "Observed (driver): valid inputs under WORK fail with unsafe_path. The recorded failure chains end at release_support.py:500, reached via 583, 696, 1695, 1753, supervisor 166 and 481. This accounts for 19 of the 21 independent failures and almost all of the 59 releaseTooling failures. The trusted descriptor canary (not candidate code) gives strong evidence for the mechanism. A guarded data-mode directory open fails with EPERM at ancestor depth 2, which is the /private/tmp prefix under the read-data denial. Search mode succeeds, and still rejects a symlink with ENOTDIR. Mechanism (source): every ancestor, including /private/tmp and historical-scratch/<run>, is opened for data read. Inference beyond the tests: the guarded packaging step runs `release_support.py package --root TRUST/source` under the build profile. Its read_version and read_input_file calls, and its output descent into WORK/stage, use the same traversal. So every real prepare would end in build_failed even after all suites are fixed. The same opens also fail unguarded under execute-only (0711) ancestors.",
+        "requiredChange": "Traverse ancestors with search-only no-follow directory descriptors (Darwin O_SEARCH, i.e. O_EXEC|O_DIRECTORY, plus O_NOFOLLOW|O_CLOEXEC), as measured by the canary. Open the final directory for data only where enumeration is needed. Keep the fstat identity and metadata rechecks. Route package_app's output descent through the same helper. Do not widen any temporary-data rule. Requalify valid-root positives under the unchanged profile before treating any negative as meaningful. (Concurs with same-writer P8; adds the production packaging consequence.)",
+        "scenario": "Driver: test_read_input_file_contract and test_hash_artifact_tree_contract fail on ordinary spaced/NFC files in TMPDIR (release_unsafe_path). GuardRendering setUp fails in load_guard_template, so golden profile byte equality was never exercised. Several independent tests pass vacuously because every root, valid or not, yields unsafe_path: test_verify_root_symlinks, test_verify_invented_readonly and test_prepare_existing_output. The failure also hides behind other codes: check_changelog reports invalid_changelog (observed) and load_guard_template reports guard_unavailable.",
+        "severity": "blocker",
+        "stableID": "OPUS-01"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF02"
+      ],
+      "origin": "opus",
+      "originID": "OPUS-02",
+      "originalFinding": {
+        "location": "release_support.py Version.parse/_strip_one_lf/parse_semver_text and read_version(max_bytes=4097); Tools/VersionGenerator/main.swift parseVersion (reads up to 4098 bytes); Sources/Limitaur/AppVersion.swift parse; author tests test_length_bound_is_4096_ascii_bytes_without_the_terminal_lf and swiftParserKeepsLongNumericComponentsAsText",
+        "problem": "Observed (driver): R2 case raw_4097_lf built successfully although rejection was required, and frozen test_version_limits failed. Mechanism: all three parsers apply the 4096 bound after removing the optional LF. The approved limit is 4096 raw bytes including that LF. Both author tests require the wrong acceptance and passed.",
+        "requiredChange": "Bound raw input to at most 4096 bytes before stripping the LF, in all three parsers. Correct the two non-frozen author oracles. Leave the frozen test unchanged. (Concurs with same-writer P9.)",
+        "scenario": "A VERSION file of 4096 content bytes plus LF regenerates, compiles and would be embedded in the app.",
+        "severity": "major",
+        "stableID": "OPUS-02"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF03"
+      ],
+      "origin": "opus",
+      "originID": "OPUS-03",
+      "originalFinding": {
+        "location": "release_support.py audit_git_full: ['rev-parse','--verify','HEAD^{commit}'] and ['rev-parse','--verify','HEAD^{tree}']",
+        "problem": "Mechanism (source): the fixed command set lists `rev-parse HEAD^{commit}` and `rev-parse HEAD^{tree}`. `--verify` is specified only for a hexadecimal tag object. The frozen observer's peel regex rejects `HEAD^{commit}`, records a violation and raises. Inference (not yet observable because OPUS-01 stops execution first): once OPUS-01 is fixed, every test whose audit reaches this query fails on recorded violations. The affected tests are test_audit_git_source_contract, test_hardlink_git_object, test_hardlink_source, test_git_inert_config, test_git_ignored_source, test_git_hidden_index_flags, test_git_valid_skip_worktree and the missing-blob case of test_git_missing_objects_and_promisor. The full-verify calls in test_verify_invented_readonly, test_verify_member_symlinks (executable case) and test_verify_artifact_changes are affected too. The author test test_only_fixed_read_only_git_queries checks only subcommand names and does not catch this.",
+        "requiredChange": "Use exactly the prescribed argv forms. Tighten the author dispatch test to compare full argv. Do not broaden the frozen observer. (Concurs with P11; severity raised on the predicted frozen impact.)",
+        "scenario": "After a traversal-only correction, about 11 frozen tests move from failing or passing to failing on dispatch violations.",
+        "severity": "major",
+        "stableID": "OPUS-03"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adapt",
+      "groups": [
+        "RF24"
+      ],
+      "origin": "opus",
+      "originID": "OPUS-04",
+      "originalFinding": {
+        "location": "AdversarialRelease/test_acceptance.py test_cli_shadowing line 1171 (frozen); scripts/release-check.py _parse",
+        "problem": "Invalid frozen assertion, with spec evidence. The CLI grammar defines only the prepare and verify forms, and 'CLI misuse exits2 with fixed usage text'. The test requires `release-check.py --help` to exit 0. The candidate exits 2 with usage text, which conforms to the spec. Consequence: the inventory requires every independentRelease name to pass, so this frozen test makes any positive prepare impossible (tests_failed), independent of candidate quality. The test's shadowing assertions are also vacuous on that route, because release_support is never imported on the misuse path. The author test test_module_shadowing… (driver-passed) does exercise a route that imports the helper.",
+        "requiredChange": "The operator must decide between two options. Option (a): a separately reviewed frozen-test correction that keeps the startup and shadowing checks on a specified route that loads the helper. Option (b): a specification amendment that defines a --help route. Do not add CLI behavior to fit the oracle within this batch. The recorded failure stands and is not reclassified. (Concurs with P10; adds the prepare-gating consequence.)",
+        "scenario": "A fully corrected candidate still fails prepare at the independentRelease suite on this single name.",
+        "severity": "major",
+        "stableID": "OPUS-04"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF06"
+      ],
+      "origin": "opus",
+      "originID": "OPUS-05",
+      "originalFinding": {
+        "location": "release_support.py _verify (compares only the proposedTag option to the manifest; never calls check_proposed_tag)",
+        "problem": "Mechanism: the specification requires verify to recompute the tag check ('version/changelog/tag'; 'if tag exists it must resolve to HEAD'). Verify does neither enumeration nor peeling.",
+        "requiredChange": "For a non-null tag, rerun the fixed for-each-ref enumeration and hex peel in verify, and fail input_mismatch or invalid_tag per policy. Add a driver fixture with a retargeted tag. (Concurs with P14.)",
+        "scenario": "After a prepare with --proposed-tag v0.1.0, the existing tag is moved to another commit. Commit, tree, bytes and config are all unchanged, so verify can return releaseReady=true while the tag no longer resolves to HEAD.",
+        "severity": "major",
+        "stableID": "OPUS-05"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF07",
+        "RF08"
+      ],
+      "origin": "opus",
+      "originID": "OPUS-06",
+      "originalFinding": {
+        "location": "release_supervisor.py render_profile, compute_exclusions, declared_roots, resolve_spellings, check_guard_overlaps",
+        "problem": "Mechanism: render_profile checks only the parameter key set, the TEMP order and the path syntax. It does not check that EXCLUDED contains every fixedReadRoot, that STAGE lies inside WORK, that TRUST and WORK are disjoint descendants of one nonce root, or the alias ordering and prefix rules. The frozen golden negativeGenerationVectors would therefore render successfully. These vectors are fixed-root-omitted, work-prefix-sibling-exception, configured-home-suffix-omitted and resolved-auth-target-omitted. declared_roots silently drops nonempty relative CODEX_HOME, CLAUDE_CONFIG_DIR and XDG_CONFIG_HOME values, and normalizes paths before dot components could be rejected. Resolved symlink identities are not retained or rechecked before each launch. All renderer tests failed in setUp (OPUS-01), so even the positive golden-byte equality is undemonstrated.",
+        "requiredChange": "Enforce the frozen generation and containment invariants in the renderer and generator. Reject invalid declarations instead of dropping them. Record resolution identities and recheck them before every launch. Add author vectors for each golden negative case. (Extends P15.)",
+        "scenario": "A parameter map that omits /Library/Keychains renders a valid profile. A relative CLAUDE_CONFIG_DIR disappears from the exclusion set without guard_unavailable. A config symlink retargeted between generation and the build launch goes undetected.",
+        "severity": "major",
+        "stableID": "OPUS-06"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adapt",
+      "groups": [
+        "RF09"
+      ],
+      "origin": "opus",
+      "originID": "OPUS-07",
+      "originalFinding": {
+        "location": "release_supervisor.py ProbeResources.actual_ops, ops, verify_intact, _run_probe('atomic-replace')",
+        "problem": "Mechanism: the amendment requires write and link denials for each available same-inode spelling of the actual executable. actual_ops adds write-open for the aliases but a link control only for the canonical path. verify_intact checks sentinel bytes and nlink but not inode or mode identity across paired controls. Disclosed substitute: the Python os.rename 'atomic-replace' control does not reproduce the Foundation NSData atomic-write failure that motivated the private volume, so it must not be reported as equivalent volume qualification.",
+        "requiredChange": "Add the alias link controls and full identity/mode/bytes/link-count bindings. Get an explicit operator disposition on whether production prepare must run a Foundation-equivalent control (for example a stdlib ctypes Foundation call) or records that it relies on build success. Do not count the Python rename as that control. (Concurs with P16.)",
+        "scenario": "The case-variant or /.vol spelling of the staged executable is never link-probed. A canary replaced by an identical-byte file with a different inode passes verify_intact.",
+        "severity": "major",
+        "stableID": "OPUS-07"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF10"
+      ],
+      "origin": "opus",
+      "originID": "OPUS-08",
+      "originalFinding": {
+        "location": "release_supervisor.py Guard.noop_rejected, Guard.probe, group_results",
+        "problem": "Mechanism: the no-op pass does not require every operation to succeed. A denial-target record failing with ENOENT or a crash counts as a 'missing denial', and the pass is then accepted. The record validation accepts an errno of True, because isinstance(bool, int) and True == EPERM. It also accepts a negative or non-finite elapsed time.",
+        "requiredChange": "Require every no-op record to report success, be complete and be unique before evaluating missing denials. Enforce an exact int errno that is not a bool, a finite nonnegative elapsed time, and operation-specific consistency. (Concurs with P17.)",
+        "scenario": "A missing home canary under the no-op profile yields ok=False/errno=2 and satisfies noop_rejected. This contradicts 'all denial targets succeed; then reject specifically for missing denials'.",
+        "severity": "major",
+        "stableID": "OPUS-08"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF11",
+        "RF12"
+      ],
+      "origin": "opus",
+      "originID": "OPUS-09",
+      "originalFinding": {
+        "location": "release_support.py _collect/_kill_group; release_supervisor.py run_guarded, Guard.wrap/check_profile",
+        "problem": "Mechanism: after the leader exits, _collect allows a 1-second grace and then returns with possibly truncated output. Its finally block SIGKILLs the group without checking or reporting survivors, and cleanup errors are swallowed. Profile hash and metadata are checked before each launch but never after.",
+        "requiredChange": "Check known-group termination and fail closed on survivors. Verify the bound profile bytes and metadata after each launch. Keep the stated limit on detached and brokered descendants. (Concurs with P18.)",
+        "scenario": "A child leaves a descendant holding the pipe. The grace expires, success is returned, the group is killed and nothing records the survivor. Execution continues into diagnostics and publication, contrary to 'record any known survivor and stop'.",
+        "severity": "major",
+        "stableID": "OPUS-09"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF13"
+      ],
+      "origin": "opus",
+      "originID": "OPUS-10",
+      "originalFinding": {
+        "location": "release_supervisor.py provision_volume (run.attached set only after run_checked returns), cleanup, remove_tree",
+        "problem": "Mechanism: if hdiutil attach mounts the volume but times out or exits nonzero, run.attached stays False. cleanup then skips detach and recursively removes run.root, which descends into the mounted volume and unlinks the backing sparse image while it is still attached.",
+        "requiredChange": "Mark attachment as uncertain before invoking attach. Reconcile only the owned image and attachment; otherwise retain all owned roots and fail internal_error. Never bulk-delete across an unresolved mountpoint. (Concurs with P19.)",
+        "scenario": "An attach timeout after mount leaves an unrecorded live attachment, a deleted image path and a partially removed root. The recipe requires retainOwnedRootsOnUnresolvedMount.",
+        "severity": "major",
+        "stableID": "OPUS-10"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF14"
+      ],
+      "origin": "opus",
+      "originID": "OPUS-11",
+      "originalFinding": {
+        "location": "release_supervisor.py run_prepare except/finally, Run() construction outside the try",
+        "problem": "Mechanism: on error paths, a cleanup failure is caught and discarded, and the original code (for example build_failed) is reported. This hides a detected mandatory-cleanup failure. A Run() constructor failure leaks the held dist descriptor (disclosed by the author).",
+        "requiredChange": "Make the cleanup outcome explicit on every exit. Report mandatory cleanup failure under the approved policy, retain unresolved owned roots, and close descriptors on all paths. (Concurs with P20.)",
+        "scenario": "A build fails, then removal of the home nonce directory fails. The report says build_failed, and the residue goes unreported.",
+        "severity": "major",
+        "stableID": "OPUS-11"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF15"
+      ],
+      "origin": "opus",
+      "originID": "OPUS-12",
+      "originalFinding": {
+        "location": "release_support.py package_app/_tool_output/_local_git (env=base_environment(); subprocess.run with PIPE), binary read in package_app",
+        "problem": "Mechanism, new: the guarded package step's nested plutil, PlistBuddy and codesign children get an environment built only from base constants. The role HOME, CFFIXED_USER_HOME and TMPDIR the supervisor supplied are dropped. Inference: under the build profile these tools fall back to Darwin user-temp and real-home-derived locations that the profile denies, which risks build_failed or attempts outside the synthetic roots. Captures use unbounded subprocess.run buffering, outside the 32 MiB while-reading cap. The binary is opened without O_NONBLOCK and read without a running bound or a before/after recheck. On failure, the output is removed with a path-based rmtree.",
+        "requiredChange": "Pass the role environment through to nested tools. Use the shared bounded Services.run capture. Read the binary through the shared descriptor reader with type, link, size and before/after checks. Remove only owned output through descriptor-relative traversal. (Extends P21.)",
+        "scenario": "codesign under the build guard resolves its temporary directory to /var/folders/... and fails. Separately, a FIFO placed at --binary blocks the helper until the outer timeout.",
+        "severity": "major",
+        "stableID": "OPUS-12"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adapt",
+      "groups": [
+        "RF16"
+      ],
+      "origin": "opus",
+      "originID": "OPUS-13",
+      "originalFinding": {
+        "location": "release_support.py package_main/_parse_package_arguments (--revision/--build-normalized), _local_git (/usr/bin/git shim), package_app (no signature verification)",
+        "problem": "Mechanism: the packaging helper is a directly invocable CLI that accepts an arbitrary revision. The specification describes an internal call with 'no public source-revision override CLI'. Standalone mode uses the /usr/bin/git shim with no xcrun_nocache or DEVELOPER_DIR. The specification also requires standalone packaging to 'verify executable/signature', but package_app only signs.",
+        "requiredChange": "Record an explicit disposition for the helper CLI, or restrict it to the prepare handoff. Add codesign --verify --strict and the plist/executable checks to standalone packaging. Discover Git through captured xcrun. (Overlaps P22.)",
+        "scenario": "`python3 -I -S -B release_support.py package --revision <any>` produces a bundle whose LimitaurSourceRevision is not HEAD. Prepare's plist check still binds the real commit, so qualification is not affected.",
+        "severity": "minor",
+        "stableID": "OPUS-13"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF17"
+      ],
+      "origin": "opus",
+      "originID": "OPUS-14",
+      "originalFinding": {
+        "location": "release_support.py _inspect_slice/_BENIGN_COMMANDS; release_supervisor.py inspect_bundle",
+        "problem": "Mechanism: recognized 'benign' load commands get no payload or size validation; an 8-byte LC_SEGMENT_64 is accepted. Only the main executable is parsed. Nothing explicitly rejects additional Mach-O or code files in the bundle tree. The packager controls the layout, so the risk is low.",
+        "requiredChange": "Apply minimum per-command size checks to recognized commands and enforce the fixed bundle file set in prepare. Add malformed-command cases. (Concurs with P23, lower severity.)",
+        "scenario": "A truncated segment command coexists with a valid LC_BUILD_VERSION and passes.",
+        "severity": "minor",
+        "stableID": "OPUS-14"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF18"
+      ],
+      "origin": "opus",
+      "originID": "OPUS-15",
+      "originalFinding": {
+        "location": "release_supervisor.py parse_native_records; author test test_near_miss_lines_are_not_records",
+        "problem": "Mechanism: malformed '✔ Test' lines are silently ignored, and the author test requires this. Final-count and inventory equality limit the impact, which is why this is minor.",
+        "requiredChange": "Reject unrecognized terminal-marker lines. Correct the author oracle. (Concurs with P24.)",
+        "scenario": "Output with a malformed terminal record plus matching counts still parses successfully.",
+        "severity": "minor",
+        "stableID": "OPUS-15"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF05"
+      ],
+      "origin": "opus",
+      "originID": "OPUS-16",
+      "originalFinding": {
+        "location": "release_support.py _walk_git, _git_path_unsupported",
+        "problem": "Mechanism: the multi-link exception covers any regular file under objects/, including objects/info/commit-graph, rather than only content-addressed objects. An empty refs/replace directory and replace refs held in packed-refs are not refused; GIT_NO_REPLACE_OBJECTS=1 mitigates the latter. Operator precedence in _git_path_unsupported is correct but fragile.",
+        "requiredChange": "Restrict the link exception to loose object, pack and index paths with validated names. Refuse replace refs in packed-refs. (Concurs with P13, lower severity.)",
+        "scenario": "A hard-linked objects/info/commit-graph passes preflight.",
+        "severity": "minor",
+        "stableID": "OPUS-16"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adapt",
+      "groups": [
+        "RF04"
+      ],
+      "origin": "opus",
+      "originID": "OPUS-17",
+      "originalFinding": {
+        "location": "release_support.py audit_git_full mode check and files map",
+        "problem": "Mechanism: only the owner-exec bit is compared, and Git-normalized modes are recorded. I partly disagree with P12's 'high': export_source writes the normalized modes, so the built artifact is unaffected. The specification's 'mode' is ambiguous between the Git mode and the raw permission bits.",
+        "requiredChange": "Record a disposition. At minimum, reject group/other-writable or otherwise nonconforming raw modes, or bind the raw permission bits if the panel reads the specification that way.",
+        "scenario": "chmod 0666 on a tracked file goes unnoticed, both by status and by sourceFilesSHA256.",
+        "severity": "minor",
+        "stableID": "OPUS-17"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF23"
+      ],
+      "origin": "opus",
+      "originID": "OPUS-18",
+      "originalFinding": {
+        "location": "release_support.py _output_precheck; release_supervisor.py prepare_distribution",
+        "problem": "Mechanism: _output_precheck opens the output's parent first, so an absent dist/ yields unsafe_path. The dist creation path in prepare_distribution is unreachable. docs/release.md's '$PWD/dist/candidate' example fails on a fresh clone without explanation.",
+        "requiredChange": "Either reach the specified safe creation path after confirming the ignore rule, or remove the dead code and document that dist/ must exist.",
+        "scenario": "The first prepare on a clean checkout returns unsafe_path.",
+        "severity": "minor",
+        "stableID": "OPUS-18"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF19"
+      ],
+      "origin": "opus",
+      "originID": "OPUS-19",
+      "originalFinding": {
+        "location": "Tests/ReleaseToolingTests/test_git_audit.py (GitAuditCase.git update-index writes); test_manifest_evidence.py test_artifact_entry_rules; test_versions length test; test_only_fixed_read_only_git_queries",
+        "problem": "Source and observed. The Git tests dispatch update-index writes outside the fixed command set. test_artifact_entry_rules fails inside canonical_json on its own non-NFC construction; this is an observed failure in a helper, not a validator defect. Several author oracles encode deviations: the length rule, the native near-miss behavior and the weak argv check.",
+        "requiredChange": "Write inert index fixtures with the stdlib. Build malformed raw JSON directly. Correct the oracles. Keep these changes separate from the frozen tests. (Concurs with P25.)",
+        "scenario": "These failures and passes do not reflect production behavior.",
+        "severity": "minor",
+        "stableID": "OPUS-19"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    },
+    {
+      "disposition": "adopt",
+      "groups": [
+        "RF08",
+        "RF20"
+      ],
+      "origin": "opus",
+      "originID": "OPUS-20",
+      "originalFinding": {
+        "location": "release_support.py _walk_tree/_walk_git; release_supervisor.py seed_fixtures",
+        "problem": "Mechanism: entry limits are applied only after a full os.listdir and sort. The fixture byte bound is a constant estimate (4096 per slot), not measured. Seeded pairs are not validated before suites, although the specification says 'Validate before suites'.",
+        "requiredChange": "Bound enumeration incrementally. Measure the actual bytes and entries. Validate pair identity and nlink=2 before each suite. (Concurs with P26.)",
+        "scenario": "An oversized directory is fully materialized before rejection. A seeding defect surfaces only as test failures.",
+        "severity": "minor",
+        "stableID": "OPUS-20"
+      },
+      "reason": "See complete group disposition; duplicate findings consolidated, no extra design review/Go."
+    }
+  ],
+  "schemaVersion": 1
+}

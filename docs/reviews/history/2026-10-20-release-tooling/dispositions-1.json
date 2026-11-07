@@ -1,0 +1,179 @@
+[
+  {
+    "id": "D01",
+    "raisedBy": [
+      "astra:P156"
+    ],
+    "disposition": "adapted",
+    "topic": "Credential-broker boundary",
+    "reason": "Removed the stronger credential-free containment promise; retain measured file/network guards, clean environment/closed fds, cooperative no-real-credential rule and fake Keychain tests. Decline new mandatory broker/account isolation: not an operator-settled boundary and no Keychain writes/queries are authorized. Expose this declined blocker at Go."
+  },
+  {
+    "id": "D02",
+    "raisedBy": [
+      "astra:P157"
+    ],
+    "disposition": "adopted",
+    "topic": "Python startup",
+    "reason": "Require -I -S -B at entry, fixed-path helper loading, no pycache and actual startup-hook/shadowing tests."
+  },
+  {
+    "id": "D03",
+    "raisedBy": [
+      "astra:P158",
+      "opus:3"
+    ],
+    "disposition": "adopted",
+    "topic": "Git code/config/index effects",
+    "reason": "Preflight config without execution, constrain Git environment/argv, disallow active extensions/includes/worktrees, raw blob audit; test actual sentinel hooks/index immutability."
+  },
+  {
+    "id": "D04",
+    "raisedBy": [
+      "astra:P159",
+      "opus:2"
+    ],
+    "disposition": "adopted",
+    "topic": "Committed source closure",
+    "reason": "Build/test a fresh raw-blob materialization, no ignored inputs/filters/archive substitutions or reused scratch; reject index flags and independently audit bytes/modes."
+  },
+  {
+    "id": "D05",
+    "raisedBy": [
+      "astra:P161",
+      "opus:1"
+    ],
+    "disposition": "adapted",
+    "topic": "Prepare owns guard",
+    "reason": "Public prepare establishes/probes file/network guard before package code, not only helper phases; no broker-isolation promise."
+  },
+  {
+    "id": "D06",
+    "raisedBy": [
+      "astra:P160",
+      "opus:6"
+    ],
+    "disposition": "adopted",
+    "topic": "Normative schemas and blind-test seam",
+    "reason": "Specify nested inputs/checks/evidence, exact commands and environment, reason/exit decisions and import-only Services. Invented fixtures plus golden digest vectors, not evidence."
+  },
+  {
+    "id": "D07",
+    "raisedBy": [
+      "astra:P162"
+    ],
+    "disposition": "adopted",
+    "topic": "Failed versus malformed observations",
+    "reason": "Permit explicit negative/unverified enums/booleans; missing docs are blocked diagnostics; missing fields/type/identity errors remain failures even in development."
+  },
+  {
+    "id": "D08",
+    "raisedBy": [
+      "astra:P163"
+    ],
+    "disposition": "adopted",
+    "topic": "Canonicalization and root mode",
+    "reason": "Pin json serialization/UTF8/NFC/case rules; include rootMode in artifact tree digest; golden Unicode vector."
+  },
+  {
+    "id": "D09",
+    "raisedBy": [
+      "astra:P164",
+      "opus:6"
+    ],
+    "disposition": "adopted",
+    "topic": "Observation chronology",
+    "reason": "Add preparedAt, measurementStartedAt, completion semantics and one-second recording tolerance; reject future/pre-freeze observations."
+  },
+  {
+    "id": "D10",
+    "raisedBy": [
+      "astra:P165"
+    ],
+    "disposition": "adopted",
+    "topic": "Runtime dependency closure",
+    "reason": "Inspect all Mach-O slices/load commands: dependencies restricted to system prefixes; restricted rpaths; no new embedded runtime libraries/resources. Existing accepted executable inspected read-only; its dependencies are system absolute and rpath @loader_path."
+  },
+  {
+    "id": "D11",
+    "raisedBy": [
+      "opus:4"
+    ],
+    "disposition": "adapted",
+    "topic": "Frozen assertion inventory",
+    "reason": "Source search found only Indicators submenu item count and parent indices0/2, no exact help or parent item count/last-item assertion. Preserve indices and append About. No conflict found; no test edit or alternate UI needed."
+  },
+  {
+    "id": "D12",
+    "raisedBy": [
+      "opus:5"
+    ],
+    "disposition": "adopted",
+    "topic": "Changelog release status",
+    "reason": "Initial Unreleased only; nondevelopment requires valid nonfuture dated proposed notes; never automatic publication/date inference."
+  },
+  {
+    "id": "D13",
+    "raisedBy": [
+      "opus:7"
+    ],
+    "disposition": "adopted",
+    "topic": "Secret-pattern precision",
+    "reason": "Freeze regexes and scanned streams; ordinary SemVer/build/hex negative cases; pattern rejection not proof of all-secret absence."
+  },
+  {
+    "id": "D14",
+    "raisedBy": [
+      "opus:8"
+    ],
+    "disposition": "adopted",
+    "topic": "Atomic publication",
+    "reason": "Use Darwin no-replace rename relative held parent; raced empty output test."
+  },
+  {
+    "id": "D15",
+    "raisedBy": [
+      "opus:9"
+    ],
+    "disposition": "adopted",
+    "topic": "Numeric-core policy",
+    "reason": "Remove unspecified packaging-size error; SemVer core bound only by file-size/syntax, build-number subset remains separate."
+  },
+  {
+    "id": "D16",
+    "raisedBy": [
+      "opus:10"
+    ],
+    "disposition": "adopted",
+    "topic": "Extended attributes",
+    "reason": "Ignore without hashing/rejection; local gate makes no quarantine/distribution attestation."
+  },
+  {
+    "id": "D17",
+    "raisedBy": [
+      "opus:11"
+    ],
+    "disposition": "adopted",
+    "topic": "Tool identity",
+    "reason": "Exact tuple/digests, no raw home paths, consistent sanitized discovery in both phases; identifies selected inputs rather than every system byte."
+  },
+  {
+    "id": "D18",
+    "raisedBy": [
+      "opus:12"
+    ],
+    "disposition": "adapted",
+    "topic": "Proposed tag",
+    "reason": "Store nullable tag and exact option continuity. Require nonnull for release-ready, no creation requirement."
+  },
+  {
+    "id": "D19",
+    "raisedBy": [
+      "opus:13",
+      "astra:P160"
+    ],
+    "disposition": "adopted",
+    "topic": "Suite identity/freeze",
+    "reason": "Pin suite-directory-count mapping, baseline16-file map digest, final committed test inventory and full pass-name equality; independent freeze before disclosure."
+  }
+]

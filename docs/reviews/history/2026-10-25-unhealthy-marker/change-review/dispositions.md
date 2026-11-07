@@ -1,0 +1,7 @@
+> Historical record imported 2026-11-07 from `2026-10-25-unhealthy-marker/change-review/dispositions.md`. Commands, approvals and next steps describe the original run and grant no current authority. Only files listed in the [manifest](../../../../evidence/manifest.json) are retained; other artifact names denote omitted historical material. See [evidence limitations](../../../../evidence/README.md).
+
+# Change review dispositions (2026-10-25)
+Members: codex gpt-6-astra session 01a17414-b777-7a00-bda0-65cfa264f9ea; claude-opus-5-5 session b8742525-8f52-42e0-9f1a-96f8115a73cb ($0.49). Both read-only checkout of candidate + frozen tests.
+- codex P1 / opus 1 (major, both): no test drives the controller update path; a candidate that omits or gates `rings.signInProviders = projected.signInProviders` passes. Candidate is correct (verified at AppUI.swift:789, ungated, and the change check at :769). DECLINED for this increment: a regression-test gap, the outcome against the goal is met; recorded as backlog R-M1, shown to the operator.
+- codex P2 (major): no test with installed provider images in marker slots. Candidate draws text only; provider images in marker slots are a non-goal. DECLINED, backlog R-M2, shown to the operator.
+- codex P3 / opus 2 (minor, both): product diff 31 changed lines against 30 (the extra is a two-line comment). Operator's call at Accept; recommendation: accept as is, recorded.

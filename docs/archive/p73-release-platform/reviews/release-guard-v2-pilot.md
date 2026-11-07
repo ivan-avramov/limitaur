@@ -1,5 +1,7 @@
 # P73 v2 qualification pilot: stopped on an unguarded control
 
+Historical evidence consolidation (2026-11-07): [retained records and omissions](../../../evidence/README.md). References marked historical/omitted are not available in the curated repository; historical commands and approvals are not current instructions.
+
 2026-10-20. The operator approved P231's amendment/bundled batch with “approved”; acknowledged at P232. This adopts the v2 read contract, including its disclosed additional system reads, for development and eventual prepare, conditional on qualification. Historical proposed-status text in the frozen normative documents remains unchanged. Original spec SHA256 `34f97eae0e87f62c7c50db8140ddf2f644419270643cd37641ac5f58d06a5f76`; amendment SHA256 `c661a050a40df9a087d0c1bf631ee54aedd4fafc2932b0cc774e7503570e663d`. No new design-review round occurred. Post-round3 corrections remain NOT RE-REVIEWED.
 
 ## Measured outcome
@@ -22,7 +24,7 @@ Recommendation: authorize one fresh batch with this exact identity correction, u
 
 ## Evidence
 
-Durable directory: `/Users/ivan/ws/limitaur-review/2026-10-20-release-tooling/implementation/v2-pilot/`.
+Durable directory: historical/omitted: 2026-10-20-release-tooling/implementation/v2-pilot.
 
 - `authorization.json`, `source-export.json`, `infrastructure-file-map.json`, `frozen-launch.json`, `parameters.json`, `trusted-input-map.json`, `canary-file-map.json`: authority and exact prelaunch bytes/identities.
 - `inventory.json`, `alias-availability.json`, `positive.json`, `result.json`: complete intended names, available synthetic aliases, partial positive results and stop/cleanup record. No raw subprocess output was retained or forwarded to a model.

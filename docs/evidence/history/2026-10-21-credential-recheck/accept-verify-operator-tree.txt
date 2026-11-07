@@ -1,0 +1,26 @@
+> Historical record imported 2026-11-07 from `2026-10-21-credential-recheck/accept-verify-operator-tree.txt`. Commands, approvals and next steps describe the original run and grant no current authority. Only files listed in the [manifest](../../manifest.json) are retained; other artifact names denote omitted historical material. See [evidence limitations](../../README.md).
+
+2026-10-23T03:03:41Z
+--- build
+[13 / 13] Limitaur-product
+[15 / 16] Limitaur-product
+Build complete! (10.79 sec)
+--- swift test run 1
+✔ Test run with 25 tests in 0 suites passed after 0.238 seconds.
+✔ Test run with 141 tests in 4 suites passed after 2.624 seconds.
+--- swift test run 2
+✔ Test run with 25 tests in 0 suites passed after 0.233 seconds.
+✔ Test run with 141 tests in 4 suites passed after 2.590 seconds.
+--- swift test run 3
+✔ Test run with 25 tests in 0 suites passed after 0.233 seconds.
+✔ Test run with 141 tests in 4 suites passed after 2.584 seconds.
+--- python
+Adversarial:
+OK
+AdversarialClaude:
+OK
+Tests/MeasurementTests:
+OK
+AdversarialBars:
+OK
+2026-10-23T03:04:09Z

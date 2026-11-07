@@ -1,0 +1,37 @@
+> Historical record imported 2026-11-07 from `2026-10-24-session-continuity/go.txt`. Commands, approvals and next steps describe the original run and grant no current authority. Only files listed in the [manifest](../../../evidence/manifest.json) are retained; other artifact names denote omitted historical material. See [evidence limitations](../../../evidence/README.md).
+
+go: 2026-10-24T03:59:11Z
+operator: "p423: accepted" / "p424: go"
+mode: strict
+spec: spec-r4.md 818cb7a3cb39cb56
+cast: implementer claude sonnet per part; test-writer codex gpt-6.1-sol continued; change review codex gpt-6-astra + claude opus
+second fix round (Part A): 2026-10-24T05:23:03Z, operator: "go for the fix round"
+third fix round (Part A): 2026-10-24T15:59:18Z, operator: "go for third round"
+accept (Part A): 2026-10-24T16:50:59Z, operator: "accept"
+commit: 04c6556
+second fix round (Part B): 2026-10-24T18:14:20Z, operator: "go for second fix round"
+third fix round (Part B): 2026-10-24T19:30:55Z, operator: "p472: approved for the 3rd fix round"
+fourth fix round (Part B): 2026-10-24T20:12:35Z, operator: "go for 4th fix round"
+accept (Part B): 2026-10-24T20:44:08Z, operator: "accept: proceed"
+commit (Part B): 7d74738
+go (Part C): 2026-10-24T20:56:25Z, under standing Go; baseline 4a76f6d
+Part C: implementer delivered 21:05Z (candidate-c.diff); test-writer first delivery frozen 21:17:01Z (frozen-c-sha256.txt); spec r11 (NudgeFileChecking requirements) 2f379d222c22b2b9 at bbbbf3e; change review 1 dispatched 2026-10-24T21:19:34Z codex gpt-6-astra + claude opus
+Part C change review 1 returned 21:24:48Z (codex 8 major; opus 1 blocker 5 major 5 minor); dispositions change-review-c/dispositions.md; spec r12 be978fd9d952dbf7 at 418c908; fix round 1 dispatched 2026-10-24T21:28:15Z claude-sonnet-5-5 in historical-scratch/limitaur-sc/impl-c2 (no operator approval needed for the first round); P497 raised
+fix round 1 returned 21:34:37Z (sonnet 92d95b6a-4897-4625-a62f-0c133de489f3): candidate-c2.diff 03452336ef37e4cb; designer verify-c2: 412 tests, 9 issues in the same 5 frozen tests x3, release clean; test-writer second delivery dispatched 2026-10-24T21:36:41Z
+P497 decided 2026-10-24T21:41:47Z: operator "agreed - admit the admin-writable dir"; spec r13 230e1fd60e1d2f3d; goes into fix round 2 (approved by that decision)
+test-writer second delivery returned 21:52:56Z: fix then merge (P175-P178), 59 focused + 412 core pass, 3 authorized amendments; suite re-frozen 21:54:45Z (frozen-c2-sha256.txt); spec r13 48351be15d32e01f at 59e3d05; change review 2 dispatched 2026-10-24T21:55:40Z codex gpt-6-astra + opus from historical-scratch/limitaur-review-checkout-c2
+change review 2 returned 22:01Z (codex 4 major; opus 1 major 4 minor 1 scope); dispositions change-review-c2/dispositions.md; spec r14 84d07ff38d293d23 at 35d0dbe; fix round 2 dispatched 2026-10-24T22:04:07Z claude-sonnet-5-5 in historical-scratch/limitaur-sc/impl-c3 (authorised by the P497 decision); P500 raised (CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC)
+fix round 2 returned 22:11:11Z (sonnet 918d10c1-fb92-406b-b447-c938a8ba62c2): candidate-c3.diff 694247df16ab2f22; Nudge 89/80, Monitor +63/50, AppUI +34/35; 3 of 5 full runs green, 2 with timing failures in earlier parts' implementer tests; designer verify-c3 and test-writer third delivery dispatched 2026-10-24T22:12:26Z
+flake probe 22:13-22:16Z: throttleClassification/horizonAndRetention/r9Merge x10 alone pass with and without C3; full suite x5 without Part C 353/353 pass; full suite with C3 fails 1/3 (designer) and 2/5 (fixer) in those Part B/C3 implementer tests (fixed 25 ms scFlush); P502 raised
+test-writer third delivery returned 22:24:06Z: MERGE (P186), 49 frozen pass unchanged, 420 core x3 pass, flake not reproduced; change review 3 staging
+change review 3 dispatched 2026-10-24T22:25:25Z codex gpt-6-astra + opus from historical-scratch/limitaur-review-checkout-c3
+change review 3 returned 22:31Z: codex NOTHING OF SUBSTANCE; opus 2 minor test gaps; no required fix; Accept asked 2026-10-24T22:32:01Z
+P504 decided 2026-10-24T22:42:40Z: operator "i think we should enable this by default. don't turn this off here"; spec r15; round 3 opened by that decision
+P505 decided 2026-10-24T22:51:03Z: operator agreed P500, P502, both test gaps for round 3; P506.4 'accept' (budgets accepted; Accept of the round-3 candidate pre-approved if clean); spec r16
+P508 2026-10-24T22:54:50Z: operator closes the resource gate as passed on the smoke; release and push at the end of this work
+change review 4 returned 23:02Z: codex 2 major (P504 consequence; cycleGate wait), opus 1 major (same, wider) 5 minor 1 scope; P510 raised; no code fix required; Accept proceeds on P506.4
+accept verified in operator tree 2026-10-24T23:11:53Z: 29 UI + 423 core x3, release clean, 49 python + 12 collector
+commit (Part C): 5dfdbe9
+P510 decided 2026-10-24T23:17:17Z: operator accepts the residual (single 'hi' on haiku, zero context); no guard
+release commit 98580af, tag v0.2.0, 2026-10-24T23:25:14Z
+pushed main + v0.2.0 2026-10-24T23:25:44Z on operator's word 'release and push'

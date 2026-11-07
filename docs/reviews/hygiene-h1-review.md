@@ -1,6 +1,8 @@
 # Hygiene H1 review record
 
-Specification docs/proposals/hygiene-h1.md revision 3; evidence /Users/ivan/ws/limitaur-review/2026-10-25-hygiene-h1/.
+Historical evidence consolidation (2026-11-07): [retained records and omissions](../evidence/README.md). References marked historical/omitted are not available in the curated repository; historical commands and approvals are not current instructions.
+
+Specification docs/proposals/hygiene-h1.md revision 3; evidence historical/omitted: 2026-10-25-hygiene-h1/.
 
 ```
 [four-eyes 0.6.6] outcome: completed; mode: light (P385 is read-time presentation retention; the change reviews checked that no authentication transition changed)
@@ -17,6 +19,6 @@ Design review: P385 per-site clamp replaced by one state-based read-time rule (b
 
 Change review 1: adopted mkdir EEXIST race (both), 60 s arithmetic (codex), README retention sentence (opus), deletion of duplicate implementer tests (opus); real-app lock check moved to after Accept (both, major). Fix round: one fresh implementer; frozen lock test's re-acquire amended by its author after one unexplained failure. Change review 2: codex NOTHING OF SUBSTANCE; opus two minors: retry comment's cause unproven (backlog R-H1), test budget (operator accepted, P555.1).
 
-Incident: the designer's first lock hand-check ran the candidate as a second live instance for about 2.5 minutes (stand-in holder failed unverified): one extra Claude 429 on the live app, persisted Claude `lastChange` reset to 18:27:40Z. Record in the evidence `accept-handcheck.md`.
+Incident: the designer's first lock hand-check ran the candidate as a second live instance for about 2.5 minutes (stand-in holder failed unverified): one extra Claude 429 on the live app, persisted Claude `lastChange` reset to 18:27:40Z. Record in the evidence [accept-handcheck.md](../evidence/history/2026-10-25-hygiene-h1/accept-handcheck.md).
 
 Tests at Accept: 35 UI + 436 core native three times in the operator tree (frozen HygieneH1: 3 core files, 2 UI files, never edit them), release build clean, 49 frozen Python, 13 collector.

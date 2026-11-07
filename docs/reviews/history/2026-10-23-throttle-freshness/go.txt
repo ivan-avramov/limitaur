@@ -1,0 +1,6 @@
+> Historical record imported 2026-11-07 from `2026-10-23-throttle-freshness/go.txt`. Commands, approvals and next steps describe the original run and grant no current authority. Only files listed in the [manifest](../../../evidence/manifest.json) are retained; other artifact names denote omitted historical material. See [evidence limitations](../../../evidence/README.md).
+
+2026-10-23T07:20:15Z go for light run: operator said "go for the light run" (P378); design: Retry-After-paced freshness (P379)
+2026-10-23T07:26:45Z Go (pre-authorised): operator said "implement autonomously if the review comes back good"; review found blockers in r1, all adopted into r2 with nothing declined against the operator; proceeding. Cast: designer fable (session), implementer sonnet, test-writer codex gpt-6.1-sol, change review codex gpt-6-astra + opus. Opus/sonnet share the designer vendor.
+2026-10-23T16:06:39Z second fix round: operator said "p382: go for second round"
+2026-10-23T16:29:53Z accept: pre-authorised by the operator ("implement autonomously if the review comes back good"); change review 2 codex NOTHING OF SUBSTANCE, opus no defect, residuals P383-P386 recorded

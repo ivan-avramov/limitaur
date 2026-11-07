@@ -1,0 +1,128 @@
+[
+  {
+    "id": "astra-P1",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "Separate frozen prebuild build/diagnostics inventories, one no-op inventory pass each; actual executable inventory gets fresh unguarded/guarded controls only, no extra no-op. Reject placeholder/other-artifact records."
+  },
+  {
+    "id": "astra-P2",
+    "reviewerSeverity": "minor",
+    "disposition": "adopt",
+    "reason": "Retry requires successfully validated retained positive/no-op records and independently identified controller failure before guarded launch; malformed records/no-op failures/aborts/semantic results ineligible. One total pilot retry."
+  },
+  {
+    "id": "opus-1",
+    "reviewerSeverity": "major",
+    "disposition": "adapt",
+    "reason": "Explicit only sanitized pre-registered output/codes/audited-source locations to models with secret scan; no raw failures or dynamic names. Artifact and normal model feedback/IPC risks disclosed; broker/LaunchServices escape routes unproven, not claimed locally measured."
+  },
+  {
+    "id": "opus-2",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "Approval explicitly adopts eventual accepted production prepare policy as well as development; first-normal-TCB gate still separate."
+  },
+  {
+    "id": "opus-3",
+    "reviewerSeverity": "major",
+    "disposition": "adapt",
+    "reason": "All mandatory and bulk cleanup completes before exclusive rename, with publication staging outside removable roots; rename final filesystem commit. Decline added postpublish-cleanup state/new decision row; interruption after commit respects existing output_exists, never delete output."
+  },
+  {
+    "id": "opus-4",
+    "reviewerSeverity": "major",
+    "disposition": "adapt",
+    "reason": "Keep deny file-link, supply fixed parent-seeded harmless hardlink/Git-object fixtures before guarded suites. R8 real rejection cases stay guarded; no skips/test weakening. Existing frozen code search found only symlink construction, add symlink positive control. No fixture-builder code imported normally."
+  },
+  {
+    "id": "opus-5",
+    "reviewerSeverity": "major",
+    "disposition": "adapt",
+    "reason": "Same-inode available case/Data/source/STAGE variants mandatory guarded checks, unavailable spellings not passes. No-follow actual STAGE/ancestor and regular-link/tree audits before each diagnostics launch; no universal alias claim."
+  },
+  {
+    "id": "opus-6",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "Bounded40-hop metadata-only lstat/readlink resolver emits declared/resolved exclusion spellings, rejects loops/unsafe overlaps, rechecks identities before launches; no file contents or home scan."
+  },
+  {
+    "id": "opus-7",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "Union OS-home, parent HOME, declared model-launch homes/config roots and fixed optional variable paths/default subroots; production uses own parent context. Known unresolved roots block, unknown others remain disclosed risk."
+  },
+  {
+    "id": "opus-8",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "Explicit production canary/checkout-open side effects, recognizable nonce prefixes, finally cleanup and crash-residue limits; no search/deletion of arbitrary old roots; precedence updated."
+  },
+  {
+    "id": "opus-9",
+    "reviewerSeverity": "major",
+    "disposition": "adapt",
+    "reason": "Commit separate proposed v2 positive/evidence/golden pack before PhaseA and keep parent v1 vectors unchanged; v1 negative included. Explicit v2 pack selected in new worker brief after approval; all identities recomputed as data only."
+  },
+  {
+    "id": "opus-10",
+    "reviewerSeverity": "minor",
+    "disposition": "adopt",
+    "reason": "Add Data-volume Volumes/Network/cores, /home aliases and unified-log db/uuidtext exclusions. Arbitrary unknown mount/spelling risks remain explicit."
+  },
+  {
+    "id": "opus-11",
+    "reviewerSeverity": "minor",
+    "disposition": "adapt",
+    "reason": "Fixed emitted ordering and golden byte checks; no generic undocumented last-match theorem claimed. Template/probe efficacy remains unmeasured."
+  },
+  {
+    "id": "opus-12",
+    "reviewerSeverity": "minor",
+    "disposition": "decline proposed bypass; clarify",
+    "reason": "Intentional: diagnostic discovery remains blocked if both release builds fail; placeholder not substituted for actual production target. Keeps prior guard ordering and no default/native qualification substitution."
+  },
+  {
+    "id": "opus-13",
+    "reviewerSeverity": "minor",
+    "disposition": "adopt",
+    "reason": "One fixed child per named operation with5s cap, at most96 names/inventory and1800s/stage, each denial<=2s; no oversized single child."
+  },
+  {
+    "id": "opus-14",
+    "reviewerSeverity": "minor",
+    "disposition": "decline extra no-op; clarify",
+    "reason": "Use fresh unguarded and guarded actual write/link controls; complete per-artifact inventory/hash binding. Prebuild no-op only once per recipe; no placeholder counted as actual result."
+  },
+  {
+    "id": "opus-15",
+    "reviewerSeverity": "minor",
+    "disposition": "adopt",
+    "reason": "Record checkout/evidence probe covered-by-home attribution as nondiscriminating. Production has no external evidence root at prepare; verify later reads evidence without candidate execution."
+  },
+  {
+    "id": "opus-16",
+    "reviewerSeverity": "minor",
+    "disposition": "adapt",
+    "reason": "Check/terminate known process groups every completion and before diagnostics/publication; record known survivors. No full descendant/broker/setsid census or hostile containment promised, quiescence remains assumption."
+  },
+  {
+    "id": "opus-17",
+    "reviewerSeverity": "minor",
+    "disposition": "adopt",
+    "reason": "Frozen declarative recipe plus golden parameter map for independent driver/new TCB; byte-equality tests, no cross-code import before execution gate. Recipe hash joins three code hashes at same gate; pilot not TCB qualification."
+  },
+  {
+    "id": "opus-18",
+    "reviewerSeverity": "minor",
+    "disposition": "adopt",
+    "reason": "Narrow echo crash attribution, Python failures unattributed. Table and full unexecuted declarative/golden recipe identify all new untested restrictions versus successful broad marker profile."
+  },
+  {
+    "id": "opus-19",
+    "reviewerSeverity": "minor",
+    "disposition": "adapt",
+    "reason": "R2 parent prepares/edits/freeze TRUST/source between guarded builds with no active children; source remains immutable to payload. Do not grant WORK package source writes; required in-source writes fail build."
+  }
+]

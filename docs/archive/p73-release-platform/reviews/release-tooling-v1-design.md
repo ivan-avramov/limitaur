@@ -1,5 +1,7 @@
 # Reduced P73 versioning/packaging design checkpoint
 
+Historical evidence consolidation (2026-11-07): [retained records and omissions](../../../evidence/README.md). References marked historical/omitted are not available in the curated repository; historical commands and approvals are not current instructions.
+
 Recorded 2026-10-20 (America/Los_Angeles), closing discussion P308. Documentation checkpoint only; no reduced implementation or test writer has started. Pre-checkpoint HEAD is eebcdf191ae1ede6f9f61948a1b14f913ab0fe4b; recover actual HEAD after this commit.
 
 ## Authority and contract
@@ -32,8 +34,8 @@ Actual anchored UI/AX, current app-bundle Codex/Claude integration, default-back
 
 ## Evidence locations
 
-Reduced evidence: `/Users/ivan/ws/limitaur-review/2026-10-20-release-tooling/reduced-v1/`. Read `design/input-freeze.json`, `design/dispositions.json`, `design/runtime-metadata.json`, both `design/{astra,opus}/result.txt` and `infrastructure/git-fixture-control.json` as needed. `checkpoint.json` records the latest local checkpoint commit after it is created.
+Reduced evidence: [retained records](../../../evidence/README.md) (historical source `2026-10-20-release-tooling/reduced-v1`; unselected material omitted). Read `design/input-freeze.json`, [design/dispositions.json](../../../reviews/history/2026-10-20-release-tooling/reduced-v1/design/dispositions.json), `design/runtime-metadata.json`, both `design/{astra,opus}/result.txt` and `infrastructure/git-fixture-control.json` as needed. `checkpoint.json` records the latest local checkpoint commit after it is created.
 
-Historical evidence: `/Users/ivan/ws/limitaur-review/2026-10-20-release-tooling/implementation/`, especially `churn-audit.md`, `candidate-1/`, `change-review-1/dispositions.json`, `phase-a/freeze.json`, `phase-a/frozen/AdversarialRelease/`, `descriptor-canary/result.json` and `phase-infrastructure/`. Historical state entries are superseded by the reduced checkpoint; preserve raw evidence.
+Historical evidence: [retained records](../../../evidence/README.md) (historical source `2026-10-20-release-tooling/implementation`; unselected material omitted), especially [churn-audit.md](../../../reviews/history/2026-10-20-release-tooling/implementation/churn-audit.md), `candidate-1/`, [change-review-1/dispositions.json](../../../reviews/history/2026-10-20-release-tooling/implementation/change-review-1/dispositions.json), `phase-a/freeze.json`, `phase-a/frozen/AdversarialRelease/`, `descriptor-canary/result.json` and `phase-infrastructure/`. Historical state entries are superseded by the reduced checkpoint; preserve raw evidence.
 
-Skill-improvement proposal: `/tmp/four-eyes-review-panel-churn-proposal.md`. No installed skill was changed by this session. Its size changed after the original write; inspect current contents before relying on it. This temporary proposal is not needed to reconstruct the approved Limitaur contract.
+Skill-improvement proposal: `historical-scratch/four-eyes-review-panel-churn-proposal.md`. No installed skill was changed by this session. Its size changed after the original write; inspect current contents before relying on it. This temporary proposal is not needed to reconstruct the approved Limitaur contract.

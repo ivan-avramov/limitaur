@@ -1,6 +1,8 @@
 # Throttle-paced freshness (P377–P386): four-eyes record
 
-2026-10-23. Specification `docs/proposals/throttle-paced-freshness.md`, revision 5. Evidence root `/Users/ivan/ws/limitaur-review/2026-10-23-throttle-freshness/` (briefs, raw outputs, dispositions, diffs, hashes, `go.txt`). Skill `four-eyes` 0.6.4 light with `review-panel` 0.4.1. Preceded by the 45 s cadence change (92e3e68, no review: a single constant).
+Historical evidence consolidation (2026-11-07): [retained records and omissions](../evidence/README.md). References marked historical/omitted are not available in the curated repository; historical commands and approvals are not current instructions.
+
+2026-10-23. Specification `docs/proposals/throttle-paced-freshness.md`, revision 5. Evidence root [retained records](../evidence/README.md) (historical source `2026-10-23-throttle-freshness`; unselected material omitted) (briefs, raw outputs, dispositions, diffs, hashes, `go.txt`). Skill `four-eyes` 0.6.4 light with `review-panel` 0.4.1. Preceded by the 45 s cadence change (92e3e68, no review: a single constant).
 
 ## Course of the run
 

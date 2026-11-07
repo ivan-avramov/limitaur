@@ -1,0 +1,131 @@
+{
+  "mode": "converge1 strict",
+  "allResultsCollected": true,
+  "rows": [
+    {
+      "origin": "astra",
+      "id": "P1",
+      "disposition": "adopt",
+      "reason": "release configuration is wrapper-owned; reject configuration overrides, preserve other option order"
+    },
+    {
+      "origin": "astra",
+      "id": "P2",
+      "disposition": "adopt",
+      "reason": "tracked-only status, consistent with tracked-only source digest; no output exclusion framework"
+    },
+    {
+      "origin": "opus",
+      "id": "1",
+      "disposition": "adopt",
+      "reason": "remove bundled-version execution from helper child set; external driver only after actual protection"
+    },
+    {
+      "origin": "opus",
+      "id": "2",
+      "disposition": "adopt",
+      "reason": "validate stored normalized build/origin; recompute explicit N with N, count origin with None"
+    },
+    {
+      "origin": "opus",
+      "id": "3",
+      "disposition": "adopt",
+      "reason": "tracked-only status and disable global excludes/attributes paths; untracked/ignored not included"
+    },
+    {
+      "origin": "opus",
+      "id": "4",
+      "disposition": "adopt",
+      "reason": "private mktemp directory; helper exclusively creates metadata.json; bounded file+empty-dir cleanup"
+    },
+    {
+      "origin": "opus",
+      "id": "5",
+      "disposition": "adapt",
+      "reason": "physical wrapper root/temp; known tmp/var prefix aliases only in helper; other output/root/leaf symlinks still rejected"
+    },
+    {
+      "origin": "opus",
+      "id": "6",
+      "disposition": "adopt",
+      "reason": "require exact Git top-level and ceiling; SOURCE/.git inert fixture attached before TRUST freeze"
+    },
+    {
+      "origin": "opus",
+      "id": "7",
+      "disposition": "adapt",
+      "reason": "stage0 tracked regular entries only; missing/deleted/unmerged/gitlink/symlink rejectunsafe_input. Do not add general index auditing or extra hidden-flag rejection: actual-byte digest already binds trusted workspace inputs; git-clean remains an observation"
+    },
+    {
+      "origin": "opus",
+      "id": "8",
+      "disposition": "adapt",
+      "reason": "existing canonical serializer bytes INCLUDING LF; integer modes, normalized N.0.0, artifact_digest.sha256=artifactTreeSHA256. Decline contrary no-LF/N representation changes"
+    },
+    {
+      "origin": "opus",
+      "id": "9",
+      "disposition": "adapt",
+      "reason": "blind writer Python only; native tests authored alongside implementation using specified AppVersion/About hook. Reject extra test target: normal swift test still builds targets and new target is unnecessary"
+    },
+    {
+      "origin": "opus",
+      "id": "10",
+      "disposition": "decline conditional premise",
+      "reason": "frozen menu/help assertion inventory already checked during prior review; prior candidate preserved all133. Keep indices0/2 and8submenu; no exact parent-count/help equality assertions found"
+    },
+    {
+      "origin": "opus",
+      "id": "11",
+      "disposition": "adopt",
+      "reason": "driver supplies protected real app/manifest with matching immutable SOURCE; copies remain data, no fake positive signing or copied-app execution"
+    },
+    {
+      "origin": "opus",
+      "id": "12",
+      "disposition": "adopt",
+      "reason": "parent VERSION replacement between guarded children in separate TRUST synthetic source, same scratch; no WORK fixture compilation"
+    },
+    {
+      "origin": "opus",
+      "id": "13",
+      "disposition": "decline new prerequisite",
+      "reason": "prior candidate actually included the VersionPlugin and passed guarded native build/R2 with existing --disable-sandbox flags. Reuse measured feasibility; no new permission/pilot needed"
+    },
+    {
+      "origin": "opus",
+      "id": "14",
+      "disposition": "adopt fixture-only constraint",
+      "reason": "inert config/objects/index stdlib data, no attrs/includes/filters/hook executable dispatch; no product-side Git auditor added"
+    },
+    {
+      "origin": "opus",
+      "id": "15",
+      "disposition": "adopt",
+      "reason": "bounded UTF8 LF CHANGELOG.md, exactlyoneUnreleased, allotherlevel2 valid unique datedheadings, real calendar dates, no ordering"
+    },
+    {
+      "origin": "opus",
+      "id": "16",
+      "disposition": "adapt",
+      "reason": "append About directly atindex3 without extra separator; enabled bothmodes; app+identifier predicate. Preserve oldhelpentries addversion; reject exactarray requirement. These are small interface choices, not new approval requests"
+    },
+    {
+      "origin": "opus",
+      "id": "17",
+      "disposition": "adopt",
+      "reason": "initial nondasharg output else default; relative againstscriptroot; reject attached buildnumberoption"
+    },
+    {
+      "origin": "opus",
+      "id": "18",
+      "disposition": "adapt",
+      "reason": "fixed partial_output diagnostic prefix + underlying existingcode; oversizedoutput invalid_manifest; absolute LIMITAUR_PYTHON with3.11 prerequisite. No unsupportedPython portability project"
+    }
+  ],
+  "postReviewSpecificationSHA256": "1468c65287d84346b3fc3eb43c706562cf0e3ea5eb4399b153925a8f9982111d",
+  "postReviewEditsReReviewed": false,
+  "next": "blind tests and implementation under existing reduced-scopeGo; no seconddesignround",
+  "userGo": "agreed reducedscope; latest proceed with Limitaur",
+  "newPermissions": false
+}

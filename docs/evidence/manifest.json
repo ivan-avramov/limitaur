@@ -1,0 +1,839 @@
+{
+  "schema_version": 1,
+  "baseline": "be7d727",
+  "source_summary": {
+    "file_count": 3566,
+    "bytes": 117555437,
+    "inventory_sha256": "3bbe25e14b13a0bad20c60695ad889d5c7a39b7b90f6d9b1abade662c8244342"
+  },
+  "retained": [
+    {
+      "source": "2026-10-18-01a15018/claude-continuation/additions-design.md",
+      "source_sha256": "1008f15e1d1fd63534500a998b329668790eefa8c06fc6a140aed5c750253ae3",
+      "destination": "docs/proposals/api-metered-accounts-draft.md",
+      "sha256": "514247db95e38ae2d2b666091e878e5fb0f63b0a6308a48bd8299c1f062f18e1",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Title marked UNAPPROVED; current backlog and superseded SemVer scope made explicit.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-18-01a15018/compact-bars/accepted-development.json",
+      "source_sha256": "77cd1a33bdffe8760354b7c5571f355d076868e42070fa85a570d37831ec7b70",
+      "destination": "docs/evidence/history/2026-10-18-01a15018/compact-bars/accepted-development.json",
+      "sha256": "5a41f50f072a67563edcc065ed8d09db0cf773f3b0406a1fa20423112cd95f97",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "JSON string values normalized without changing numeric or structural data."
+      ]
+    },
+    {
+      "source": "2026-10-18-01a15018/compact-bars/approval-P119.json",
+      "source_sha256": "0e9e61c0fa00fb0830bc3006df2d87dd7b7edbbf139965fae1f76a4d20ccb2ef",
+      "destination": "docs/reviews/history/2026-10-18-01a15018/compact-bars/approval-P119.json",
+      "sha256": "a81ba05f9b3ae7d5fc31a4bb65f58fd7244be3f93b2a426e83c534487d34a270",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "JSON string values normalized without changing numeric or structural data."
+      ]
+    },
+    {
+      "source": "2026-10-18-01a15018/compact-bars/report.md",
+      "source_sha256": "bc9113f65dd7ccc92a90c8b5e755e2bdbd5c107a6b19f2aadf759f7bbaecfc65",
+      "destination": "docs/reviews/history/2026-10-18-01a15018/compact-bars/report.md",
+      "sha256": "4931462a6a8a8a8c469c243f0319d6f1658f3eea9c20625f5b817dfca84834b7",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-18-01a15018/compact-bars/runtime-evidence/bars-panel2/BP2-result.txt",
+      "source_sha256": "92755cfc70aabcd95c5025f243108fbd19b43462f7fc0373520f533303023665",
+      "destination": "docs/evidence/history/2026-10-18-01a15018/compact-bars/runtime-evidence/bars-panel2/BP2-result.txt",
+      "sha256": "3737aaf2c484a69e22d68f83406aba5a30e1ac17da34e461e9726d43d42ba241",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Trailing whitespace removed; substantive text unchanged."
+      ]
+    },
+    {
+      "source": "2026-10-20-labelled-bars/ledger.md",
+      "source_sha256": "d2cbe9d6bbf64c6b38aee1eaa2f7efb33d587bebd9855d2f7bc04d9534f55168",
+      "destination": "docs/reviews/history/2026-10-20-labelled-bars/ledger.md",
+      "sha256": "b3b38d15da3e5f6806384dab7cd114412e1ed69b400d26276e8e5af43c7aad1e",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-20-p73-minimal/ledger.md",
+      "source_sha256": "953b56895fc4be46a1c2d6ba0fd7a9b950fedbc6d952bbd3f6e20a809d0db414",
+      "destination": "docs/reviews/history/2026-10-20-p73-minimal/ledger.md",
+      "sha256": "1bdc27de5703c5dbe30996baea791975096b96b042c25cedd1978ec3bd8ffa82",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-20-release-tooling/dispositions-1.json",
+      "source_sha256": "54a57b97dbc8c076704c5ff2ac7a4cb8d694ab9b8b372a4c516503eb6f94eff0",
+      "destination": "docs/reviews/history/2026-10-20-release-tooling/dispositions-1.json",
+      "sha256": "54a57b97dbc8c076704c5ff2ac7a4cb8d694ab9b8b372a4c516503eb6f94eff0",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "JSON string values normalized without changing numeric or structural data."
+      ]
+    },
+    {
+      "source": "2026-10-20-release-tooling/dispositions-2.json",
+      "source_sha256": "5807de4c111626df529474d04b831525578b92d85ac76c1def6795af3def0da2",
+      "destination": "docs/reviews/history/2026-10-20-release-tooling/dispositions-2.json",
+      "sha256": "5807de4c111626df529474d04b831525578b92d85ac76c1def6795af3def0da2",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "JSON string values normalized without changing numeric or structural data."
+      ]
+    },
+    {
+      "source": "2026-10-20-release-tooling/dispositions-3.json",
+      "source_sha256": "a46108be38a68dfd91649aa9795dd83c3ecb2a0d3e0fd9ac5192a371ac99081a",
+      "destination": "docs/reviews/history/2026-10-20-release-tooling/dispositions-3.json",
+      "sha256": "a46108be38a68dfd91649aa9795dd83c3ecb2a0d3e0fd9ac5192a371ac99081a",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "JSON string values normalized without changing numeric or structural data."
+      ]
+    },
+    {
+      "source": "2026-10-20-release-tooling/dispositions-4.json",
+      "source_sha256": "3a859728ad1e0eaf4dfefb12dc24b67c2dda58b90930dede30250ca24d21bc56",
+      "destination": "docs/reviews/history/2026-10-20-release-tooling/dispositions-4.json",
+      "sha256": "3a859728ad1e0eaf4dfefb12dc24b67c2dda58b90930dede30250ca24d21bc56",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "JSON string values normalized without changing numeric or structural data."
+      ]
+    },
+    {
+      "source": "2026-10-20-release-tooling/implementation/atomic-write-opinion/dispositions.json",
+      "source_sha256": "acec0b017b0b995b315afb18326452c7f85730890b5e7f21d482e94680c773e6",
+      "destination": "docs/reviews/history/2026-10-20-release-tooling/implementation/atomic-write-opinion/dispositions.json",
+      "sha256": "acec0b017b0b995b315afb18326452c7f85730890b5e7f21d482e94680c773e6",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "JSON string values normalized without changing numeric or structural data."
+      ]
+    },
+    {
+      "source": "2026-10-20-release-tooling/implementation/change-review-1/dispositions.json",
+      "source_sha256": "a14ef87ede3d99d5913098322833d40e134691f53ad6c769308856b8f7ff3af6",
+      "destination": "docs/reviews/history/2026-10-20-release-tooling/implementation/change-review-1/dispositions.json",
+      "sha256": "7210d7f3b6c7b1cb9ab4e0b84aa5f2191a3438516652cc3648bfccd4430082a6",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "JSON string values normalized without changing numeric or structural data."
+      ]
+    },
+    {
+      "source": "2026-10-20-release-tooling/implementation/churn-audit.md",
+      "source_sha256": "3bdfaa146d7ec78e73bf0b6961aa402681fac1ef826e5d962dfeaf8819929445",
+      "destination": "docs/reviews/history/2026-10-20-release-tooling/implementation/churn-audit.md",
+      "sha256": "b966d21e0f4fc48551a49c6e25a5da04a3a16098d245e90157fac8dc196d4936",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-20-release-tooling/implementation/read-policy-amendment/round-1/dispositions.json",
+      "source_sha256": "b3b02f6c18f1cd545059134db870155d8ff336031ce7d9f0c123c112decde80e",
+      "destination": "docs/reviews/history/2026-10-20-release-tooling/implementation/read-policy-amendment/round-1/dispositions.json",
+      "sha256": "b3b02f6c18f1cd545059134db870155d8ff336031ce7d9f0c123c112decde80e",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "JSON string values normalized without changing numeric or structural data."
+      ]
+    },
+    {
+      "source": "2026-10-20-release-tooling/implementation/read-policy-amendment/round-2/dispositions.json",
+      "source_sha256": "3023095da06474c132ba18fc49ed7e834fdce8a0cbb01ee59f1502de56674f7a",
+      "destination": "docs/reviews/history/2026-10-20-release-tooling/implementation/read-policy-amendment/round-2/dispositions.json",
+      "sha256": "3023095da06474c132ba18fc49ed7e834fdce8a0cbb01ee59f1502de56674f7a",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "JSON string values normalized without changing numeric or structural data."
+      ]
+    },
+    {
+      "source": "2026-10-20-release-tooling/implementation/read-policy-amendment/round-3/dispositions.json",
+      "source_sha256": "5d4324d3eddf35112a3aadd1906296158f92216d914e739ef7bcd5662f666fcb",
+      "destination": "docs/reviews/history/2026-10-20-release-tooling/implementation/read-policy-amendment/round-3/dispositions.json",
+      "sha256": "5d4324d3eddf35112a3aadd1906296158f92216d914e739ef7bcd5662f666fcb",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "JSON string values normalized without changing numeric or structural data."
+      ]
+    },
+    {
+      "source": "2026-10-20-release-tooling/implementation/startup-guard-review/dispositions.json",
+      "source_sha256": "fa3a9e0551431a575fba1c83edee8651347748fecc4b764a88cf17f884b112b6",
+      "destination": "docs/reviews/history/2026-10-20-release-tooling/implementation/startup-guard-review/dispositions.json",
+      "sha256": "fa3a9e0551431a575fba1c83edee8651347748fecc4b764a88cf17f884b112b6",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "JSON string values normalized without changing numeric or structural data."
+      ]
+    },
+    {
+      "source": "2026-10-20-release-tooling/reduced-v1/design/dispositions.json",
+      "source_sha256": "77eeeab8461562ed1decc332a78a6a97f2aaf48eba596e38f76905547d95ea95",
+      "destination": "docs/reviews/history/2026-10-20-release-tooling/reduced-v1/design/dispositions.json",
+      "sha256": "77eeeab8461562ed1decc332a78a6a97f2aaf48eba596e38f76905547d95ea95",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "JSON string values normalized without changing numeric or structural data."
+      ]
+    },
+    {
+      "source": "2026-10-21-beside-layout/ledger.md",
+      "source_sha256": "49e7b298b3183e73f8e6c5b6b469557f25804359aa9cc99cc7a56c2987eff6bb",
+      "destination": "docs/reviews/history/2026-10-21-beside-layout/ledger.md",
+      "sha256": "05ac67d9dedb9c9e773e667afacc3bf0ff570f2554604749b83aaa0c88380bd8",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-21-credential-recheck/accept-verify-operator-tree.txt",
+      "source_sha256": "951e747d3bf1be472e77f8961375e8ad767111499da51f21344964c21ca789be",
+      "destination": "docs/evidence/history/2026-10-21-credential-recheck/accept-verify-operator-tree.txt",
+      "sha256": "67a7e7b23c4eca3b7724f81be69ae4d40272e90a42b09730dc2a47f513cd0be8",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended."
+      ]
+    },
+    {
+      "source": "2026-10-21-credential-recheck/change-review-1/dispositions-codex.md",
+      "source_sha256": "b261eb456097220255f32db273f38a9695167537dbde3e413d16ccfe310e06c1",
+      "destination": "docs/reviews/history/2026-10-21-credential-recheck/change-review-1/dispositions-codex.md",
+      "sha256": "350b25dfa724bccf57ab04c99393a45835e75f094a19d8f9c70c4607736900d8",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-21-credential-recheck/change-review-1/dispositions-opus.md",
+      "source_sha256": "6915418a7b8e0168818b66898fd6c49669799ce62cdb53dada6860a12a9b7398",
+      "destination": "docs/reviews/history/2026-10-21-credential-recheck/change-review-1/dispositions-opus.md",
+      "sha256": "fc1e9e109935119c351d74ea0bffbadaa1a10125a7abd0e2bd28700d375c6a5e",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-21-credential-recheck/change-review-2/dispositions-codex.md",
+      "source_sha256": "e36789cb6290c4bb0210db5a5b2ee20ac0f709ca651d6ff4beeea71da90d7c83",
+      "destination": "docs/reviews/history/2026-10-21-credential-recheck/change-review-2/dispositions-codex.md",
+      "sha256": "ad80695555a06afbccc0b38fa1b518f6aba642f44f79af3ff95dbdca7ff9b631",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-21-credential-recheck/change-review-2/dispositions-opus.md",
+      "source_sha256": "29101cda08870ef697a2da40b673a55273ad264fd5396d1a2a4a5ffe18c96cba",
+      "destination": "docs/reviews/history/2026-10-21-credential-recheck/change-review-2/dispositions-opus.md",
+      "sha256": "78d4cd1ac52cf4539eda5cb9d89bcc3584238936c908ba0cd93eefc5f748cd49",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-21-credential-recheck/change-review-3/dispositions-codex.md",
+      "source_sha256": "7b9a043d636c872f5009bbbb4f4e61892ab2fe165c4682d874c8e949030736fd",
+      "destination": "docs/reviews/history/2026-10-21-credential-recheck/change-review-3/dispositions-codex.md",
+      "sha256": "c10650115c087eeb0e0da59183384560d5e168d5c5fcf4a1d457cc551304094d",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-21-credential-recheck/change-review-3/dispositions-opus.md",
+      "source_sha256": "023c94cd0645e6b1b43fdb6cccca25fb48a5457b34ea98d1fab5d18a4f9a7ffc",
+      "destination": "docs/reviews/history/2026-10-21-credential-recheck/change-review-3/dispositions-opus.md",
+      "sha256": "d5fc393dd19499632d119ea502f69a42402f563e93099d57a0a1b016a577f26d",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-21-credential-recheck/change-review-4/dispositions-codex.md",
+      "source_sha256": "02fd6ef938d4df4823d547233167a0527a5717deb053b1f64288b3ac717d3a55",
+      "destination": "docs/reviews/history/2026-10-21-credential-recheck/change-review-4/dispositions-codex.md",
+      "sha256": "db90f0300caccfdf928fe1937fbeaed826e5e86075f0276b68eebfc32c895c77",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-21-credential-recheck/change-review-4/dispositions-opus.md",
+      "source_sha256": "f2a97872a25545ada0f239c62de37fc23576ce070cc9a50db0c0a6c695efa263",
+      "destination": "docs/reviews/history/2026-10-21-credential-recheck/change-review-4/dispositions-opus.md",
+      "sha256": "606d65a0c23a7c1db86a458058f0f44b67ac24345244e758c10d8f0661ba7bda",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-21-credential-recheck/design-1/dispositions.md",
+      "source_sha256": "d88bc4bd710d39fdf03dab82906f1716a2d6b3907db0c5176a0ede32f0cb1629",
+      "destination": "docs/reviews/history/2026-10-21-credential-recheck/design-1/dispositions.md",
+      "sha256": "83653a1a4596a7dc8f8801321dec6940a355f5c716c76ab88e60da4e0dccd70e",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-21-credential-recheck/design-2/dispositions.md",
+      "source_sha256": "303bd6dc72a8d0fb6b7e56d7ceed10bfe036531cd3b23dab30efe1480523ce20",
+      "destination": "docs/reviews/history/2026-10-21-credential-recheck/design-2/dispositions.md",
+      "sha256": "07c209387fd550fd1e227ac2c827826d7afc0dd02d1d23c3dc0b1026e5f54dd6",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-21-credential-recheck/design-3/dispositions-codex.md",
+      "source_sha256": "0de1ff71d185c9cb42297a21e6918ef4e0378ed6bb2c32f4ebbe2b49545e7064",
+      "destination": "docs/reviews/history/2026-10-21-credential-recheck/design-3/dispositions-codex.md",
+      "sha256": "d2ca82040e64882bdcb957cb21b7e3b93ccc35648a7e5500bc08fd5d4accce82",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-21-credential-recheck/design-3/dispositions-opus.md",
+      "source_sha256": "b60a7908e4719c82a918834f4acd15b158a74a36567f170a7700642673de5920",
+      "destination": "docs/reviews/history/2026-10-21-credential-recheck/design-3/dispositions-opus.md",
+      "sha256": "28e6179af45a41809b6a45097206f023f8252ec6034285bc7ac1be801cfd593d",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-21-credential-recheck/go.txt",
+      "source_sha256": "d43afb54779b64447343a7833337922dfca913eb4ccd049ee3623d8a9208e6ac",
+      "destination": "docs/reviews/history/2026-10-21-credential-recheck/go.txt",
+      "sha256": "7910f10932de8b17e60af6f6c6950ad65ba951f8e2ecb0114dc97cea935845c0",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended."
+      ]
+    },
+    {
+      "source": "2026-10-21-credential-recheck/testwriter/dispositions-candidate-3.md",
+      "source_sha256": "f37e4691bc6dc89ac3a932fa7d6a651c078dafcc9315beb661015f5aaf55a186",
+      "destination": "docs/reviews/history/2026-10-21-credential-recheck/testwriter/dispositions-candidate-3.md",
+      "sha256": "38daeb17a66a423b06b825e288aaa6cfeade9db86b4319e1f0b08e58a591a985",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-21-credential-recheck/testwriter/dispositions-candidate-4.md",
+      "source_sha256": "c157a45c91876ebca50f0d814f3b3601345601ee578e3196dc7385671a9d58d7",
+      "destination": "docs/reviews/history/2026-10-21-credential-recheck/testwriter/dispositions-candidate-4.md",
+      "sha256": "b2e115ebc5a3def7b006ea74b16f5d7b8dd5ebde1d651bc92dc5a37782c935e3",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-23-release-gates/measure-1.json",
+      "source_sha256": "1e65edd1c3fe970f42c9141b41ccca9d8b00c66668be230b756c95105db0f866",
+      "destination": "docs/evidence/history/2026-10-23-release-gates/measure-1.json",
+      "sha256": "13c33a505b1e6f54d9e04ff41caccc6fc62b4c6f57ab3669084494275496a7f2",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "JSON string values normalized without changing numeric or structural data."
+      ]
+    },
+    {
+      "source": "2026-10-23-throttle-freshness/accept-verify-operator-tree.txt",
+      "source_sha256": "d9391df2da3237bfb50e4de63f397628dff433f8b55769da6041290fb867a2af",
+      "destination": "docs/evidence/history/2026-10-23-throttle-freshness/accept-verify-operator-tree.txt",
+      "sha256": "262952ca98502fd8df5e48f7fb8c368652b4eb239946f1a7faa90054f18a1309",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended."
+      ]
+    },
+    {
+      "source": "2026-10-23-throttle-freshness/change-review-1/dispositions-codex.md",
+      "source_sha256": "a8af6a297b353b037447969535ac913296c56cb7f5461858672c224e80f894b3",
+      "destination": "docs/reviews/history/2026-10-23-throttle-freshness/change-review-1/dispositions-codex.md",
+      "sha256": "3f64eb129974137deea56106f0d8ad3ce7cc4c625fea3cace69e8676ae0bb90f",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-23-throttle-freshness/change-review-1/dispositions-opus.md",
+      "source_sha256": "feb6cc0919f887552d8ed0e21b5d09e7286b68a7d81164ce92a7ccd917b466bb",
+      "destination": "docs/reviews/history/2026-10-23-throttle-freshness/change-review-1/dispositions-opus.md",
+      "sha256": "f0d0bc8b18fa71c420bfe21aca7ec76f85a769988546d075cde857bb34518eca",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-23-throttle-freshness/change-review-2/dispositions-codex.md",
+      "source_sha256": "c3d0befd762438fbb7081d2a974844ab1c8a6849bfaf3d57fde5b155980c7bd4",
+      "destination": "docs/reviews/history/2026-10-23-throttle-freshness/change-review-2/dispositions-codex.md",
+      "sha256": "5fec5a3855d8097b3529ecb11951d456e534a1c13bf9e33d2445f2173ff6f653",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-23-throttle-freshness/change-review-2/dispositions-opus.md",
+      "source_sha256": "d13af8d9a7770599f766802c9a1ba50b1e06b6ec722b42dea8ec275755d3da35",
+      "destination": "docs/reviews/history/2026-10-23-throttle-freshness/change-review-2/dispositions-opus.md",
+      "sha256": "bb50a3bad447e0ca585758328fc8fb47616263636738b446573fec68c86cacc8",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-23-throttle-freshness/design-1/dispositions.md",
+      "source_sha256": "7be954c36e9525c0d5f529735a08abf616fa408f9f628b2471b98ec1e4e41d2b",
+      "destination": "docs/reviews/history/2026-10-23-throttle-freshness/design-1/dispositions.md",
+      "sha256": "66ceadab5008befd539be6973132b3ad65f32fe2f32e5bc318c48dec4980dc52",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-23-throttle-freshness/go.txt",
+      "source_sha256": "6ed9bca0e389bd4a0a06b6a92fa017f2bdf6719517789b456d147e0af3c42463",
+      "destination": "docs/reviews/history/2026-10-23-throttle-freshness/go.txt",
+      "sha256": "5365dc13674b12b9b2b8ab64db381c2281d6d9bcee5bc56cc081b2b52ad7ad33",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended."
+      ]
+    },
+    {
+      "source": "2026-10-23-throttle-freshness/testwriter/dispositions-candidate-2.md",
+      "source_sha256": "60efa9cbc8f6d1922f19566cab63c0767dff6cc68f69fbbd86808c126cb5fb0b",
+      "destination": "docs/reviews/history/2026-10-23-throttle-freshness/testwriter/dispositions-candidate-2.md",
+      "sha256": "06e0e22d9d47398208e7f3271e8aa9c42eec8675369451084218c8ef80f349e3",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-23-throttle-freshness/testwriter/dispositions-candidate-3.md",
+      "source_sha256": "6490d60d827ee16070e3f136dd41cc218b3ab86dc708a69fb4733d4ba2733a38",
+      "destination": "docs/reviews/history/2026-10-23-throttle-freshness/testwriter/dispositions-candidate-3.md",
+      "sha256": "bd5d397873fbd22060468dfb669de26b488c03c2b530b9b9ab620b8ecee78852",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-24-session-continuity/accept-verify-operator-tree-a.txt",
+      "source_sha256": "0369369c238c0c4c31a067e8d73a4711fec145f8f2692fbf7e0fea3cc1548ad3",
+      "destination": "docs/evidence/history/2026-10-24-session-continuity/accept-verify-operator-tree-a.txt",
+      "sha256": "3b1ad6c63e5ed5935118daf3c43d94e417ff620e5640650de2be448f1665c182",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Trailing whitespace removed; substantive text unchanged."
+      ]
+    },
+    {
+      "source": "2026-10-24-session-continuity/accept-verify-operator-tree-b.txt",
+      "source_sha256": "5e626fc57618d43a5d3fd2e757821a87ac55fce0b44b1e8a0cd976d22e33cdd0",
+      "destination": "docs/evidence/history/2026-10-24-session-continuity/accept-verify-operator-tree-b.txt",
+      "sha256": "39d207ed6e12146a5350ec979cb72579150c2d6fee09ff6201004ff972767dbd",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Trailing whitespace removed; substantive text unchanged."
+      ]
+    },
+    {
+      "source": "2026-10-24-session-continuity/accept-verify-operator-tree-c.txt",
+      "source_sha256": "1869e0f311b67ef81f3062202c91c95a241de0861b21fb7ede8ac783216504fd",
+      "destination": "docs/evidence/history/2026-10-24-session-continuity/accept-verify-operator-tree-c.txt",
+      "sha256": "e198bff4fceb0ef8c6f9e02c7719b144647aba9ede713313333507e5ccdae771",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Trailing whitespace removed; substantive text unchanged."
+      ]
+    },
+    {
+      "source": "2026-10-24-session-continuity/change-review-a/dispositions.md",
+      "source_sha256": "2b76fd3c81eb6386b1569e6e8c1aee6aceeb4830c5eae702b196406451b937eb",
+      "destination": "docs/reviews/history/2026-10-24-session-continuity/change-review-a/dispositions.md",
+      "sha256": "3e0da638ed582211ae08c23c64834e82a816df22eb6a9f3c25c4ecb03c584436",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-24-session-continuity/change-review-a2/dispositions.md",
+      "source_sha256": "526ea4dfd7f67cf042ae0f322af8c7e7f4443c241ca174ec936ded2c6d1d8e8c",
+      "destination": "docs/reviews/history/2026-10-24-session-continuity/change-review-a2/dispositions.md",
+      "sha256": "d26f6bbee20ab2d76ba327b41cbeb3b6064ee0f8f29461239469d61625d71e4a",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-24-session-continuity/change-review-a3/dispositions.md",
+      "source_sha256": "c260e136c1df1cc3aff89e10c435e297de555f3ad5611fa98c035088d228c28c",
+      "destination": "docs/reviews/history/2026-10-24-session-continuity/change-review-a3/dispositions.md",
+      "sha256": "5681703e636e5114911d54ba70a2fc6b112eeb0d3726be645055f5b328fd6a07",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-24-session-continuity/change-review-a4/dispositions.md",
+      "source_sha256": "336035a40d06ce8a4d42ae1807f058efee7e55606c8ea6666683e9b6a653c149",
+      "destination": "docs/reviews/history/2026-10-24-session-continuity/change-review-a4/dispositions.md",
+      "sha256": "ee76646b757a06f0f2769e07b6d21ebeb4fea1a2951349d834c94aef0b898553",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-24-session-continuity/change-review-b/dispositions.md",
+      "source_sha256": "51d13c123e9a79863463336cc4890173c4c8591f3c82486013eae70f1622f611",
+      "destination": "docs/reviews/history/2026-10-24-session-continuity/change-review-b/dispositions.md",
+      "sha256": "a539b5870f50f40215598479dac039b39ff8220ba4fb27d6c93b77234482a749",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-24-session-continuity/change-review-b2/dispositions.md",
+      "source_sha256": "ce9b0e5e22b0743dc2d6a3499a2d2b4a9e01b03f979fe7aa51232e2e35cd0e23",
+      "destination": "docs/reviews/history/2026-10-24-session-continuity/change-review-b2/dispositions.md",
+      "sha256": "a8eb806925e2adebbc572a24d4ac833b2e3ec8a327c325c741f3fbc4cf2f6670",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-24-session-continuity/change-review-b3/dispositions.md",
+      "source_sha256": "ce68c65751f45fa570202094c4e4546af8b74c02682ba53a6746c17c2685b20a",
+      "destination": "docs/reviews/history/2026-10-24-session-continuity/change-review-b3/dispositions.md",
+      "sha256": "99dc167a65fde14ac0791aef67e2ebb81d93b169f01424b206ff73bbcb7f36e2",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-24-session-continuity/change-review-b4/dispositions.md",
+      "source_sha256": "6f45d71f7772537b3606457da28c089f77424faf36e7fab7df4df7eaf55d3afa",
+      "destination": "docs/reviews/history/2026-10-24-session-continuity/change-review-b4/dispositions.md",
+      "sha256": "b394bff0f5a5849dfb7c0bcb76c33f226cc78969cc89d010e091571a6424b5c6",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-24-session-continuity/change-review-b5/dispositions.md",
+      "source_sha256": "841446c5f288b1e6167b86f618535be82be7b35a1b5adea1262b7e5362b52d08",
+      "destination": "docs/reviews/history/2026-10-24-session-continuity/change-review-b5/dispositions.md",
+      "sha256": "647ef195e4b45bbf7a43d06d685dd8a8880abcd89637b20c66d3cc33ca54d73f",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-24-session-continuity/change-review-c/dispositions.md",
+      "source_sha256": "7eb997d143d754d06c8230664e5b4ebf4fcfd841408e6be01f0cec57cb6c8d38",
+      "destination": "docs/reviews/history/2026-10-24-session-continuity/change-review-c/dispositions.md",
+      "sha256": "479e45d10da75424ec9463e46fe1543ff570819a566690c1c0bcd8ee2dddcd30",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-24-session-continuity/change-review-c2/dispositions.md",
+      "source_sha256": "503279a4e74c91c52f178340ff23e55c4f903e4afa49ab5cd6d7e7c36c992ef5",
+      "destination": "docs/reviews/history/2026-10-24-session-continuity/change-review-c2/dispositions.md",
+      "sha256": "9a8f8e42ead789abf276381882d03f7d14ea81c1da38fe165eb8ff837e4f23cc",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-24-session-continuity/change-review-c3/dispositions.md",
+      "source_sha256": "617d0f18152bc7eba1bdff876fe172d60dbf97cfbbbbe81b3e66eb22244a8351",
+      "destination": "docs/reviews/history/2026-10-24-session-continuity/change-review-c3/dispositions.md",
+      "sha256": "a4b43ebf0d4f6e78d222df38693e1cc7b087b48893e1b264e4d9ffa4ecb4f7a5",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-24-session-continuity/change-review-c4/dispositions.md",
+      "source_sha256": "b21bb5d9b64d9706e167d95d84dbd03c3743658df7fef934deb5ee49481d684a",
+      "destination": "docs/reviews/history/2026-10-24-session-continuity/change-review-c4/dispositions.md",
+      "sha256": "79b420d1436166c274a1f36fcd200625fd5208a4c7b5df7df030a41fb263ec12",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-24-session-continuity/design-1/dispositions.md",
+      "source_sha256": "a9c693d1388f763982ea64df9bcf24561a268a5750ff4a55d1408deacc56ce45",
+      "destination": "docs/reviews/history/2026-10-24-session-continuity/design-1/dispositions.md",
+      "sha256": "d3e356e1e9104e2637889f68131272192b8780e1cf91e04f2155bc474ea90157",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-24-session-continuity/design-2/dispositions.md",
+      "source_sha256": "08500b7709bb0786d8fc1e9317254a6b0c56958e2126b4c90bbf5e0c6a694b71",
+      "destination": "docs/reviews/history/2026-10-24-session-continuity/design-2/dispositions.md",
+      "sha256": "54e42831cf9f0b64798eb8baa094dce6a77c730c0e9ee4bbe16b3391b0e06574",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-24-session-continuity/design-3/dispositions.md",
+      "source_sha256": "be13fd744ca399e8b5afe43180af0f9d74b0617b2e6d9b20fbd926e41ab062f4",
+      "destination": "docs/reviews/history/2026-10-24-session-continuity/design-3/dispositions.md",
+      "sha256": "a3a2e9e06b8db10defb4dbcb6abd105a2b38aa9a5191c40dfab8f36e02fc82d9",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-24-session-continuity/go.txt",
+      "source_sha256": "83a73bdbdd950d0c0ac0cbe2580a2baa3382f712cacfb9811acab9431f303f3b",
+      "destination": "docs/reviews/history/2026-10-24-session-continuity/go.txt",
+      "sha256": "9de3e6b340739030f398757e71758de494903f7a5acffad7b66468ea7e9559e9",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended."
+      ]
+    },
+    {
+      "source": "2026-10-24-session-continuity/live/measure-l4-1.json",
+      "source_sha256": "b4d2b7b9b46e97ba588581743c144c4fb9b616acfba34d8ae9f25e8373ebeb1c",
+      "destination": "docs/evidence/history/2026-10-24-session-continuity/live/measure-l4-1.json",
+      "sha256": "aaf80ca640880b3e208664017475f4e30f4434a7a877102e4c8f717953e03845",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "JSON string values normalized without changing numeric or structural data."
+      ]
+    },
+    {
+      "source": "2026-10-25-hygiene-h1/accept-handcheck.md",
+      "source_sha256": "979cca572197c32be99abd9fef596efafbe224a574d19b0edd2f48afbc1d00ac",
+      "destination": "docs/evidence/history/2026-10-25-hygiene-h1/accept-handcheck.md",
+      "sha256": "e7b7c8a8884ab146a59a8f04fe1244fb95f7c6cf8ec268bc8f5534241e08c2af",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-25-hygiene-h1/change-review/dispositions.md",
+      "source_sha256": "6a179edfbd2af366ac34f2b9069d440a30cdf55a76d70b4f81de307643609180",
+      "destination": "docs/reviews/history/2026-10-25-hygiene-h1/change-review/dispositions.md",
+      "sha256": "d662f42d9908be68b29b247985865b231b892afb793ee993a6a462b71bbffad4",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-25-hygiene-h1/design-review/dispositions.md",
+      "source_sha256": "693e440df1b1b8d720c9f68911bf9d155a50e5e98d85f38ff05fcba2e995709b",
+      "destination": "docs/reviews/history/2026-10-25-hygiene-h1/design-review/dispositions.md",
+      "sha256": "8dce3d9079667eb1f59bee2d35d7b5a3d5b91c7f8170ab15b59bc10957fea764",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-25-hygiene-h1/go.txt",
+      "source_sha256": "bb4e0d95b481781db5284cac6a72806699ba7bd9655462f2be1ff0145d7535ab",
+      "destination": "docs/reviews/history/2026-10-25-hygiene-h1/go.txt",
+      "sha256": "afd5a7c5116d710951698cb82a4cb4577e878f698933f7d6fe63eec48a8c5acd",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended."
+      ]
+    },
+    {
+      "source": "2026-10-25-unhealthy-marker/change-review/dispositions.md",
+      "source_sha256": "751897611801075a22c0aa4e5d4c12bde114e939f88f21ebb60fbbc5de8a3ea9",
+      "destination": "docs/reviews/history/2026-10-25-unhealthy-marker/change-review/dispositions.md",
+      "sha256": "3d487b24a20bd913dfa1d5e6af544368cafe755fd5c01f4ab5d8d2b9dcc4a9a9",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-25-unhealthy-marker/design-review/dispositions.md",
+      "source_sha256": "50dcb42f093b14934259dd2c0214b79557949c2b0e8812647bb76615e2fcf2e1",
+      "destination": "docs/reviews/history/2026-10-25-unhealthy-marker/design-review/dispositions.md",
+      "sha256": "d73280632ce308d83ce31b42ac40f7e55461f91be980ffe79bb0437628a1a672",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended.",
+        "Unambiguous retained artifact code references converted to relative Markdown links."
+      ]
+    },
+    {
+      "source": "2026-10-25-unhealthy-marker/go.txt",
+      "source_sha256": "cb67398a6a2e2c7c3f6bf4746c823ebcee9f0e6d9d4354ecc59008895d111d13",
+      "destination": "docs/reviews/history/2026-10-25-unhealthy-marker/go.txt",
+      "sha256": "b52a70d4c9e2bc8cd5e2db7df9b31907e05572d78cc06951c1223a6f4a0ed54f",
+      "transformations": [
+        "Machine-specific paths normalized; retained absolute references resolved; omitted artifacts labelled historical/omitted.",
+        "Historical provenance, non-authorization and omission notice prepended."
+      ]
+    }
+  ],
+  "derived": [
+    {
+      "source": "2026-10-24-session-continuity/live/stats-timeline.log",
+      "source_sha256": "1ee03849e39d92cc7908a4c222fb3d95349f418b2d6c5bfd50117224efad3b35",
+      "destination": "docs/evidence/renewal-events.csv",
+      "sha256": "e17af62aabb222b20a6fe9360cfe80a5a768bbc36cd3803dcd330223893224d1",
+      "method": "Read timestamped aggregate __eligibility only; compare adjacent samples within one process; absent sparse counters assumed zero only for deltas and disclosed, preserved blank in CSV. For each nudges increment, match first credentialResumes increase over preceding baseline at or after start and within 120 seconds. Reset matching on non-JSON lines/process changes; flag gaps >16 seconds, missing counters, multiple increments and incomplete windows. Nominal 15-second sampling uncertainty; no exclusive-causality claim; no identifiers retained."
+    }
+  ],
+  "omitted": [
+    {
+      "category": "binary_media_or_build_artifacts",
+      "file_count": 141,
+      "bytes": 2716139,
+      "policy": "Intentionally omitted from curated repository; not retained in an external archive. Historical summaries do not substitute for raw reproducibility evidence."
+    },
+    {
+      "category": "intermediate_plans_metadata_and_other_unselected_files",
+      "file_count": 2550,
+      "bytes": 61579421,
+      "policy": "Intentionally omitted from curated repository; not retained in an external archive. Historical summaries do not substitute for raw reproducibility evidence."
+    },
+    {
+      "category": "raw_logs_and_model_outputs",
+      "file_count": 112,
+      "bytes": 8522594,
+      "policy": "Intentionally omitted from curated repository; not retained in an external archive. Historical summaries do not substitute for raw reproducibility evidence."
+    },
+    {
+      "category": "retired_test_copies_and_execution_helpers",
+      "file_count": 688,
+      "bytes": 8036097,
+      "policy": "Intentionally omitted from curated repository; not retained in an external archive. Historical summaries do not substitute for raw reproducibility evidence."
+    }
+  ]
+}

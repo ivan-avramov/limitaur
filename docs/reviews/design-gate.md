@@ -10,4 +10,4 @@ The operator approved the final specification and concrete Codex-only L2 assignm
 
 Planned roles: GPT-6 Sol implementation; GPT-5.6 Sol adversarial tests and review; GPT-6 Luna frozen-candidate review. Different-model/same-provider fresh contexts reduce transcript anchoring and model-specific errors; they do not reduce vendor-wide training habits, shared tuning, shared data blind spots. Model tiers use the host catalog dated 2026-10-18; billing basis is unknown.
 
-Specification SHA256: `b4616fb36fbe722f28de3a12fa33fc1e1be07773479fb3d90396c625a707564d`. Full orchestration evidence is maintained outside the repository; the final review report will record executed roles, checks and limitations.
+Specification SHA256: `b4616fb36fbe722f28de3a12fa33fc1e1be07773479fb3d90396c625a707564d`. Historical orchestration outputs are omitted; [retained review records and evidence limitations](../evidence/README.md) preserve selected decisions and outcomes. This gate is a historical record, not renewed execution authority.

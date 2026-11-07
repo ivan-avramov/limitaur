@@ -1,5 +1,7 @@
 # Performance evidence
 
+Historical evidence consolidation (2026-11-07): [retained records and omissions](evidence/README.md). References marked historical/omitted are not available in the curated repository; historical commands and approvals are not current instructions.
+
 The target workload has two default accounts, both enabled and successfully fetching at the learned refresh interval (30–120 seconds, starting at 50 seconds) with the dropdown closed. Warm up 60 seconds, then sample for 600 seconds with at least 10 successful refreshes per provider and no auth pause or throttle. The Claude endpoint's throttling makes a qualifying run unattainable on the operator's machine, and the operator closed the gate on the build 51 smoke (P492/P508). At the learned cadence the 10-success threshold can be met at 60 seconds only with favourable timing (successes at seconds 1, 61, …, 541) and never at a regular 120-second Claude interval; the threshold itself is unchanged. The target is maximum sampled aggregate RSS under 50 MiB and one-core CPU under 0.1 percent. Revised 2026-10-24 (operator decision P487): the RSS budget is 56 MiB and a qualifying run needs at least 10 successful refreshes per provider at the learned cadence (specification A7 amended); earlier rows below are judged against the budget in force when they were measured. CPU uses cumulative user plus system process seconds divided by monotonic elapsed seconds.
 
 `scripts/measure-resources.py` samples the app process and descendants every two seconds. It uses SDK `proc_listchildpids` for bounded native child enumeration and the `rusage_info_v4` layout with `proc_pid_rusage` for resident bytes, nanosecond user/system CPU, process start identity and child counters. Enumeration failure, a vanished process or PID reuse prevents qualification. The result still aggregates observed live descendants for a nonqualifying run. No `ps` helper is launched. The qualifying workload permits no child helpers, so any observed child or changed child counter rejects qualification. A child born and exited between samples may still escape observation if the OS counters do not change; RSS peaks can also be missed.
@@ -30,7 +32,7 @@ The final development candidate also tests the stable synthetic demo lifetime, p
 
 ## Sustained two-provider measurement on the accepted source, 2026-10-23 (America/Los_Angeles)
 
-Build 41 of `dist/Limitaur.app` (0.1.0, revision 8024a83, source-identical to the accepted 8c3056a, signed `Limitaur Dev`) was relaunched at 17:41 with `--stats` and sampled by `scripts/measure-resources.py` with the default 60-second warmup and 600-second window, indicator count at the default 3, dropdown closed, no preferences file present. Result file: `/Users/ivan/ws/limitaur-review/2026-10-23-release-gates/measure-1.json`.
+Build 41 of `dist/Limitaur.app` (0.1.0, revision 8024a83, source-identical to the accepted 8c3056a, signed `Limitaur Dev`) was relaunched at 17:41 with `--stats` and sampled by `scripts/measure-resources.py` with the default 60-second warmup and 600-second window, indicator count at the default 3, dropdown closed, no preferences file present. Result file: [measure-1.json](evidence/history/2026-10-23-release-gates/measure-1.json).
 
 | Quantity | Value | Target |
 | --- | --- | --- |
@@ -45,7 +47,7 @@ The run is nonqualifying for three reasons, none of them the sampler: the Claude
 
 ## L4 smoke on build 51 with the learned interval and the 10 s tick, 2026-10-24 (America/Los_Angeles)
 
-Build 51 of `dist/Limitaur.app` (0.1.0, revision 4a76f6d, signed `Limitaur Dev`, Parts A and B of session continuity live) was launched at 13:59 with `--stats` and sampled by `scripts/measure-resources.py` with the default 60-second warmup and 600-second window from 14:00; result `live/measure-l4-1.json` in the 2026-10-24-session-continuity evidence root. The script still judged against the 50 MiB budget; the 56 MiB budget (P487) was applied to the script afterwards.
+Build 51 of `dist/Limitaur.app` (0.1.0, revision 4a76f6d, signed `Limitaur Dev`, Parts A and B of session continuity live) was launched at 13:59 with `--stats` and sampled by `scripts/measure-resources.py` with the default 60-second warmup and 600-second window from 14:00; result [live/measure-l4-1.json](evidence/history/2026-10-24-session-continuity/live/measure-l4-1.json) in the 2026-10-24-session-continuity evidence root. The script still judged against the 50 MiB budget; the 56 MiB budget (P487) was applied to the script afterwards.
 
 | Quantity | Value | Target |
 | --- | --- | --- |

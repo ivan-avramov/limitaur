@@ -1,0 +1,9 @@
+> Historical record imported 2026-11-07 from `2026-10-18-01a15018/compact-bars/runtime-evidence/bars-panel2/BP2-result.txt`. Commands, approvals and next steps describe the original run and grant no current authority. Only files listed in the [manifest](../../../../../manifest.json) are retained; other artifact names denote omitted historical material. See [evidence limitations](../../../../../README.md).
+
+- **Location:** `Sources/LimitaurCore/Monitor.swift` — 429 `retryDate` display. **Severity: minor.** After the enforced throttle deadline passes, the cached retry label can still say “Retry after” a time in the past until another fetch result updates it. **Change:** Suppress the retry label once the monotonic throttle deadline has passed.
+
+- **Location:** `Tests/LimitaurUITests/PresentationActionTests.swift` — `productionCountActionDoesNotReadCredentialsOrFetch`. **Severity: minor.** The test compares state after 100 `Task.yield()` calls, which do not guarantee a scheduled asynchronous action has completed. A delayed regression could escape the assertions. **Change:** Await a deterministic completion signal for the local display query before comparing state; preserve the pending-request case.
+
+- **Location:** Actual AppKit status-item behavior and generated render images. **Severity: minor, unverified release behavior.** The supplied evidence does not include inspected render images or interactive checks of anchoring, appearance, keyboard behavior, and accessibility. The reviewer correctly lists these as release gates; automated test results do not establish them. **Change:** Keep these checks as release gates and record their results before release. No source correction is established by the current evidence.
+
+The redraw probe concern N1 is resolved by the fresh guarded probe evidence. I found no additional concrete source or credential-boundary defect.

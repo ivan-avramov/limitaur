@@ -1,0 +1,27 @@
+{
+  "classification": "smoke or nonqualifying workload",
+  "cpuPercentOneCore": 0.00062874529617314,
+  "cpuSeconds": 0.0037725350000000005,
+  "cpuTargetMet": true,
+  "defaultProfileStateEligible": false,
+  "descendantCountObserved": 0,
+  "maxRSSMiB": 51.421875,
+  "meanRSSMiB": 50.95822916666667,
+  "measuredSeconds": 600.0100554169621,
+  "medianRSSMiB": 50.9375,
+  "qualifying": false,
+  "refreshOutcomes": {
+    "claude": {
+      "success": 5,
+      "throttled": 3
+    },
+    "codex": {
+      "success": 13
+    }
+  },
+  "rssTargetMet": false,
+  "sampleIntervalSeconds": 2,
+  "samplingLimit": "RSS peaks and children born and exited between samples may be missed",
+  "unaccountedExitedChild": false,
+  "warmupSeconds": 60
+}

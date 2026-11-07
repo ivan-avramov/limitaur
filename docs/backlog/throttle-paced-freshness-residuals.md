@@ -1,6 +1,8 @@
 # Backlog: throttle-paced freshness residuals
 
-Status: backlog, recorded at the Accept of the throttle-paced freshness increment (2026-10-23, change review 2, claude-opus-5-5; codex gpt-6-astra found nothing of substance). None becomes a requirement without an operator decision. Evidence: `/Users/ivan/ws/limitaur-review/2026-10-23-throttle-freshness/`.
+Historical evidence consolidation (2026-11-07): [retained records and omissions](../evidence/README.md). References marked historical/omitted are not available in the curated repository; historical commands and approvals are not current instructions.
+
+Status: backlog, recorded at the Accept of the throttle-paced freshness increment (2026-10-23, change review 2, claude-opus-5-5; codex gpt-6-astra found nothing of substance). None becomes a requirement without an operator decision. Evidence: [retained records](../evidence/README.md) (historical source `2026-10-23-throttle-freshness`; unselected material omitted).
 
 - **P383** Retention is latched from the provider deadline plus the slack, but the next request cannot leave before `throttleUntil`, the later of the Retry-After and the local exponential backoff. On a second consecutive 429 (backoff 60 s, then 120 s) a Retry-After shorter than the backoff lets the post-throttle request go out after retention ended, so the bar blinks for 11–18 s. The observed pattern alternates success and 429 with a Retry-After of about 55 s, which does not blink. Candidate change: latch from `max(retryAfterUntil, throttleUntil) + retentionSlack`, still keyed on a parsed header and capped at 300 s; this reverses R4's "not the backoff deadline" clause and two frozen tests.
 - **P384** The implementer's `stop()` test cannot fail (`stop()` already clears the snapshot); only the frozen alias test pins the `retention` half of R12, and the `retryAfterUntil` clearing in `stop()` is hygiene no test can observe. Tighten or drop the implementer test.

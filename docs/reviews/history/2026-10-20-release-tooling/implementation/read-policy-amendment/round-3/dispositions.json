@@ -1,0 +1,134 @@
+[
+  {
+    "id": "astra-P1",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "Explicit inert Git/filesystem data exception in WORK; no package/plugin/application/test dispatch from fixture root. All executable payload source stays immutable TRUST."
+  },
+  {
+    "id": "astra-P2",
+    "reviewerSeverity": "major",
+    "disposition": "adapt",
+    "reason": "Choose fixed stdlib-only Git object/tree/commit/index byte seeder, no new Git write subprocess argv. Fixed minimal inert three-file SHA1 repo, no hooks/config/network/app code, validation only original read-query prefix."
+  },
+  {
+    "id": "astra-P3",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "Regenerate renderer-only golden with separate generation model: all home config suffixes, external symlink target, home outside Users, derived aliases and expected complete exclusions; preserve descendant resolution before dedup."
+  },
+  {
+    "id": "astra-P4",
+    "reviewerSeverity": "minor",
+    "disposition": "adopt",
+    "reason": "Correct summary: network denial retained, child writes narrowed/restructured, parent canary side effects added."
+  },
+  {
+    "id": "opus-F1",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "Full suffixes/outside-home/external-target generation inputs and expected exclusion union added; renderer-only label prevents confusing raw rendering with real path discovery."
+  },
+  {
+    "id": "opus-F2",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "Bytewise sorted unique EXCLUDED union retains descendants; TEMP exact fixed order; aliases declaration order. Negative generation vectors for omitted fixed roots/TEMP override/prefix siblings/unsafe paths. No profiles applied."
+  },
+  {
+    "id": "opus-F3",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "Component-aware lexical Data counterparts for declared homes/config/checkout/records under fixed firmlink top-level list; resolved symlink spellings included. Mark emitted-but-unprobed, no universal aliases."
+  },
+  {
+    "id": "opus-F4",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "Per-case/slot fixed catalogue for evidence, artifact, source, Git HEAD/config/index/object and cross-root pair. Fresh16slots/case/suite within caps; child does not create links or skip cases, no shared mutation."
+  },
+  {
+    "id": "opus-F5",
+    "reviewerSeverity": "major",
+    "disposition": "adapt",
+    "reason": "Stdlib-only fixed Git format writer avoids extending closed Git command list; pure data side effect included in frozen supervisor scope. No normal-user worker-code import."
+  },
+  {
+    "id": "opus-F6",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "Precedence explicitly permits own-account/temp location APIs, three path vars plus HOME/declared launch context and bounded metadata symlink checks only; no credential/provider/preference enumeration/service queries by analogy."
+  },
+  {
+    "id": "opus-F7",
+    "reviewerSeverity": "major",
+    "disposition": "decline optional wider fallback; clarify branch",
+    "reason": "Startup/control failure explicitly ends chosen contract batch; do not infer private-var-folders cause or preauthorize user-cache readability. No guessed exclusion removal; report incompatibility before environment/authority choice."
+  },
+  {
+    "id": "opus-F8",
+    "reviewerSeverity": "major",
+    "disposition": "adapt",
+    "reason": "Disclose unchanged process-info/argv/environment/signals/shared-memory/pasteboard routes, cooperative prohibitions, public-XNU conditional environment path not host proof. No new process-info rule that could break collector is silently added."
+  },
+  {
+    "id": "opus-F9",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "Read-only static inventory covers frozen suites/collector writes and CWD; both binary vars, absolute runner/modules and WORK scratch specified. Required source write fails build/tests, no frozen edits or implicit grant."
+  },
+  {
+    "id": "opus-F10",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "reason": "Exact fixed no-op UTF8/hash now in recipe/golden, one pass per recipe inventory with same bytes and first-gate input binding."
+  },
+  {
+    "id": "opus-F11",
+    "reviewerSeverity": "minor",
+    "disposition": "adapt",
+    "reason": "Fixed emission ordering and private host-compiler semantics explicit, STAGE/temp filters remove only those order-only carveouts; actual hardlink controls remain measured evidence, not operation-name proof."
+  },
+  {
+    "id": "opus-F12",
+    "reviewerSeverity": "minor",
+    "disposition": "adopt",
+    "reason": "Home read-all vs temp data-only differences explicit, metadata/xattrs not claimed equally protected. Normal model briefing remains cooperative."
+  },
+  {
+    "id": "opus-F13",
+    "reviewerSeverity": "minor",
+    "disposition": "adapt",
+    "reason": "Only harmless same-inode NFD/volfs/case aliases probed when available; no unavailable path counts as pass or inheritance of alias evidence to real secret roots."
+  },
+  {
+    "id": "opus-F14",
+    "reviewerSeverity": "minor",
+    "disposition": "adopt",
+    "reason": "Non-guard cleanup failure internal_error/prepared=false before commit; ACL obstacle can cause disclosed fail-closed residue, no unsafe ACL/privilege changes promised."
+  },
+  {
+    "id": "opus-F15",
+    "reviewerSeverity": "minor",
+    "disposition": "adopt",
+    "reason": "R2 synthetic copies after implementation distinct from prepare/pilot SOURCE; parent edits and freezes between guarded builds, never uses altered copy as release source."
+  },
+  {
+    "id": "opus-F16",
+    "reviewerSeverity": "minor",
+    "disposition": "adopt",
+    "reason": "Write/parent effects summary corrected; recipe/catalogue descriptor-read only from audited export, included in all-tracked source input digest and first TCB hash map."
+  },
+  {
+    "id": "opus-F17",
+    "reviewerSeverity": "minor",
+    "disposition": "adapt",
+    "reason": "Future infrastructure not implemented during design so no invented approval hash. Per-file driver/probe/listener/seeder/template map frozen before launch and after allowed corrections, scoped authority explicit; no extra micro-approval gate or unguarded new release TCB."
+  },
+  {
+    "id": "opus-F18",
+    "reviewerSeverity": "minor",
+    "disposition": "adopt",
+    "reason": "Normative worker brief explicitly supersedes v1 positives with selected v2 pack; original specification/v1 data preserved, no silent edits."
+  }
+]

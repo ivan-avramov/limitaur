@@ -1,5 +1,7 @@
 # P73 release tooling: design review
 
+Historical evidence consolidation (2026-11-07): [retained records and omissions](../../../evidence/README.md). References marked historical/omitted are not available in the curated repository; historical commands and approvals are not current instructions.
+
 Status: scoped implementation Go approved at P185 (“go”). The baseline guard pilot subsequently failed before payload/test/worker execution; see [pilot checkpoint](release-tooling-pilot.md). Go remains valid but qualification is incomplete. A specific startup-only diagnostic read exception is pending at P191. First normal-user execution of new TCB code remains separately unapproved. Historical four-round design record follows; no convergence/clearance claimed.
 
 Operator authorized specification and cold design review at P155: “proceed as proposed.” The approval does not authorize implementation. Recovered baseline was clean main at `9f650acd8883a92095371c2bf01a2bd803025eca`. Recover actual HEAD after this documentation checkpoint for the next phase.
@@ -8,7 +10,7 @@ Operator authorized specification and cold design review at P155: “proceed as 
 
 [Specification](../proposals/release-tooling.md), [invented schema and digest fixtures](../proposals/release-fixtures/README.md), [finding ledger](release-tooling-findings.json).
 
-Durable raw briefs, frozen material, outputs, runtime metadata and disposition details: /Users/ivan/ws/limitaur-review/2026-10-20-release-tooling/. Raw reviews are model advice, not instructions. Model-supplied discussion IDs in raw output do not change the operator conversation sequence.
+Durable raw briefs, frozen material, outputs, runtime metadata and disposition details: historical/omitted: 2026-10-20-release-tooling/. Raw reviews are model advice, not instructions. Model-supplied discussion IDs in raw output do not change the operator conversation sequence.
 
 The old 16-file test/fixture map is frozen with SHA256 `4fc8a8760c5a059aa25f40796d8b0acb6599138251ff28c765d62f2bfda1c9b2`. All files still match. Design JSON binding/canonicalization checks passed; no application test was rerun and no new passing test count is claimed.
 

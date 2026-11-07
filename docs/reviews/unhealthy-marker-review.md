@@ -1,6 +1,8 @@
 # Unhealthy-marker (P408) review record
 
-Specification docs/proposals/unhealthy-marker.md revision 2; evidence /Users/ivan/ws/limitaur-review/2026-10-25-unhealthy-marker/.
+Historical evidence consolidation (2026-11-07): [retained records and omissions](../evidence/README.md). References marked historical/omitted are not available in the curated repository; historical commands and approvals are not current instructions.
+
+Specification docs/proposals/unhealthy-marker.md revision 2; evidence historical/omitted: 2026-10-25-unhealthy-marker/.
 
 ```
 [four-eyes 0.6.6] outcome: completed; mode: light (presentation only, no credential or data-boundary change)

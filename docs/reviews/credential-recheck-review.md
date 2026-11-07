@@ -1,6 +1,8 @@
 # Credential re-check (P343/P347): four-eyes record
 
-2026-10-21 to 2026-10-22. Specification `docs/proposals/credential-recheck.md`, revision 7. Evidence root `/Users/ivan/ws/limitaur-review/2026-10-21-credential-recheck/` (briefs, raw outputs, dispositions, diffs, hashes, `go.txt` with the operator's words and times). Skill `four-eyes` 0.6.4 strict (credential boundary) with `review-panel` 0.4.1.
+Historical evidence consolidation (2026-11-07): [retained records and omissions](../evidence/README.md). References marked historical/omitted are not available in the curated repository; historical commands and approvals are not current instructions.
+
+2026-10-21 to 2026-10-22. Specification `docs/proposals/credential-recheck.md`, revision 7. Evidence root [retained records](../evidence/README.md) (historical source `2026-10-21-credential-recheck`; unselected material omitted) (briefs, raw outputs, dispositions, diffs, hashes, `go.txt` with the operator's words and times). Skill `four-eyes` 0.6.4 strict (credential boundary) with `review-panel` 0.4.1.
 
 ## Course of the run
 

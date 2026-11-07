@@ -1,5 +1,7 @@
 # P73 read-policy amendment: design result
 
+Historical evidence consolidation (2026-11-07): [retained records and omissions](../../../evidence/README.md). References marked historical/omitted are not available in the curated repository; historical commands and approvals are not current instructions.
+
 2026-10-20. Baseline81965879463dc205eb7adf9e9a55eaeeb05dbc87, clean before design. P216 “proceed” authorized completing design/review after P212–P215 clarified over-asking. Routine drafting, read-only investigation and review within Go are autonomous. It did not authorize changing protections or applying a new profile.
 
 ## Decision presented at P231
@@ -48,6 +50,6 @@ Every member got the same frozen input within its round, sealed+web from a fresh
 
 Claude total3.7956063 USD is reported list-price equivalent, not an invoice. Rounds1/3 include auxiliary Haiku5.5 buckets without separate exposed sessions. No separately dispatched Haiku role. OpenAI/driver money and driver exact model/session are unreported. Astra shares the driver's OpenAI vendor; exact model equality unknown. Opus is cross-vendor. Fresh sessions remove transcript anchoring, not shared-model/vendor errors. Tool restrictions do not establish hostile-model OS containment.
 
-All snapshots, briefs, raw outputs, runtime metadata, per-round dispositions, historical v1 bytes, static/data checks and final proposed file map are under `/Users/ivan/ws/limitaur-review/2026-10-20-release-tooling/implementation/read-policy-amendment/`. Requested CLI calls finished; no implementation/test-writer phase is active. Current closing pointP231, nextP232.
+All snapshots, briefs, raw outputs, runtime metadata, per-round dispositions, historical v1 bytes, static/data checks and final proposed file map are under [retained records](../../../evidence/README.md) (historical source `2026-10-20-release-tooling/implementation/read-policy-amendment`; unselected material omitted). Requested CLI calls finished; no implementation/test-writer phase is active. Current closing pointP231, nextP232.
 
 [four-eyes0.6.0 / review-panel0.4.0] outcome: amendment design proposed, execution approval pending; strict (permission/architecture boundary). Designer/driver: current Codex desktop, exact runtime model/session/cost unreported. New design review: three rounds/six returned sessions above;68 findings dispositioned, post-last changes not re-reviewed, no convergence. Implementer/test-writer/change-review:none. Existing Go:P185; design/review continuation:P216 “proceed”; amended permission/execution Go:none. Old tests/collector preserved, no new tests or app/profile runs. First normal-user release TCB execution:none. Implementation commit:none; documentation/design-data checkpoint uses standing rule. Push:none.

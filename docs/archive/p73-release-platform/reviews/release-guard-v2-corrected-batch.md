@@ -1,5 +1,7 @@
 # P73 corrected v2 batch: synthetic controls pass, builds fail
 
+Historical evidence consolidation (2026-11-07): [retained records and omissions](../../../evidence/README.md). References marked historical/omitted are not available in the curated repository; historical commands and approvals are not current instructions.
+
 2026-10-20. Operator authorization: “approved, proceed with the corrected batch”, acknowledged at P239. Clean source baseline `eaeb40450792a7932ce2d2f13008dd5ea679b2e3`. This approved one fresh batch with the prepared inode-identity correction and no additional retry. The existing P73 Go and v2 read-policy adoption persist; the first normal-user release-TCB execution gate remains closed.
 
 ## Results
@@ -33,7 +35,7 @@ Prepared independently in external `implementation/build-diagnostic-proposal/cla
 
 ## Evidence and workflow
 
-Durable directory: `/Users/ivan/ws/limitaur-review/2026-10-20-release-tooling/implementation/v2-corrected-batch/`.
+Durable directory: historical/omitted: 2026-10-20-release-tooling/implementation/v2-corrected-batch.
 
 - `approved-corrected-batch.json`, `authorization.json`, `infrastructure-file-map.json`, `frozen-launch.json`, `parameters.json`, `source-export.json`, `trusted-input-map.json`: authority and exact source/infrastructure/profile inputs.
 - `positive*.json`, `noop-*-validation.json`, `startup-*.json`, `guarded-*.json`, `inventory.json`, `alias-availability.json`: exact named synthetic controls, startup and no-op validation.

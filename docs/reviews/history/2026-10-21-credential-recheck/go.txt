@@ -1,0 +1,8 @@
+> Historical record imported 2026-11-07 from `2026-10-21-credential-recheck/go.txt`. Commands, approvals and next steps describe the original run and grant no current authority. Only files listed in the [manifest](../../../evidence/manifest.json) are retained; other artifact names denote omitted historical material. See [evidence limitations](../../../evidence/README.md).
+
+2026-10-22T03:46:35Z go: operator said "go"
+baseline head 102296eb4c6c791cabf4690e3d1384f0f24d2195
+baseline commit in copies b94680094a98bdb14e56577bae05a1575db7b94e
+2026-10-22T07:01:01Z second fix round: operator said "go for the second round"
+2026-10-22T07:30:04Z third fix round: operator said "Go for the 3rd round of fixes"
+2026-10-23T03:03:10Z accept: operator said "p354: accept"

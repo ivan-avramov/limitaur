@@ -1,6 +1,8 @@
 # Backlog: session continuity Part B residuals
 
-Status: backlog, recorded at the Accept ask of Part B (2026-10-24, strict four-eyes; specification `docs/proposals/session-continuity.md` revision 10). None becomes a requirement without an operator decision. Evidence: `/Users/ivan/ws/limitaur-review/2026-10-24-session-continuity/`.
+Historical evidence consolidation (2026-11-07): [retained records and omissions](../evidence/README.md). References marked historical/omitted are not available in the curated repository; historical commands and approvals are not current instructions.
+
+Status: backlog, recorded at the Accept ask of Part B (2026-10-24, strict four-eyes; specification `docs/proposals/session-continuity.md` revision 10). None becomes a requirement without an operator decision. Evidence: [retained records](../evidence/README.md) (historical source `2026-10-24-session-continuity`; unselected material omitted).
 
 - **R-B1** Timing-sensitive implementer tests (Parts A and B) use bounded state waits that can time out when the machine is heavily loaded (observed once each for three tests at a load average above 40; all pass in isolation and in three consecutive full runs at normal load). Candidate: longer bounds or a load-aware wait helper.
 - **R-B2** The merge relocation test fixture (`aliasReplacementDiscardsReceiptAfterItsEntityMerges`) uses a short flush before checking merge completion (test-writer, sixth delivery); a state wait would be stricter.

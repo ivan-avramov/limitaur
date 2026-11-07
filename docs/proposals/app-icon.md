@@ -1,5 +1,7 @@
 # App icon and status refresh
 
+Historical evidence consolidation (2026-11-07): [retained records and omissions](../evidence/README.md). References marked historical/omitted are not available in the curated repository; historical commands and approvals are not current instructions.
+
 Problem: Give Limitaur the approved simplified monochrome minotaur icon, remove the white outside the charcoal tile, and reconcile stale project status and the existing SemVer procedure.
 
 - Approval: user, 2026-11-07: “I like the icon - go for it. But i want the outer-most outline to be the black (drop the white)”. P5 documentation scope approved with it.
@@ -14,6 +16,6 @@ Problem: Give Limitaur the approved simplified monochrome minotaur icon, remove 
 - CHANGELOG: add icon under Unreleased; correct obsolete claim that nothing has been tagged. Keep version 0.2.1 and dated releases intact.
 - Handoff: add current summary; replace stale pending list, preserving historical sections. Current outstanding: keyboard/scroll/accessibility, L2 reduction observation and second machine, API/hybrid and Cursor deferred; file-source recovery unverified. Orphan signing entry and old Keychain-API warnings are resolved.
 - Evidence supplied by parent: release 0.2.1 build 92, release tests 35 UI + 436 core + 49 Python + 13 collector. L1 passed in C9, relaunch persistence in C10. Timeline through 2026-11-07: 19 nudge increments, each followed by credentialResumes increment within 120 seconds; no recorded nudgeFailures/keychainSuspensions at those samples. This is aggregate observational evidence, not proof of exclusive causality; do not claim second-machine validation.
-- Preserve limitaur-review in place; no deletion/archive in this increment. No install, live app launch, provider requests, version bump, tag, push or release.
+- Historical icon-increment boundary: preserve the former sibling review folder; consolidation was authorized separately afterward. No install, live app launch, provider requests, version bump, tag, push or release.
 - Tests: focused offline packaging checks and current native suite; existing tests unmodified. Build/test process access may be requested if needed, with ad-hoc signing forced (LIMITAUR_SIGN_IDENTITY=-). Do not launch app mode.
 - Acceptance: approved visual direction preserved, icon registration/copy verified in built bundle, missing-asset failure verified, checks truthful, no runtime code changes, documented evidence qualified, budget met.

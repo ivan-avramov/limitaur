@@ -1,0 +1,114 @@
+[
+  {
+    "id": "astra-P1",
+    "member": "astra",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "driverRationale": "Maintain policy association only. Cache-root addition did not restore the measured retry; do not infer necessity, sufficiency, or a missing path from separate runs."
+  },
+  {
+    "id": "astra-P2",
+    "member": "astra",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "driverRationale": "Apple main confirms namespace35 and ignition call context, not private code2 or host-source equality. Flags decode is contextual, not determinism evidence."
+  },
+  {
+    "id": "astra-P3",
+    "member": "astra",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "driverRationale": "Original PID-as-text filtered query has unknown detection coverage. A fixed processID/parenthesizedPID info/debug query of the same window also returned no event; this does not prove no denial."
+  },
+  {
+    "id": "astra-P4",
+    "member": "astra",
+    "reviewerSeverity": "major",
+    "disposition": "adapt and complete read-only check",
+    "driverRationale": "Read only the exact already identified echo report under current evidence-review scope, not another launch. Identity/build/time verified; indicator/details/reasons and asi absent. No raw report exported, no report-directory search. Reject invented need for a new TCB gate for this routine read-only extraction."
+  },
+  {
+    "id": "astra-P5",
+    "member": "astra",
+    "reviewerSeverity": "blocker",
+    "disposition": "adopt",
+    "driverRationale": "Guard qualification remains blocked; original per-operation positive controls missing. Existing Go persists but does not bypass failed prerequisite. Future replay requires bounded approval, no broad-profile reuse."
+  },
+  {
+    "id": "astra-P6",
+    "member": "astra",
+    "reviewerSeverity": "major",
+    "disposition": "adapt",
+    "driverRationale": "Do not attach tracers, alter SIP/bootargs/entitlements, use root, copy/re-sign binaries or broadly capture logs. Apple SIP restrictions are general constraints, not proof of all tools being unavailable locally."
+  },
+  {
+    "id": "astra-P7",
+    "member": "astra",
+    "reviewerSeverity": "major",
+    "disposition": "adopt",
+    "driverRationale": "Say default-deny data reads plus selected write/network denials, not comprehensive default-deny sandbox. Preserve direct-operation, toolchain, named-record, TCB and release gates separately."
+  },
+  {
+    "id": "opus-F1",
+    "member": "opus",
+    "reviewerSeverity": "major",
+    "disposition": "adapt; reject necessity claim",
+    "driverRationale": "One-time broad-read successes and additional denials support association. Uncontrolled launch/time differences and unknown SBPL behavior prevent proof that one denial was necessary. Cache addition is insufficient in observed retry; not proof unrelated/never needed."
+  },
+  {
+    "id": "opus-F2",
+    "member": "opus",
+    "reviewerSeverity": "major",
+    "disposition": "adapt",
+    "driverRationale": "Namespace/flag definitions and public ignite-before-fallback order verified. Frames place abort in ignition path; reject certainty about an exact internal stage, missing object or what happened in a different host-source version."
+  },
+  {
+    "id": "opus-F3",
+    "member": "opus",
+    "reviewerSeverity": "major",
+    "disposition": "retain hypothesis only",
+    "driverRationale": "Cryptex path-alias/kernel matcher claims are unsupported for this host. No alias exception adopted. Path existence/realpath is not denial attribution."
+  },
+  {
+    "id": "opus-F4",
+    "member": "opus",
+    "reviewerSeverity": "blocker",
+    "disposition": "adapt and complete read-only check",
+    "driverRationale": "Restrict to exact pid87944 echo filename already known. Do not scan for other filenames or seek the unrelated listed PIDs. Reason fields and asi absent; selected dyld binary identity recorded. D0 inconclusive."
+  },
+  {
+    "id": "opus-F5",
+    "member": "opus",
+    "reviewerSeverity": "major",
+    "disposition": "adapt and complete read-only check",
+    "driverRationale": "One fixed window query with info/debug, processID87944 or exact parenthesizedPID, no deny-substring requirement returned no event. No sudo/global capture/other PID expansion. D1 inconclusive; log detection still unqualified."
+  },
+  {
+    "id": "opus-F6",
+    "member": "opus",
+    "reviewerSeverity": "major",
+    "disposition": "adapt; diagnostic proposal only",
+    "driverRationale": "Installed Apple profiles demonstrate with-report syntax, not effective logging or last-matching-rule semantics. Reject claim every report exactly identifies a previously blocked read and reject necessity from reported path sets. Prepare diagnostic-only broad-read reporting profile with synthetic observable/whitelisted/explicitly denied canaries; require positive reporting and deny controls before echo; no payload/guard qualification or automatic allowlist adoption. Separate approval required."
+  },
+  {
+    "id": "opus-F7",
+    "member": "opus",
+    "reviewerSeverity": "major",
+    "disposition": "adapt",
+    "driverRationale": "Reject unapproved escalation/SIP/bootarg/env/copy/resign/broad-capture suggestions. Do not assert every process-scoped tracer watches the whole system or that unavailable privilege has been measured. Only bounded known-process evidence considered."
+  },
+  {
+    "id": "opus-F8",
+    "member": "opus",
+    "reviewerSeverity": "major",
+    "disposition": "adapt; factual correction",
+    "driverRationale": "Both original build and diagnostic Python probes were launched and aborted, per original-probe-result.json. Only latest retry diagnostic startup was not reached. No direct-operation result qualifies. Keep temp/cache environment/toolchain behavior unmeasured; confstr measurement is not permission to allow user temp roots."
+  },
+  {
+    "id": "opus-F9",
+    "member": "opus",
+    "reviewerSeverity": "minor",
+    "disposition": "adopt with limit",
+    "driverRationale": "Host reports macOS27.0.1 build26A434. Public main-source comparison is structural only; no assertion that every source is older or that source absence proves a private implementation detail."
+  }
+]

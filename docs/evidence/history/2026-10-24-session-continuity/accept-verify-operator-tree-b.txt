@@ -1,0 +1,19 @@
+> Historical record imported 2026-11-07 from `2026-10-24-session-continuity/accept-verify-operator-tree-b.txt`. Commands, approvals and next steps describe the original run and grant no current authority. Only files listed in the [manifest](../../manifest.json) are retained; other artifact names denote omitted historical material. See [evidence limitations](../../README.md).
+
+=== native run 1 20:44:08Z
+✔ Test run with 25 tests in 0 suites passed after 0.369 seconds.
+✔ Test run with 353 tests in 17 suites passed after 7.025 seconds.
+=== native run 2 20:44:42Z
+✔ Test run with 25 tests in 0 suites passed after 0.359 seconds.
+✔ Test run with 353 tests in 17 suites passed after 7.030 seconds.
+=== native run 3 20:44:51Z
+✔ Test run with 25 tests in 0 suites passed after 0.333 seconds.
+✔ Test run with 353 tests in 17 suites passed after 7.028 seconds.
+=== release
+Build complete! (15.43 sec)
+=== python + collector
+Adversarial: Ran 19 tests in 0.415s OK
+AdversarialClaude: Ran 12 tests in 0.316s OK
+AdversarialBars: Ran 18 tests in 0.349s OK
+collector: Ran 12 tests in 0.002s OK
+verification done 2026-10-24T20:45:18Z ok=1

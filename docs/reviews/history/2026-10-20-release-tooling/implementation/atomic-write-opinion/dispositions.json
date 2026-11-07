@@ -1,0 +1,135 @@
+{
+  "findings": [
+    {
+      "disposition": "adopted",
+      "id": "AW-A1",
+      "reason": "Restored a measured native build/actual-artifact/72-name path using private-volume scratch; default remains unqualified. Canary causation is not overstated.",
+      "reviewer": "astra",
+      "severity": "blocker"
+    },
+    {
+      "disposition": "adopted",
+      "id": "AW-A2",
+      "reason": "No read widening. Direct missing-file reads/listings return ENOENT; generic TSC message is not a syscall attribution.",
+      "reviewer": "astra",
+      "severity": "major"
+    },
+    {
+      "disposition": "adopted",
+      "id": "AW-A3",
+      "reason": "Kept file-link/private-temp reads unchanged; no non-atomic rewrite of SDK or app.",
+      "reviewer": "astra",
+      "severity": "major"
+    },
+    {
+      "disposition": "adopted",
+      "id": "AW-A4",
+      "reason": "Composed exception only for trusted canary, then demonstrated a private volume under unchanged full recipes. No guessed app exception.",
+      "reviewer": "astra",
+      "severity": "major"
+    },
+    {
+      "disposition": "adopted",
+      "id": "AW-A5",
+      "reason": "Rejected shared TemporaryItems writes for payloads. Controlled outside-WORK canary confirms writable exposure under broad diagnostic exception.",
+      "reviewer": "astra",
+      "severity": "major"
+    },
+    {
+      "disposition": "adapted",
+      "id": "AW-A6",
+      "reason": "Added full-profile atomic controls, volume alias/read/write/metadata/symlink controls, real native build, actual executable controls and complete72 native records. New first-TCB review remains.",
+      "reviewer": "astra",
+      "severity": "major"
+    },
+    {
+      "disposition": "adopted",
+      "id": "AW-A7",
+      "reason": "No shared-temp sweep or false global cleanup claim; private-image cleanup independently recovered and verified.",
+      "reviewer": "astra",
+      "severity": "major"
+    },
+    {
+      "disposition": "adapted",
+      "id": "AW-A8",
+      "reason": "Assessed installed hdiutil help/man and tested owned private image; no VM/account presumed or provisioned. Same host release gates remain.",
+      "reviewer": "astra",
+      "severity": "major"
+    },
+    {
+      "disposition": "adopted",
+      "id": "AW-A9",
+      "reason": "P244 supersedes stepwise routine confirmations; material permission changes and first normal-user new TCB execution remain explicit decisions.",
+      "reviewer": "astra",
+      "severity": "major"
+    },
+    {
+      "disposition": "adapted",
+      "id": "AW-O1",
+      "reason": "Atomic-write explanation remains a hypothesis for the original symptom, supported by API comparison and native recovery; installed/public source equivalence and exact syscall order unproved.",
+      "reviewer": "opus",
+      "severity": "major"
+    },
+    {
+      "disposition": "partly_adopted",
+      "id": "AW-O2",
+      "reason": "Adopted source/owned-path/API checks. Did not blindly execute itemReplacement query as read-only or replay failed historical unified-log observer; possible query side effects/authority and old reporting control failure were not waived by reviewer.",
+      "reviewer": "opus",
+      "severity": "major"
+    },
+    {
+      "disposition": "partly_adopted",
+      "id": "AW-O3",
+      "reason": "Composed exception only for trusted canary and observed its exposure. Rejected compiler execution under widened writes before approval; no claim one build lists every future denial.",
+      "reviewer": "opus",
+      "severity": "major"
+    },
+    {
+      "disposition": "adopted",
+      "id": "AW-O4",
+      "reason": "Shared-area exception rejected for payloads. Rejected timestamp/tool-name cleanup and regex as sufficient ownership; concurrent same-tool processes cannot be attributed safely.",
+      "reviewer": "opus",
+      "severity": "blocker"
+    },
+    {
+      "disposition": "adopted",
+      "id": "AW-O5",
+      "reason": "512MiB private-volume canary then4096MiB sparse nested-WORK baseline succeeded under unchanged guards; same-source native72 passed, default failed. No host TemporaryItems permission added.",
+      "reviewer": "opus",
+      "severity": "major"
+    },
+    {
+      "disposition": "adopted",
+      "id": "AW-O6",
+      "reason": "No file-link or read relaxation.",
+      "reviewer": "opus",
+      "severity": "minor"
+    },
+    {
+      "disposition": "partly_adopted",
+      "id": "AW-O7",
+      "reason": "Cleanup honesty adopted; no broad TemporaryItems enumeration/sweep. Only own attachment was checked before cleanup; all private image contents removed after detach. Earlier Foundation auxiliary residue remains unclaimed.",
+      "reviewer": "opus",
+      "severity": "major"
+    },
+    {
+      "disposition": "adapted",
+      "id": "AW-O8",
+      "reason": "Guard-dependent API behavior disclosed. Rejected categorical exclusion of guarded build evidence: it is valid for its declared recipe, while actual UI/provider/performance/default release qualification remain separate.",
+      "reviewer": "opus",
+      "severity": "minor"
+    },
+    {
+      "disposition": "adapted",
+      "id": "AW-O9",
+      "reason": "Executed bounded same-protection diagnosis/private scratch provisioning autonomously under P244. Did not treat reviewer statements as user authority for new host writes, traces, directory scans, or compiler exceptions.",
+      "reviewer": "opus",
+      "severity": "major"
+    }
+  ],
+  "mode": "opinion",
+  "newOperationalRecordAfterOpinion": "not re-reviewed; final candidate review remains mandatory",
+  "newReleaseTCBExecuted": false,
+  "rounds": 1,
+  "unadoptedSharedWriteOptionRejected": true
+}

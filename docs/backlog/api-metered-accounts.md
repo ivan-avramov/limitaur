@@ -1,6 +1,8 @@
 # Backlog: API-metered and hybrid accounts
 
-Status: backlog, not approved for implementation in this checkout. The operator has an API-billed account on another machine and will pick this up there. The detailed contract drafted on 2026-10-18 is external (`/Users/ivan/ws/limitaur-review/2026-10-18-01a15018/claude-continuation/additions-design.md`); this page is its summary and the list of decisions still open. Its SemVer section is superseded by the minimal P73 versioning already shipped.
+Historical evidence consolidation (2026-11-07): [retained records and omissions](../evidence/README.md). References marked historical/omitted are not available in the curated repository; historical commands and approvals are not current instructions.
+
+Status: backlog, not approved for implementation in this checkout. The operator has an API-billed account on another machine and will pick this up there. The detailed contract drafted on 2026-10-18 is retained in this repository ([additions-design.md](../proposals/api-metered-accounts-draft.md)); this page is its summary and the list of decisions still open. Its SemVer section is superseded by the minimal P73 versioning already shipped.
 
 ## What it adds
 

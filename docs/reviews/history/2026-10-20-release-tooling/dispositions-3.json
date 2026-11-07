@@ -1,0 +1,143 @@
+[
+  {
+    "id": "D38",
+    "raisedBy": [
+      "opus3:1"
+    ],
+    "disposition": "adapted",
+    "topic": "Real home and Foundation lookup",
+    "reason": "Default-deny reads except selected OS/SDK/tool roots and export/scratch; explicit whole-home denial plus CFFIXED_USER_HOME. Broker isolation request retained as declined D01, not silently claimed. No actual credential read/probe here.",
+    "reReviewed": false
+  },
+  {
+    "id": "D39",
+    "raisedBy": [
+      "opus3:2"
+    ],
+    "disposition": "adapted",
+    "topic": "Nested sandbox test ownership",
+    "reason": "Guarded suites never apply another sandbox/full prepare. Fixed supervisor establishes actual profiles/probes; unit seam tests control/errno paths. Real regeneration builds disable inner SwiftPM sandbox. Separate supervised full-prepare fixture smoke required before acceptance. Significant final correction, not re-reviewed.",
+    "reReviewed": false
+  },
+  {
+    "id": "D40",
+    "raisedBy": [
+      "opus3:3"
+    ],
+    "disposition": "adapted",
+    "topic": "Collector assumptions and protection",
+    "reason": "Actual qualifying_counters is fixed18 successes, no positive non-success, exact elapsed loop; contrary speculation declined. Add mechanical collector source freeze and explicit short-elapsed invalid_evidence code.",
+    "reReviewed": false
+  },
+  {
+    "id": "D41",
+    "raisedBy": [
+      "opus3:4"
+    ],
+    "disposition": "adopted",
+    "topic": "Command deadlines",
+    "reason": "Pin build/test/query/probe/signature timeout table; kill process groups, bounded memory output.",
+    "reReviewed": false
+  },
+  {
+    "id": "D42",
+    "raisedBy": [
+      "opus3:5"
+    ],
+    "disposition": "adapted",
+    "topic": "Compiler cache placement",
+    "reason": "Use known previous guarded env variables plus explicit Swift/Clang module-cache flags, separate role roots; no external cache write allowance. Unmeasured backend behavior stays pilot/release gate.",
+    "reReviewed": false
+  },
+  {
+    "id": "D43",
+    "raisedBy": [
+      "opus3:6"
+    ],
+    "disposition": "adopted",
+    "topic": "Verify selected policy",
+    "reason": "Take build policy/backend/development from manifest; recompute current source/config/tool/SDK/arch only. Verify development flag changes qualification, not build identity.",
+    "reReviewed": false
+  },
+  {
+    "id": "D44",
+    "raisedBy": [
+      "opus3:7"
+    ],
+    "disposition": "adapted",
+    "topic": "Metadata links and exact config pairs",
+    "reason": "Permit multilink content-addressed objects only; explicit inert core/user/gc/pull/remote/branch key allowlist; reject transformation/active/unknown keys, no automatic repairs.",
+    "reReviewed": false
+  },
+  {
+    "id": "D45",
+    "raisedBy": [
+      "opus3:8"
+    ],
+    "disposition": "adapted",
+    "topic": "Internal runtime search paths",
+    "reason": "Allow rpaths resolving inside frozen app in addition to system Swift path, still forbid @rpath/non-system dependencies and external search roots. No broad unmeasured acceptance of arbitrary paths.",
+    "reReviewed": false
+  },
+  {
+    "id": "D46",
+    "raisedBy": [
+      "opus3:9",
+      "astra3:P5"
+    ],
+    "disposition": "adopted",
+    "topic": "Schema/runner/entry exactness",
+    "reason": "Pin directory-relative module examples, sys.modules registration, globally unique native names including(), enum/qualification decisions, placeholder semantic validation scope, ctypes exclusive rename and graceful interpreter check.",
+    "reReviewed": false
+  },
+  {
+    "id": "D47",
+    "raisedBy": [
+      "opus3:10"
+    ],
+    "disposition": "adopted",
+    "topic": "Allowed paths/About/map completeness",
+    "reason": "Update actual allowed list; omit missing About build option; verify historical16-file map completeness with ls-tree.",
+    "reReviewed": false
+  },
+  {
+    "id": "D48",
+    "raisedBy": [
+      "astra3:P1"
+    ],
+    "disposition": "adopted",
+    "topic": "Git lazy fetch",
+    "reason": "Reject partial/promisor configs/markers, exact remote/branch pairs, GIT_NO_LAZY_FETCH=1, require capability marker; installed captured Git2.54.0 has marker. Synthetic missing-object negative test required after Go. Driver checked primary Git docs and binary marker.",
+    "reReviewed": false
+  },
+  {
+    "id": "D49",
+    "raisedBy": [
+      "astra3:P2"
+    ],
+    "disposition": "adopted",
+    "topic": "Repository config identity",
+    "reason": "Capture digest of config/info-exclude with presence state; current accepted-but-changed config still input_mismatch.",
+    "reReviewed": false
+  },
+  {
+    "id": "D50",
+    "raisedBy": [
+      "astra3:P3"
+    ],
+    "disposition": "adopted",
+    "topic": "Final bundle correctness",
+    "reason": "Read-only child app, full tree/root/mode comparisons across suites, repeat final plist/signature/Mach-O checks on published tree; non-executable mutation test.",
+    "reReviewed": false
+  },
+  {
+    "id": "D51",
+    "raisedBy": [
+      "astra3:P4"
+    ],
+    "disposition": "adopted",
+    "topic": "Embedded loader overrides",
+    "reason": "Reject LC_DYLD_ENVIRONMENT and lazy loads; enumerate inspected dependency/load-dylinker command policy. Add independent override fixture.",
+    "reReviewed": false
+  }
+]

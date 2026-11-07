@@ -1,6 +1,8 @@
 # Compact-bars development gate
 
-P119 approved: “approved. proceed”. The exact gate and approval timestamp record are at /Users/ivan/ws/limitaur-review/2026-10-18-01a15018/compact-bars/approval-P119.json. Input is the unaccepted R4 prototype, combined hash 58013e4bcc6b738b09901852ae12312fa12b0106492d0e1e3a970a701006203d. The operator baseline was documentation only at dd72e4a. Approval authorizes that prototype as implementation input, not accepted code.
+Historical evidence consolidation (2026-11-07): [retained records and omissions](../evidence/README.md). References marked historical/omitted are not available in the curated repository; historical commands and approvals are not current instructions.
+
+P119 approved: “approved. proceed”. The exact gate and approval timestamp record are at historical/omitted: 2026-10-18-01a15018/compact-bars/approval-P119.json. Input is the unaccepted R4 prototype, combined hash 58013e4bcc6b738b09901852ae12312fa12b0106492d0e1e3a970a701006203d. The operator baseline was documentation only at dd72e4a. Approval authorizes that prototype as implementation input, not accepted code.
 
 Strict mode: architecture/interface changes and demo credential/data boundary. Approved roster: gpt-6.1-sol designer; fresh gpt-6-astra verifier; fresh gpt-6-sol worker; fresh normal-CLI Claude Sonnet5.5 reviewer, candidate-blind A then same-session B; fresh gpt-6-luna full candidate panel. Pre-freeze guarded feedback may resume only the worker's own session. After freeze, standard remediation uses a fresh worker; another unresolved round returns to the operator. Preserve the original 19 and Claude 12 independent tests and freeze new independent tests before candidate disclosure.
 

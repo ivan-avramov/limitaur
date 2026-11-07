@@ -1,5 +1,7 @@
 # Compact-bars development result
 
+Historical evidence consolidation (2026-11-07): [retained records and omissions](../evidence/README.md). References marked historical/omitted are not available in the curated repository; historical commands and approvals are not current instructions.
+
 Accepted source commit: `ab8b5e6c163fe042f2334f89c2c81343746cd288`. Final reviewed candidate: `d58f5a277a41a4bc393638ad378f01a7f45fb26ac9a41ce59e5ddb3c2b24981b`. Local development acceptance only; no release, installation or push.
 
 Implemented 1–8 upward bars (default 3), system foreground tint, strict warning thresholds, no Dock icon, independent count settings, presentation-time freshness/expiry, stable synthetic demo and read-only Codex/Claude adapters. Unknown is distinct from zero; no prediction. Display delivery buffers only the newest pending state.
@@ -12,4 +14,4 @@ Known low-priority limitations: amount-only enabled Claude spend with unknown pe
 
 API-metered/hybrid behavior remains pending. P73 versioning has a minimal approved scope (see docs/handoff.md). Cursor deferred.
 
-[Full report](/Users/ivan/ws/limitaur-review/2026-10-18-01a15018/compact-bars/report.md), [acceptance and exact tree/delta proof](/Users/ivan/ws/limitaur-review/2026-10-18-01a15018/compact-bars/accepted-development.json), [final review](/Users/ivan/ws/limitaur-review/2026-10-18-01a15018/compact-bars/runtime-evidence/bars-panel2/BP2-result.txt). Evidence, model/session IDs, findings/dispositions and reported costs are preserved outside the repository. No credential/runtime state is included.
+[Full report](history/2026-10-18-01a15018/compact-bars/report.md), [acceptance and exact tree/delta proof](../evidence/history/2026-10-18-01a15018/compact-bars/accepted-development.json), [final review](../evidence/history/2026-10-18-01a15018/compact-bars/runtime-evidence/bars-panel2/BP2-result.txt). Evidence, model/session IDs, findings/dispositions and reported costs are preserved in the linked curated records; unselected raw outputs and intermediate artifacts are omitted. No credential/runtime state is included.

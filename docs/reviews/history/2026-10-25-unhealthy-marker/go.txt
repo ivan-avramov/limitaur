@@ -1,0 +1,3 @@
+> Historical record imported 2026-11-07 from `2026-10-25-unhealthy-marker/go.txt`. Commands, approvals and next steps describe the original run and grant no current authority. Only files listed in the [manifest](../../../evidence/manifest.json) are retained; other artifact names denote omitted historical material. See [evidence limitations](../../../evidence/README.md).
+
+2026-10-25T17:08:32Z
