@@ -2,12 +2,15 @@
 """Offline checks: python3 Tests/IconPackaging/test_bundle.py /path/Limitaur.app."""
 import pathlib
 import plistlib
+import re
 import struct
 import subprocess
 import sys
 import tempfile
 import unittest
 
+SOURCE = pathlib.Path(__file__).resolve().parents[2] / "Sources/Limitaur/AppVersion.swift"
+VERSION = re.search(r'static let string = "([^"]+)"', SOURCE.read_text())[1]
 APP = pathlib.Path(sys.argv.pop(1)).resolve()
 
 
@@ -44,11 +47,11 @@ class IconPackagingTests(unittest.TestCase):
 
     def test_menu_bar_mode_and_version_preserved(self):
         self.assertIs(self.info.get("LSUIElement"), True)
-        self.assertEqual(self.info.get("CFBundleShortVersionString"), "0.2.2")
+        self.assertEqual(self.info.get("CFBundleShortVersionString"), VERSION)
         self.assertRegex(str(self.info.get("CFBundleVersion", "")), r"^[1-9][0-9]*$")
         version = subprocess.run([str(APP / "Contents/MacOS/Limitaur"), "--version"],
                                  check=True, capture_output=True, text=True)
-        self.assertEqual(version.stdout.strip(), "0.2.2")
+        self.assertEqual(version.stdout.strip(), VERSION)
 
     def test_bundle_signature_verifies(self):
         subprocess.run(["codesign", "--verify", "--strict", str(APP)],

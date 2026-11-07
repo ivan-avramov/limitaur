@@ -3,10 +3,13 @@
 import datetime
 import pathlib
 import plistlib
+import re
 import subprocess
 import sys
 import unittest
 
+SOURCE = pathlib.Path(__file__).resolve().parents[2] / "Sources/Limitaur/AppVersion.swift"
+VERSION = re.search(r'static let string = "([^"]+)"', SOURCE.read_text())[1]
 APP = pathlib.Path(sys.argv.pop(1)).resolve()
 REVISION = sys.argv.pop(1) if len(sys.argv) > 1 else None
 LICENSE = pathlib.Path(sys.argv.pop(1)) if len(sys.argv) > 1 else (
@@ -32,10 +35,10 @@ class AboutPackagingTests(unittest.TestCase):
 
     def test_signed_license_and_version(self):
         subprocess.run(["codesign", "--verify", "--strict", str(APP)], check=True, capture_output=True)
-        self.assertEqual(self.info["CFBundleShortVersionString"], "0.2.2")
+        self.assertEqual(self.info["CFBundleShortVersionString"], VERSION)
         version = subprocess.run([str(APP / "Contents/MacOS/Limitaur"), "--version"],
                                  check=True, capture_output=True, text=True, timeout=10)
-        self.assertEqual(version.stdout, "0.2.2\n")
+        self.assertEqual(version.stdout, VERSION + "\n")
         self.assertEqual((APP / "Contents/Resources/LICENSE").read_bytes(), LICENSE.read_bytes())
 
 
