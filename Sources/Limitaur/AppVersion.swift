@@ -59,6 +59,21 @@ enum AppVersion {
            let build = bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String {
             options[.version] = build
         }
+        let isApp = bundle.bundleIdentifier == "local.limitaur.app"
+        func metadata(_ key: String) -> String {
+            guard isApp, let value = bundle.object(forInfoDictionaryKey: key) as? String,
+                  !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return "Unavailable" }
+            return value
+        }
+        let repository = URL(string: "https://github.com/ivan-avramov/limitaur")!
+        let license = bundle.url(forResource: "LICENSE", withExtension: nil)
+            ?? URL(string: "https://github.com/ivan-avramov/limitaur/blob/main/LICENSE")!
+        let credits = NSMutableAttributedString(string: "Repository: ")
+        credits.append(NSAttributedString(string: repository.absoluteString, attributes: [.link: repository]))
+        credits.append(NSAttributedString(string: "\nCommit: \(metadata("LimitaurSourceRevision"))\nBuilt: \(metadata("LimitaurBuildDate"))\nLicense: "))
+        credits.append(NSAttributedString(string: "MIT", attributes: [.link: license]))
+        options[.credits] = credits
+        options[NSApplication.AboutPanelOptionKey(rawValue: "Copyright")] = "© 2026 Ivan Avramov"
         return options
     }
 }

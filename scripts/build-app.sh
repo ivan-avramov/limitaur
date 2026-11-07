@@ -10,8 +10,9 @@ VERSION="$(sed -n 's/^    static let string = "\([^"]*\)"$/\1/p' Sources/Limitau
 test -n "$VERSION" || { echo "build-app.sh: could not read version from AppVersion.swift" >&2; exit 1; }
 BUILD_NUMBER="$(git rev-list --count HEAD 2>/dev/null || echo 1)"
 REVISION="$(git rev-parse HEAD 2>/dev/null || echo unknown)"
+BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 CORE="${VERSION%%-*}"; CORE="${CORE%%+*}"
-if [ -n "$(git status --porcelain -- Package.swift Sources Resources scripts 2>/dev/null)" ]; then REVISION="$REVISION-dirty"; fi
+if [ -n "$(git status --porcelain -- Package.swift Sources Resources scripts LICENSE 2>/dev/null)" ]; then REVISION="$REVISION-dirty"; fi
 swift build -c release "$@"
 BIN_DIR="$(swift build -c release "$@" --show-bin-path)"
 BUILT_VERSION="$("$BIN_DIR/Limitaur" --version)"
@@ -20,6 +21,7 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN_DIR/Limitaur" "$APP/Contents/MacOS/Limitaur"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
+cp LICENSE "$APP/Contents/Resources/LICENSE"
 # Optional local provider glyph images (ignored by git): Resources/providers/<providerID>.png
 /bin/rm -rf "$APP/Contents/Resources/providers"
 if ls Resources/providers/*.png >/dev/null 2>&1; then
@@ -28,7 +30,8 @@ if ls Resources/providers/*.png >/dev/null 2>&1; then
 fi
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $CORE" \
                         -c "Set :CFBundleVersion $BUILD_NUMBER" \
-                        -c "Add :LimitaurSourceRevision string $REVISION" "$APP/Contents/Info.plist"
+                        -c "Add :LimitaurSourceRevision string $REVISION" \
+                        -c "Add :LimitaurBuildDate string $BUILD_DATE" "$APP/Contents/Info.plist"
 plutil -lint "$APP/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c 'Print :LSUIElement' "$APP/Contents/Info.plist" | grep -qx true
 test -x "$APP/Contents/MacOS/Limitaur"
