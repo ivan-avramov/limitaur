@@ -1,6 +1,14 @@
 # Limitaur handoff
 
-Updated 2026-10-24 ~23:15Z (16:15 America/Los_Angeles). Discussion IDs continue from P519.
+Updated 2026-11-07. Historical sections below preserve the decisions and observations made at their dates; the current summary and pending list supersede their next-step instructions.
+
+## Current summary
+
+Latest recorded release: 0.2.1, build 92 (C12), with 35 UI + 436 core native, 49 Python and 13 collector tests at release. Session continuity, unhealthy-provider markers and hygiene H1 are accepted. This increment adds the approved transparent minotaur bundle icon and documentation corrections under Unreleased; version remains 0.2.1. No new release or live-app validation is implied.
+
+L1 recovery passed in C9; learned-interval relaunch persistence was observed in C10. Aggregate samples through 2026-11-07 show 19 nudge increments, each followed by a `credentialResumes` increment within 120 seconds, and no recorded `nudgeFailures` or `keychainSuspensions` at those samples. This is observational evidence on one machine, not proof of exclusive causality. The orphan signing trust entry was removed (C11), and the classic Keychain-API warning no longer applies to the helper-based reader. `limitaur-review` remains in place; consolidation is proposed, not implemented.
+
+Manual SemVer releases follow the README procedure; P73’s larger release platform remains retired. No version bump, tag, push, installation or live launch is part of this icon increment.
 
 ## Product state
 
@@ -156,15 +164,12 @@ P73 procedure: `AppVersion.swift` and Info.plist 0.2.1, CHANGELOG `[0.2.1] - 202
 
 ## Still pending, in order
 
-1. P339 signing identity: done 2026-10-22 (certificate "Limitaur Dev" in the login keychain, script auto-selects it; one orphaned keyless trust entry remains for the operator to delete or ignore).
-2. P343/P347 credential re-check: done (5d977a3); throttle-paced freshness done (8c3056a); relaunch and M1 live gate pending, see above.
-3. Release gates: app-bundle provider access cleared informally by live use; default SwiftPM backend builds on the host (the recorded failure was sandbox-only); anchoring, click and both appearances exercised by daily use; keyboard, scrolling and accessibility tree unverified; sustained performance: closed as passed by the operator on 2026-10-24 on the build 51 smoke (CPU 0.0008 %, RSS 53.4 MiB, budgets per P487; docs/performance.md). Never grant OS access automatically.
-4. API-metered and hybrid accounts: backlog, `docs/backlog/api-metered-accounts.md`; to be implemented on the operator's other machine.
-5. Experimental jar and logo layouts: retained by operator request; delete after a period on the beside layout.
-6. Cursor: deferred.
+1. Keyboard navigation, scrolling and the accessibility tree. App-bundle access is informally cleared by live use; anchoring, clicking and both appearances have been exercised. The resource gate was closed by the operator on the build 51 smoke (corrected CPU about 0.034%, RSS 53.4 MiB; docs/performance.md), not a new sustained qualification.
+2. L2 reduction observation and second-machine validation. Relaunch persistence on this machine is complete (C10). File-source recovery remains unverified; check the accepted R-C1 settings caveat before relying on the nudge on another machine.
+3. API-metered and hybrid accounts remain deferred: `docs/backlog/api-metered-accounts.md`. Cursor remains deferred.
+4. Existing residual backlogs remain subject to operator selection. Experimental jar and logo layouts remain retained by request. Consolidate durable review evidence and pending designs into the repository; replace local links before removing the old folder. Keep temporary process files separate from durable repository docs. This is a proposal, not authorization to move or delete evidence.
 
-Remote: `origin` is `git@github.com:ivan-avramov/limitaur.git`, public, MIT; first push 2026-10-24 (0.2.0, tag v0.2.0). Push only on explicit instruction in that turn.
-4. Known build warnings: two deprecated classic Keychain calls in `Credentials.swift` (SecKeychainGet/SetUserInteractionAllowed). Deliberate: they are the only way to guarantee no background prompt for the file-based login-keychain item Claude Code writes. Replacing them is a credential-boundary change needing strict four-eyes and empirical prompt verification; not planned (P330).
+Remote: `origin` is `git@github.com:ivan-avramov/limitaur.git`, public, MIT; tags `v0.2.0` and `v0.2.1` were pushed on explicit instruction. Push only on explicit instruction in that turn.
 
 ## Rules of the road
 

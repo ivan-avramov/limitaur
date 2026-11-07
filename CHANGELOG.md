@@ -1,8 +1,11 @@
 # Changelog
 
-Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follow [Semantic Versioning](https://semver.org/). The dated entry describes the build whose `--version` prints that number; nothing is tagged or published.
+Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follow [Semantic Versioning](https://semver.org/). The dated entry describes the build whose `--version` prints that number; releases 0.2.0 and 0.2.1 have annotated tags pushed to the public repository.
 
 ## [Unreleased]
+
+### Added
+- Monochrome minotaur app icon with a charcoal outer tile and transparent corners, registered in the app bundle; menu-bar indicators and Dock behavior are unchanged.
 
 ## [0.2.1] - 2026-10-25
 

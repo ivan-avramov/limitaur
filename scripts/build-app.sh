@@ -5,6 +5,7 @@ set -eu
 cd "$(dirname "$0")/.."
 APP="${1:-dist/Limitaur.app}"
 if [ "$#" -gt 0 ]; then shift; fi
+test -f Resources/AppIcon.icns || { echo "build-app.sh: missing Resources/AppIcon.icns" >&2; exit 1; }
 VERSION="$(sed -n 's/^    static let string = "\([^"]*\)"$/\1/p' Sources/Limitaur/AppVersion.swift)"
 test -n "$VERSION" || { echo "build-app.sh: could not read version from AppVersion.swift" >&2; exit 1; }
 BUILD_NUMBER="$(git rev-list --count HEAD 2>/dev/null || echo 1)"
@@ -18,6 +19,7 @@ test "$BUILT_VERSION" = "$VERSION" || { echo "build-app.sh: binary reports $BUIL
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN_DIR/Limitaur" "$APP/Contents/MacOS/Limitaur"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
+cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 # Optional local provider glyph images (ignored by git): Resources/providers/<providerID>.png
 /bin/rm -rf "$APP/Contents/Resources/providers"
 if ls Resources/providers/*.png >/dev/null 2>&1; then
