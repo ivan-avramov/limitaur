@@ -4,6 +4,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 
 ## [Unreleased]
 
+
+## [0.2.3] - 2026-11-07
+
 ### Added
 - About shows the repository, full source revision, UTC build time, MIT license and copyright.
 - Local release helper prepares version bumps and verifies signed arm64 ZIP packages and checksums.

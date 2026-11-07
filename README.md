@@ -60,7 +60,7 @@ The version lives in one place: the `string` constant in `Sources/Limitaur/AppVe
 
 Prepare a release from a clean, full-history checkout with `python3 scripts/release.py prepare patch` (or `minor` or `major`). This bumps both version files and moves Unreleased notes into a dated entry. Review and commit those changes, then run `python3 scripts/release.py package` to build and verify an ad-hoc signed arm64 ZIP and SHA-256 checksum under `dist/releases/VERSION`; use `--output-dir PATH` to choose another destination. Run the native and offline checks before release. The helper does not install, tag, push, notarize, or publish; create an annotated tag and publish only when authorized, and push only on explicit instruction in that turn.
 
-For downloads and current publication status, see [GitHub Releases](https://github.com/ivan-avramov/limitaur/releases/latest). The 0.2.2 package targets Apple silicon (arm64), macOS 26+, with a SHA-256 checksum of the entire ZIP; packaging uses ad-hoc signing and no notarization.
+For downloads and current publication status, see [GitHub Releases](https://github.com/ivan-avramov/limitaur/releases/latest). Release packages target Apple silicon (arm64), macOS 26+, with a SHA-256 checksum of the entire ZIP; packaging uses ad-hoc signing and no notarization.
 
 ## Local diagnostics
 
