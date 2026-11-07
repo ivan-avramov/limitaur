@@ -4,8 +4,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-11-07
+
 ### Added
 - Monochrome minotaur app icon with a charcoal outer tile and transparent corners, registered in the app bundle; menu-bar indicators and Dock behavior are unchanged.
+
+### Changed
+- Consolidated historical review evidence and documentation in the repository, clarified retained records and omissions, and updated recovery observations.
 
 ## [0.2.1] - 2026-10-25
 

@@ -44,11 +44,11 @@ class IconPackagingTests(unittest.TestCase):
 
     def test_menu_bar_mode_and_version_preserved(self):
         self.assertIs(self.info.get("LSUIElement"), True)
-        self.assertEqual(self.info.get("CFBundleShortVersionString"), "0.2.1")
+        self.assertEqual(self.info.get("CFBundleShortVersionString"), "0.2.2")
         self.assertRegex(str(self.info.get("CFBundleVersion", "")), r"^[1-9][0-9]*$")
         version = subprocess.run([str(APP / "Contents/MacOS/Limitaur"), "--version"],
                                  check=True, capture_output=True, text=True)
-        self.assertEqual(version.stdout.strip(), "0.2.1")
+        self.assertEqual(version.stdout.strip(), "0.2.2")
 
     def test_bundle_signature_verifies(self):
         subprocess.run(["codesign", "--verify", "--strict", str(APP)],
