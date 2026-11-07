@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "consolidation_commit": "76746d0be6389c25760b750ca90ff3c0f3ef9cec",
+  "github_repository": "ivan-avramov/limitaur",
+  "remote_verified_at": "2026-11-07T19:04:20.053459+00:00",
+  "fresh_remote_checkout_files_verified": 115,
+  "manifest_destinations_verified": 75,
+  "source_folder": "limitaur-review (former sibling)",
+  "original_source_files": 3566,
+  "original_source_bytes": 117555437,
+  "source_hashes_verified_before_removal": true,
+  "remaining_hashes_verified_after_readonly_stop": true,
+  "readonly_archive_directories_adjusted": 6,
+  "no_open_files_symlinks_or_mounts_before_removal": true,
+  "removed_at": "2026-11-07T19:05:20.227870+00:00",
+  "source_folder_removed": true,
+  "scope": "Curated historical records and compact observations retained; omitted working artifacts intentionally deleted under approved P6."
+}

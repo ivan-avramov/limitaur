@@ -4,6 +4,8 @@ Consolidated 2026-11-07 from the historical sibling review archive at baseline `
 
 **Historical CPU correction:** pre-2026-10-25 measurements interpreted mach ticks as nanoseconds and understated CPU by about 41.7× on that host (timebase 125/3). Original numeric values are preserved in imported records. Read the [performance correction](../performance.md) before using them; corrected build 41 and 51 CPU values are about 0.026% and 0.034%. No historical measurement is promoted to a newly qualifying run.
 
+[Completion receipt](consolidation-completion.json): the consolidation commit was verified from a fresh GitHub checkout before the obsolete sibling folder was removed.
+
 ## Scope and omissions
 
 Only the manifest's retained files and derived CSV are preserved. Raw agent transcripts, logs, screenshots, scratch checkouts, binaries, frozen test copies, drivers, profiles and intermediate metadata are intentionally omitted. An old reference to one of these is historical/omitted, even where its short filename remains in prose or JSON. Retained findings and outcome summaries are not a substitute for omitted raw evidence and cannot reproduce every historical claim. Generic platform/example paths remain; machine-specific paths are normalized. Numeric metrics, findings, dispositions and recorded residuals remain unchanged.
