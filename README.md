@@ -22,7 +22,7 @@ Unknown means no verified value; zero is a known numeric zero. Unlimited is inde
 swift build -c release
 swift test
 sh scripts/build-app.sh
-open dist/Limitaur.app
+open build/Limitaur.app
 ```
 
 The bundle script accepts an optional output path followed by SwiftPM build options and queries SwiftPM for the binary directory. The default SwiftPM build backend works on the host; an earlier linking failure occurred only under a retired sandbox harness.
@@ -56,9 +56,9 @@ Signing is independent of the current Claude credential reader, which uses `/usr
 
 ## Version
 
-The version lives in one place: the `string` constant in `Sources/Limitaur/AppVersion.swift`. `Limitaur --version` prints it and exits before any settings, credential or network code runs; About Limitaur… in the Settings menu shows it. The build script reads that constant, stamps its numeric core into `CFBundleShortVersionString` (Apple allows only three integers there, so a prerelease or build suffix appears in `--version` and About but not in the plist), sets `CFBundleVersion` to the git commit count, records the HEAD revision (with a `-dirty` suffix when any build input under `Sources`, `Resources`, `scripts`, `Package.swift` or `LICENSE` is modified or untracked) in `LimitaurSourceRevision`, checks that the built binary reports the same version, and writes `Limitaur.app.sha256` next to the bundle. The standard About panel shows the repository, full revision, UTC build time, MIT license and copyright. Packaging copies the license into the bundle; the bare executable links to the source license and shows unavailable revision and build time. `CHANGELOG.md` holds release notes in Keep a Changelog form. The build script does not notarize, tag or publish.
+The version lives in one place: the `string` constant in `Sources/Limitaur/AppVersion.swift`. `Limitaur --version` prints it and exits before any settings, credential or network code runs; About Limitaur… in the Settings menu shows it. The build script reads that constant, stamps its numeric core into `CFBundleShortVersionString` (Apple allows only three integers there, so a prerelease or build suffix appears in `--version` and About but not in the plist), sets `CFBundleVersion` to the git commit count, records the HEAD revision (with a `-dirty` suffix when any build input under `Sources`, `Resources`, `scripts`, `Package.swift` or `LICENSE` is modified or untracked) in `LimitaurSourceRevision`, checks that the built binary reports the same version. The standard About panel shows the repository, full revision, UTC build time, MIT license and copyright. Packaging copies the license into the bundle; the bare executable links to the source license and shows unavailable revision and build time. `CHANGELOG.md` holds release notes in Keep a Changelog form. The build script does not notarize, tag or publish.
 
-Prepare a release from a clean, full-history checkout with `python3 scripts/release.py prepare patch` (or `minor` or `major`). This bumps both version files and moves Unreleased notes into a dated entry. Review and commit those changes, then run `python3 scripts/release.py package` to build and verify an ad-hoc signed arm64 ZIP and SHA-256 checksum under `dist/releases/VERSION`; use `--output-dir PATH` to choose another destination. Run the native and offline checks before release. The helper does not install, tag, push, notarize, or publish; create an annotated tag and publish only when authorized, and push only on explicit instruction in that turn.
+Prepare a release from a clean, full-history checkout with `python3 scripts/release.py prepare patch` (or `minor` or `major`). This bumps both version files and moves Unreleased notes into a dated entry. Review and commit those changes, then run `python3 scripts/release.py package` to build and verify an ad-hoc signed arm64 ZIP and SHA-256 checksum in `build/`, alongside the app. Each successful default package replaces the previous generated build; use `--output-dir PATH` for ZIP and checksum only without overwriting existing files. Older downloads are available on GitHub Releases, and durable review records are kept in `docs/reviews/`. Run the native and offline checks before release. The helper does not install, tag, push, notarize, or publish; create an annotated tag and publish only when authorized, and push only on explicit instruction in that turn.
 
 For downloads and current publication status, see [GitHub Releases](https://github.com/ivan-avramov/limitaur/releases/latest). Release packages target Apple silicon (arm64), macOS 26+, with a SHA-256 checksum of the entire ZIP; packaging uses ad-hoc signing and no notarization.
 
@@ -76,8 +76,8 @@ BIN_DIR="$(swift build -c release --show-bin-path)"
 "$BIN_DIR/Limitaur" --render-demo /tmp/limitaur-demo
 "$BIN_DIR/Limitaur" --demo
 "$BIN_DIR/Limitaur" --demo-open-popover
-dist/Limitaur.app/Contents/MacOS/Limitaur --check-live
-dist/Limitaur.app/Contents/MacOS/Limitaur --read-keychain-service 'Claude Code-credentials'
+build/Limitaur.app/Contents/MacOS/Limitaur --check-live
+build/Limitaur.app/Contents/MacOS/Limitaur --read-keychain-service 'Claude Code-credentials'
 ```
 
 Fixture diagnostics use synthetic JSON, do not access credentials, and output normalized JSON. The optional ranking `--count` accepts integers 1–8; the default remains 3, and invalid explicit values exit with a fixed error and no snapshot. `--check-live` uses the real app bundle adapters, waits at most 20 seconds overall, and emits only provider status and counts. `--read-keychain-service NAME` (only `Claude Code-credentials` or a name starting `limitaur-probe-`) reads that item once through `/usr/bin/security` without interaction and prints one word (`found <bytes>`, `notFound` or `denied …`), never item data. The demo mode is offline and labelled; it opens the popover for keyboard and accessibility inspection. Demo indicator choices remain in memory, while account and connection actions are disabled. Static PNGs show actual jar rendering at counts 1, 3, 5 and 8 in light and dark appearances; they do not verify menu-bar anchoring, keyboard interaction, or the accessibility tree in a running app.
@@ -85,7 +85,7 @@ Fixture diagnostics use synthetic JSON, do not access credentials, and output no
 For a qualifying resource measurement, quit the running instance first (a second app-mode launch exits), then launch the bundle executable with an explicit sanitized aggregate statistics path, enable both default providers, close the dropdown, then sample its PID:
 
 ```sh
-dist/Limitaur.app/Contents/MacOS/Limitaur --stats /tmp/limitaur-aggregate.json
+build/Limitaur.app/Contents/MacOS/Limitaur --stats /tmp/limitaur-aggregate.json
 python3 scripts/measure-resources.py PID --stats /tmp/limitaur-aggregate.json
 python3 scripts/measure-resources.py PID --warmup 5 --seconds 30
 ```

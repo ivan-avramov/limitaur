@@ -1,0 +1,6 @@
+Location: scripts/release.py:79
+Severity: minor.
+Evidence: confirmed by source tracing and supplied fixture reproduction.
+Problem: Package preflight checks the changelog date's shape, but accepts impossible calendar dates.
+Failure scenario: A committed entry dated 2026-99-99 passes preflight and proceeds to build. This permits malformed release documentation, although it does not invalidate the packaged executable or the correctly dated 0.2.3 candidate.
+Proposed change: Capture the date and validate it with datetime.date.fromisoformat before building; add that rejection to existing fixture cases.

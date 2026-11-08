@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import plistlib
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -73,6 +74,15 @@ def validate(app, version, revision, count, license_bytes):
     require(info.get('CFBundleIconFile') == 'AppIcon.icns' and (resources / 'AppIcon.icns').is_file(), 'missing registered icon')
     run('codesign', '--verify', '--strict', str(app))
 
+def check_build_dir(out):
+    require(not out.is_symlink(), 'build output is a symlink')
+    if out.exists():
+        require(out.is_dir(), 'build output is not a directory')
+        allowed = r'Limitaur-' + VERSION + r'-macos-arm64\.zip(?:\.sha256)?'
+        require(all(p.name in ('Limitaur.app', '.DS_Store', 'Limitaur.app.sha256')
+                    or re.fullmatch(allowed, p.name) for p in out.iterdir()),
+                'build output contains unrecognized items')
+
 def package(output):
     version = preflight()
     log = (ROOT / LOG).read_text()
@@ -85,11 +95,14 @@ def package(output):
         highest, tag = max(stable)
         require(current >= highest, 'version is older than a release tag')
         require(current != highest or run('git', 'rev-parse', tag + '^{}') == revision, 'version tag is not at HEAD')
-    out = Path(output).expanduser().resolve() if output else ROOT / 'dist/releases' / version
+    out = Path(output).expanduser().resolve() if output else ROOT / 'build'
     name = 'Limitaur-' + version + '-macos-arm64.zip'
     dest, checksum = out / name, out / (name + '.sha256')
-    require(not os.path.lexists(dest) and not os.path.lexists(checksum), 'release output already exists')
-    with tempfile.TemporaryDirectory(prefix='limitaur-release-') as tmp:
+    if output:
+        require(not os.path.lexists(dest) and not os.path.lexists(checksum), 'release output already exists')
+    else:
+        check_build_dir(out)
+    with tempfile.TemporaryDirectory(prefix='limitaur-release-', dir=ROOT if not output else None) as tmp:
         temp = Path(tmp)
         clone = temp / 'source'
         run('git', 'clone', '--no-local', str(ROOT), str(clone), cwd=temp)
@@ -112,19 +125,38 @@ def package(output):
         check = temp / (name + '.sha256')
         check.write_text(digest + '  ' + name + '\n')
         require(hashlib.sha256(archive.read_bytes()).hexdigest() == check.read_text().split('  ')[0], 'checksum mismatch')
-        out.mkdir(parents=True, exist_ok=True)
-        with dest.open('xb') as f:
+        if output:
+            out.mkdir(parents=True, exist_ok=True)
+            with dest.open('xb') as f:
+                try:
+                    f.write(archive.read_bytes())
+                    with checksum.open('xb') as c:
+                        try:
+                            c.write(check.read_bytes())
+                        except Exception:
+                            checksum.unlink()
+                            raise
+                except Exception:
+                    dest.unlink()
+                    raise
+        else:
+            stage = temp / 'stage'
+            stage.mkdir()
+            shutil.move(str(app), stage / app.name)
+            shutil.move(str(archive), stage / archive.name)
+            shutil.move(str(check), stage / check.name)
+            check_build_dir(out)
+            backup = ROOT / (temp.name + '-previous')
+            if out.exists():
+                out.rename(backup)
             try:
-                f.write(archive.read_bytes())
-                with checksum.open('xb') as c:
-                    try:
-                        c.write(check.read_bytes())
-                    except Exception:
-                        checksum.unlink()
-                        raise
-            except Exception:
-                dest.unlink()
+                stage.rename(out)
+            except OSError:
+                if backup.exists():
+                    backup.rename(out)
                 raise
+            if backup.exists():
+                shutil.rmtree(backup)
     print(dest)
     print(checksum)
 def main():

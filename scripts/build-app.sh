@@ -3,7 +3,7 @@
 # The version comes from Sources/Limitaur/AppVersion.swift; the build number is the git commit count.
 set -eu
 cd "$(dirname "$0")/.."
-APP="${1:-dist/Limitaur.app}"
+APP="${1:-build/Limitaur.app}"
 if [ "$#" -gt 0 ]; then shift; fi
 test -f Resources/AppIcon.icns || { echo "build-app.sh: missing Resources/AppIcon.icns" >&2; exit 1; }
 VERSION="$(sed -n 's/^    static let string = "\([^"]*\)"$/\1/p' Sources/Limitaur/AppVersion.swift)"
@@ -42,5 +42,4 @@ IDENTITY="${LIMITAUR_SIGN_IDENTITY:-}"
 if [ -z "$IDENTITY" ] && security find-identity -v -p codesigning 2>/dev/null | grep -q '"Limitaur Dev"'; then IDENTITY="Limitaur Dev"; fi
 codesign --force --sign "${IDENTITY:--}" "$APP"
 codesign --verify --strict "$APP"
-(cd "$(dirname "$APP")" && shasum -a 256 "./$(basename "$APP")/Contents/MacOS/Limitaur" > "$(basename "$APP").sha256")
 echo "$APP $VERSION ($BUILD_NUMBER, $REVISION, signed ${IDENTITY:-ad-hoc})"

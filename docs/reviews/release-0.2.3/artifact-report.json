@@ -1,0 +1,15 @@
+{
+  "version": "0.2.3",
+  "build": "100",
+  "revision": "749aeb2f7470460ae7d7bb428c1ecf470ddfea8f",
+  "built_at": "2026-11-07T22:23:15Z",
+  "zip": "Limitaur-0.2.3-macos-arm64.zip",
+  "sha256": "ce019d5634210364fc8027c8aa1f1d1dc5eb93be6a3c34f07b0b6021aff1b5aa",
+  "size_bytes": 2498125,
+  "archive_entries": 10,
+  "top_level": [
+    "Limitaur.app"
+  ],
+  "ignored_probe_absent": true,
+  "license_matches": true
+}

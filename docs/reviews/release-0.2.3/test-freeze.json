@@ -1,0 +1,8 @@
+{
+  "frozen_at": "2026-11-07T22:21:46.232897+00:00",
+  "files": {
+    "Tests/ReleaseTooling/test_release.py": "2c014aa95cebaf1de6c6dfb6d7b3d5699c9f9d6a955b491a01e03eb337ed0787",
+    "Tests/IconPackaging/test_bundle.py": "4585be8e1419f1bd171fe7fd92d94ab768169184ff45a5a596f3cf9f96395406",
+    "Tests/AboutPackaging/test_bundle.py": "5a74ddc6d6c4ff5025635f38ae0bef2c231d85ed8193f69496c6832f7bb6c545"
+  }
+}

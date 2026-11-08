@@ -3,7 +3,7 @@
 # Creates and deletes scratch items named limitaur-probe-<uuid> in the login keychain.
 # Usage: scripts/keychain-acl-probe.sh [path-to-Limitaur-binary]
 set -u
-BIN="${1:-dist/Limitaur.app/Contents/MacOS/Limitaur}"
+BIN="${1:-build/Limitaur.app/Contents/MacOS/Limitaur}"
 KC="$HOME/Library/Keychains/login.keychain-db"
 SERVICES=()
 FAILED=0

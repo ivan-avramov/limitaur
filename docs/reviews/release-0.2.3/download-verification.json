@@ -1,0 +1,10 @@
+{
+  "downloaded_assets_identical": true,
+  "zip_sha256": "ce019d5634210364fc8027c8aa1f1d1dc5eb93be6a3c34f07b0b6021aff1b5aa",
+  "version": "0.2.3",
+  "build": "100",
+  "revision": "749aeb2f7470460ae7d7bb428c1ecf470ddfea8f",
+  "architecture": "arm64",
+  "signature_verified": true,
+  "draft_metadata_verified": true
+}

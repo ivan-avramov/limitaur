@@ -6,6 +6,9 @@ See [evidence and omissions](../evidence/README.md), [retired P73 design](../arc
 
 ## Final decisions and review summaries
 
+- [Release 0.2.3 publication](release-0.2.3/readiness.md)
+- [Local build layout cleanup](local-build-layout/review.md)
+
 - [app-icon-review](app-icon-review.md)
 - [beside-layout-review](beside-layout-review.md)
 - [compact-bars-gate](compact-bars-gate.md)
