@@ -1,4 +1,5 @@
 import AppKit
+import SwiftUI
 import LimitaurCore
 import Darwin
 import CoreFoundation
@@ -34,19 +35,6 @@ private struct DemoKeychain: KeychainReading {
 }
 private struct DemoTransport: HTTPTransport {
     func send(_ request: HTTPRequest) async throws -> HTTPResponse { throw TransportFailure.network }
-}
-
-/// The profile an Accounts "Add" button appends, in button order Codex, Claude, Cursor; nil for any other result.
-func addedAccountProfile(for response: NSApplication.ModalResponse, id: String) -> AccountProfile? {
-    let source: (ProviderID, CredentialSource)
-    let third = NSApplication.ModalResponse.alertThirdButtonReturn.rawValue
-    switch response.rawValue {
-    case third: source = ("codex", .codexFile(CredentialStore.defaultCodexPath))
-    case third + 1: source = ("claude", .claudeDefaultDiscovery)
-    case third + 2: source = ("cursor", .cursorDefaultDiscovery)
-    default: return nil
-    }
-    return AccountProfile(id: id, providerID: source.0, label: "New account", source: source.1, enabled: false)
 }
 
 /// Demo presentation remains at one synthetic instant for its real 300-second lifetime.
@@ -317,176 +305,6 @@ private struct FrozenDemoClock: MonitorClock {
     }
 }
 
-@MainActor private final class FlippedDocumentView: NSView { override var isFlipped: Bool { true } }
-
-@MainActor final class DropdownView: NSView {
-    private let stack = NSStackView()
-    private let scroll = NSScrollView()
-    private let document = FlippedDocumentView()
-    var refreshAction: (() -> Void)?
-    var reconnectAction: ((String) -> Void)?
-    var settingsAction: (() -> Void)?
-    var quitAction: (() -> Void)?
-    var renderNow: Date?
-    var polling: [String: PollingPolicy] = [:]
-    override init(frame: NSRect) {
-        super.init(frame: frame)
-        wantsLayer = true
-        stack.orientation = .vertical; stack.alignment = .leading; stack.spacing = 5
-        stack.edgeInsets = NSEdgeInsets(top: 10, left: 12, bottom: 10, right: 12)
-        document.addSubview(stack)
-        scroll.documentView = document
-        scroll.hasVerticalScroller = true
-        scroll.drawsBackground = false
-        addSubview(scroll)
-        scroll.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            scroll.leadingAnchor.constraint(equalTo: leadingAnchor), scroll.trailingAnchor.constraint(equalTo: trailingAnchor),
-            scroll.topAnchor.constraint(equalTo: topAnchor), scroll.bottomAnchor.constraint(equalTo: bottomAnchor)
-        ])
-    }
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-    override func layout() {
-        super.layout()
-        sizeDocument()
-    }
-    private func sizeDocument() {
-        let width = max(1, max(scroll.contentSize.width, bounds.width - 16))
-        let height = max(scroll.contentSize.height, ceil(stack.fittingSize.height))
-        let frame = NSRect(x: 0, y: 0, width: width, height: height)
-        if document.frame != frame { document.frame = frame }
-        if stack.frame != document.bounds { stack.frame = document.bounds }
-    }
-    override func draw(_ dirtyRect: NSRect) {
-        effectiveAppearance.performAsCurrentDrawingAppearance {
-            NSColor.windowBackgroundColor.setFill()
-            NSBezierPath(rect: bounds).fill()
-        }
-    }
-    override func viewDidChangeEffectiveAppearance() { super.viewDidChangeEffectiveAppearance(); needsDisplay = true }
-    private func line(_ value: String, bold: Bool = false, tooltip: String? = nil, color: NSColor? = nil) {
-        let field = NSTextField(labelWithString: value)
-        field.font = bold ? .boldSystemFont(ofSize: 12) : .systemFont(ofSize: 11)
-        field.lineBreakMode = .byTruncatingTail
-        field.toolTip = tooltip
-        if let color { field.textColor = color }
-        field.setAccessibilityLabel(tooltip.map { value + ", " + $0 } ?? value)
-        stack.addArrangedSubview(field)
-    }
-    private func button(_ title: String, action: @escaping () -> Void) {
-        let control = NSButton(title: title, target: nil, action: nil)
-        control.bezelStyle = .texturedRounded
-        control.setAccessibilityLabel(title)
-        control.action = #selector(press(_:)); control.target = self
-        actions[ObjectIdentifier(control)] = action
-        stack.addArrangedSubview(control)
-    }
-    func focusFirstButton() {
-        guard let control = stack.arrangedSubviews.compactMap({ $0 as? NSButton }).first else { return }
-        window?.makeFirstResponder(control)
-    }
-    private var actions: [ObjectIdentifier: () -> Void] = [:]
-    @objc private func press(_ sender: NSButton) { actions[ObjectIdentifier(sender)]?() }
-    func performButton(_ title: String) {
-        (stack.arrangedSubviews.compactMap { $0 as? NSButton }.first { $0.title == title })?.performClick(nil)
-    }
-    func hasButton(_ title: String) -> Bool {
-        stack.arrangedSubviews.compactMap { $0 as? NSButton }.contains { $0.title == title }
-    }
-    func update(_ rows: [ProfileDisplay], demo: Bool = false) {
-        for view in stack.arrangedSubviews { stack.removeArrangedSubview(view); view.removeFromSuperview() }
-        actions.removeAll()
-        if demo { line("Demo data", bold: true) }
-        var currentProvider = ""
-        if rows.isEmpty { line("No enabled accounts", bold: true) }
-        for row in rows {
-            let provider = row.profile.providerID.rawValue.capitalized
-            if provider != currentProvider { line(provider, bold: true); currentProvider = provider }
-            line("\(row.profile.label) · \(row.health.rawValue)", bold: true)
-            let interval = polling[row.profile.providerID.rawValue]?.interval
-            let fetchAge = row.fetchedAge.flatMap { $0.isFinite && $0 >= 0 ? $0 : nil }
-            if let snapshot = row.snapshot {
-                if snapshot.metrics.isEmpty { line("Quota metrics unavailable") }
-                for metric in snapshot.metrics {
-                    if let observations = metric.conflictingObservations {
-                        line("  \(metric.label): conflicted · usage unknown")
-                        for observation in observations {
-                            let amount = String(format: "%.2f%%", observation.usedPercent)
-                            let reset = observation.resetsAt.map(resetText) ?? "reset unknown"
-                            let absolute = observation.resetsAt.flatMap(displayableResetDate).map {
-                                DateFormatter.localizedString(from: $0, dateStyle: .full, timeStyle: .long)
-                            }
-                            line("    Observed \(amount) · \(reset)", tooltip: absolute)
-                        }
-                        continue
-                    }
-                    let percent = metric.usedPercent.map { String(format: "%.2f%%", $0) } ?? "unknown"
-                    let time = row.expirations.metrics.contains(metric.id) ? "reset due" :
-                        (metric.resetsAt.map { resetText($0) } ?? "reset unknown")
-                    let absolute = metric.resetsAt.flatMap(displayableResetDate).map {
-                        DateFormatter.localizedString(from: $0, dateStyle: .full, timeStyle: .long)
-                    }
-                    let color: NSColor? = switch severity(metric.usedPercent) {
-                    case .warning: .systemYellow
-                    case .critical: .systemRed
-                    default: nil
-                    }
-                    line("  \(metric.label): \(percent) · \(time)", tooltip: absolute, color: color)
-                }
-                for (index, balance) in snapshot.balances.enumerated() {
-                    let unknown: String
-                    switch balance.state {
-                    case .known, .unknown: unknown = "unknown"
-                    case .unavailable: unknown = "unavailable"
-                    case .inapplicable: unknown = "not applicable"
-                    }
-                    let amount = balance.unlimited ? "unlimited" : balance.remaining.map { "\($0) \(balance.currency ?? "credits")" } ?? unknown
-                    let expiry = row.expirations.balances.contains(index) ? " · expired (cached amount)" :
-                        (balance.expiresAt.map { " · " + expiryText($0) } ?? " · expiry unknown")
-                    line("  \(balance.label): \(amount)\(expiry)")
-                }
-                for amount in snapshot.informationalAmounts {
-                    line("  \(amount.label): \(amount.amount) \(amount.currency)")
-                }
-                if let credits = snapshot.resetCredits {
-                    let cached = row.expirations.credits.isEmpty ? "" : " (reported; some details expired)"
-                    line("  Earned resets: \(credits.availableCount.map(String.init) ?? "unknown") available\(cached)")
-                    line("  Applicable: \(credits.applicableCount.map(String.init) ?? "unknown")")
-                    if let details = credits.details {
-                        for (index, credit) in details.enumerated() {
-                            let expiry = row.expirations.credits.contains(index) ? "expired (cached detail)" :
-                                (credit.expiresAt.map(expiryText) ?? "expiry unknown")
-                            line("    \(credit.label): \(expiry)")
-                        }
-                    } else { line("  Reset detail and expiry unknown") }
-                }
-                for capability in snapshot.capabilities { line("  \(capability)") }
-                if let age = fetchAge { line(fetchedLine(age: age, interval: interval)) }
-                for warning in snapshot.warnings { line("  \(warning)") }
-            }
-            if fetchAge == nil, let interval { line(pollsLine(interval: interval)) }
-            if let message = row.message { line("  \(message)") }
-            if row.health == .unauthenticated && !demo {
-                button("Connect / Authorize \(row.profile.label)") { [weak self] in self?.reconnectAction?(row.profile.id) }
-            }
-        }
-        button("Refresh") { [weak self] in self?.refreshAction?() }
-        button("Settings") { [weak self] in self?.settingsAction?() }
-        button("Quit") { [weak self] in self?.quitAction?() }
-        sizeDocument()
-        document.needsLayout = true
-        document.needsDisplay = true
-    }
-    private func resetText(_ date: Date) -> String {
-        resetCountdownText(resetAt: date, now: renderNow ?? Date())
-    }
-    private func expiryText(_ date: Date) -> String {
-        guard displayableResetDate(date) != nil else { return "expiry unknown" }
-        let value = resetText(date)
-        return value == "reset due" ? "expired" : "expires \(value)"
-    }
-}
-
 extension UserDefaults: PollingStorage {}
 
 @MainActor final class AppController: NSObject, NSApplicationDelegate {
@@ -498,7 +316,14 @@ extension UserDefaults: PollingStorage {}
     private let item = NSStatusBar.system.statusItem(withLength: RingView.statusWidth(for: 3))
     private let rings = RingView(frame: NSRect(x: 0, y: 0, width: RingView.statusWidth(for: 3), height: 22))
     private let popover = NSPopover()
-    private let dropdown = DropdownView(frame: NSRect(x: 0, y: 0, width: 340, height: 420))
+    let dropdownModel = DropdownModel()
+    private lazy var dropdownHost: NSHostingController<DropdownPanel> = {
+        let host = NSHostingController(rootView: DropdownPanel(model: dropdownModel))
+        host.sizingOptions = .preferredContentSize
+        return host
+    }()
+    private(set) var settings: SettingsModel!
+    private var lastStatusRows: [ProfileDisplay] = []
     private var profiles: [AccountProfile] = []
     private var cadence: Timer?
     private var streamTask: Task<Void, Never>?
@@ -546,7 +371,11 @@ extension UserDefaults: PollingStorage {}
             Task { await self?.monitor.manualRefresh() }
         }, connect: { [weak self] id in
             Task { await self?.monitor.reconnect(id) }
-        }, accounts: { [weak self] in self?.showSettings() }, quit: { [weak self] in
+        }, accounts: { [weak self] in
+            guard let self else { return }
+            popover.performClose(nil)
+            settingsPresenter(settings)
+        }, quit: { [weak self] in
             Task { @MainActor in
                 await self?.monitor.stop()
                 NSApp.terminate(nil)
@@ -554,18 +383,29 @@ extension UserDefaults: PollingStorage {}
         })
         if let actionRouter, actionRouter.demo == demo { router = actionRouter }
         else { router = liveRouter }
+        dropdownModel.demo = demo
+        settings = makeSettings()
+    }
+    /// The Settings model over the current profile list; every change goes through the save path.
+    private func makeSettings() -> SettingsModel {
+        SettingsModel(profiles: profiles, indicatorCount: count, nudgeEnabled: nudgeOn, editable: !demo,
+                      onProfiles: { [weak self] list in self?.profiles = list; self?.saveProfiles() },
+                      onIndicatorCount: { [weak self] in self?.selectCount($0) },
+                      onNudge: { [weak self] in self?.setNudge($0) },
+                      onConnect: { [weak self] in self?.router.connect($0) },
+                      onAbout: { [weak self] in self?.showAbout() })
     }
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        installMainMenu()
         if demo, let demoAppearance, let appearance = NSAppearance(named: demoAppearance) {
             NSApp.appearance = appearance
             item.button?.appearance = appearance
             rings.appearance = appearance
-            dropdown.appearance = appearance
+            dropdownHost.view.appearance = appearance
         }
         installStatusDrawing()
-        popover.contentViewController = NSViewController()
-        popover.contentViewController?.view = dropdown
+        popover.contentViewController = dropdownHost
         popover.behavior = .transient
         configureDropdownActions()
         if demo {
@@ -577,6 +417,7 @@ extension UserDefaults: PollingStorage {}
         }
         else {
             profiles = loadProfiles()
+            settings = makeSettings()
             if let statisticsPath {
                 var protectedPaths = [CredentialStore.defaultCodexPath, CredentialStore.defaultClaudePath]
                 for profile in profiles {
@@ -617,18 +458,60 @@ extension UserDefaults: PollingStorage {}
             NotificationCenter.default.addObserver(self, selector: #selector(clockChanged), name: NSNotification.Name("NSSystemClockDidChangeNotification"), object: nil)
         }
     }
-    func updateDropdown(_ rows: [ProfileDisplay]) { dropdown.update(rows, demo: demo) }
-    func pressDropdownButton(_ title: String) { dropdown.performButton(title) }
-    func hasDropdownButton(_ title: String) -> Bool { dropdown.hasButton(title) }
+    func updateDropdown(_ rows: [ProfileDisplay]) {
+        dropdownModel.rows = rows
+        pushStatuses(rows)
+    }
+    private func pushStatuses(_ rows: [ProfileDisplay]) {
+        guard !sameDropdownRows(lastStatusRows, rows) else { return }
+        lastStatusRows = rows
+        settings.updateStatuses(rows)
+    }
+    func pressDropdownButton(_ title: String) { dropdownModel.perform(title) }
+    func hasDropdownButton(_ title: String) -> Bool { dropdownModel.actionTitles().contains(title) }
     func routeConnect(_ id: String) { router.connect(id) }
     func configureDropdownActions() {
-        dropdown.refreshAction = { [weak self] in self?.router.refresh() }
-        dropdown.reconnectAction = { [weak self] id in self?.router.connect(id) }
-        dropdown.settingsAction = { [weak self] in self?.showSettingsMenu() }
-        dropdown.quitAction = { [weak self] in self?.router.quit() }
+        dropdownModel.refresh = { [weak self] in self?.router.refresh() }
+        dropdownModel.connect = { [weak self] id in self?.router.connect(id) }
+        dropdownModel.settings = { [weak self] in self?.openSettings() }
+        dropdownModel.quit = { [weak self] in self?.router.quit() }
     }
+    /// Demo presents the read-only Settings window directly; the router keeps its demo guard.
+    private func openSettings() {
+        guard demo else { return router.accounts() }
+        popover.performClose(nil)
+        settingsPresenter(settings)
+    }
+    /// Not visible for an accessory app, but gives Settings its standard key equivalents.
+    private func installMainMenu() {
+        let menu = NSMenu()
+        func add(_ title: String, _ items: [NSMenuItem]) {
+            let item = NSMenuItem(), submenu = NSMenu(title: title)
+            items.forEach(submenu.addItem)
+            item.submenu = submenu
+            menu.addItem(item)
+        }
+        func entry(_ title: String, _ action: Selector, _ key: String, _ modifiers: NSEvent.ModifierFlags = .command,
+                   mine: Bool = false) -> NSMenuItem {
+            let item = NSMenuItem(title: title, action: action, keyEquivalent: key)
+            item.keyEquivalentModifierMask = modifiers
+            if mine { item.target = self }
+            return item
+        }
+        add("Limitaur", [entry("About Limitaur", #selector(menuAbout), "", mine: true), .separator(),
+                         entry("Settings…", #selector(menuSettings), ",", mine: true), .separator(),
+                         entry("Quit Limitaur", #selector(menuQuit), "q", mine: true)])
+        add("Edit", [entry("Undo", Selector(("undo:")), "z"), entry("Redo", Selector(("redo:")), "z", [.command, .shift]),
+                     .separator(), entry("Cut", #selector(NSText.cut(_:)), "x"), entry("Copy", #selector(NSText.copy(_:)), "c"),
+                     entry("Paste", #selector(NSText.paste(_:)), "v"), entry("Select All", #selector(NSText.selectAll(_:)), "a")])
+        add("Window", [entry("Close", #selector(NSWindow.performClose(_:)), "w")])
+        NSApp.mainMenu = menu
+    }
+    @objc private func menuAbout() { showAbout() }
+    @objc private func menuSettings() { openSettings() }
+    @objc private func menuQuit() { router.quit() }
     func prepareDemo() { guard demo else { return }; configureDropdownActions(); installDemo() }
-    func performDropdownButton(_ title: String) { dropdown.performButton(title) }
+    func performDropdownButton(_ title: String) { dropdownModel.perform(title) }
     var presentedCount: Int { count }
     var statusWidth: CGFloat { item.length }
     var currentPresentation: PresentationState? { lastProjection }
@@ -661,9 +544,8 @@ extension UserDefaults: PollingStorage {}
         await monitor.restoreNudgeAttempts(storedAttempts)
         await monitor.setNudgeEnabled(nudgeOn)
     }
-    @objc private func toggleNudge(_ sender: NSMenuItem) {
+    private func setNudge(_ enabled: Bool) {
         guard !demo else { return }
-        let enabled = sender.state != .on
         defaults.set(enabled, forKey: "claudeNudgeEnabled")
         nudgeToggled?(enabled)
         Task { await monitor.setNudgeEnabled(enabled) }
@@ -683,13 +565,15 @@ extension UserDefaults: PollingStorage {}
             refreshProjection()
             requestLocalDisplay()
             if let lastProjection {
-                dropdown.renderNow = lastPresentationWall
+                dropdownModel.now = lastPresentationWall ?? Date()
                 updateDropdown(lastProjection.profiles); lastDropdownRows = lastProjection.profiles
             }
+            // Measure before showing, so the first open appears at its final height.
+            dropdownHost.view.layoutSubtreeIfNeeded()
+            popover.contentSize = dropdownHost.view.fittingSize
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             NSApp.activate(ignoringOtherApps: true)
-            dropdown.window?.makeKey()
-            dropdown.focusFirstButton()
+            dropdownHost.view.window?.makeKey()
             if !demo { Task { await monitor.dropdownOpened() } }
         }
     }
@@ -726,50 +610,21 @@ extension UserDefaults: PollingStorage {}
         refreshProjection()
         requestLocalDisplay()
     }
-    @objc private func selectCountMenuItem(_ sender: NSMenuItem) { selectCount(sender.tag) }
-    @objc private func openAccounts() { router.accounts() }
+    /// Presents the Settings window; tests inject a probe. Demo reaches it without the router.
+    var settingsPresenter: (SettingsModel) -> Void = { SettingsWindowController.show($0) }
     /// Presents the About panel; tests inject a probe. The default activates the
     /// accessory app so the standard panel comes to the front.
     var aboutPresenter: ([NSApplication.AboutPanelOptionKey: Any]) -> Void = { options in
         NSApp.activate()
         NSApp.orderFrontStandardAboutPanel(options: options)
     }
-    @objc private func showAbout() { aboutPresenter(AppVersion.aboutPanelOptions()) }
-    func settingsMenu() -> NSMenu {
-        let menu = NSMenu(title: "Settings")
-        menu.autoenablesItems = false
-        let indicators = NSMenuItem(title: "Indicators", action: nil, keyEquivalent: "")
-        let submenu = NSMenu(title: "Indicators")
-        for number in 1...8 {
-            let option = NSMenuItem(title: String(number), action: #selector(selectCountMenuItem(_:)), keyEquivalent: "")
-            option.target = self; option.tag = number
-            option.state = number == count ? .on : .off
-            submenu.addItem(option)
-        }
-        menu.setSubmenu(submenu, for: indicators)
-        menu.addItem(indicators)
-        menu.addItem(.separator())
-        let accounts = NSMenuItem(title: "Accounts…", action: #selector(openAccounts), keyEquivalent: "")
-        accounts.target = self; accounts.isEnabled = !demo
-        menu.addItem(accounts)
-        let about = NSMenuItem(title: "About Limitaur…", action: #selector(showAbout), keyEquivalent: "")
-        about.target = self
-        menu.addItem(about)
-        let nudge = NSMenuItem(title: "Run claude when the Claude session has expired", action: #selector(toggleNudge(_:)), keyEquivalent: "")
-        nudge.target = self; nudge.isEnabled = !demo
-        nudge.state = nudgeOn ? .on : .off
-        menu.addItem(nudge)
-        return menu
-    }
-    private func showSettingsMenu() {
-        settingsMenu().popUp(positioning: nil, at: NSPoint(x: 12, y: dropdown.bounds.midY), in: dropdown)
-    }
+    private func showAbout() { aboutPresenter(AppVersion.aboutPanelOptions()) }
     private func apply(_ value: MonitorDisplay) {
         guard value.revision >= latestRevision else { return }
         latestRevision = value.revision
         lastDisplay = value
-        let changed = intervalsDiffer(dropdown.polling, value.polling)
-        dropdown.polling = value.polling
+        let changed = intervalsDiffer(dropdownModel.polling, value.polling)
+        dropdownModel.polling = value.polling
         pollingPersistence?.save(value.polling)
         refreshProjection(rebuild: changed)
     }
@@ -809,10 +664,10 @@ extension UserDefaults: PollingStorage {}
             rings.toolTip = projected.accessibilitySummary
         }
         if popover.isShown && (rebuild || !sameDropdownRows(lastDropdownRows, projected.profiles)) {
-            dropdown.renderNow = wall
+            dropdownModel.now = wall
             updateDropdown(projected.profiles)
             lastDropdownRows = projected.profiles
-        }
+        } else { pushStatuses(projected.profiles) }
     }
     private func sameDropdownRows(_ left: [ProfileDisplay], _ right: [ProfileDisplay]) -> Bool {
         guard left.count == right.count else { return false }
@@ -837,81 +692,6 @@ extension UserDefaults: PollingStorage {}
         profiles = normalizedProfiles(profiles)
         if let data = try? JSONEncoder().encode(profiles) { UserDefaults.standard.set(data, forKey: "profiles") }
         Task { await monitor.setProfiles(profiles) }
-    }
-    private func showSettings() {
-        guard !demo else { return }
-        var draft = profiles
-        while true {
-            let alert = NSAlert()
-            alert.messageText = "Accounts"
-            alert.informativeText = "Paths and labels are saved locally. Connect authorizes an existing Claude Keychain item. When the Claude session has expired, Limitaur runs claude (at most hourly) so Claude Code renews it; turn this off in Settings if unwanted. Cursor reads the cursor-agent sign-in; run cursor-agent login when it expires."
-            let container = NSStackView()
-            container.orientation = .vertical; container.spacing = 7
-            var controls: [(String, NSButton, NSTextField, NSPopUpButton, NSTextField, NSButton)] = []
-            for profile in draft {
-                let enabled = NSButton(checkboxWithTitle: profile.providerID.rawValue.capitalized, target: nil, action: nil)
-                enabled.state = profile.enabled ? .on : .off
-                let label = NSTextField(string: profile.label)
-                label.placeholderString = "Account label"
-                label.setAccessibilityLabel("\(profile.providerID.rawValue) account label")
-                let mode = NSPopUpButton(frame: .zero, pullsDown: false)
-                if profile.providerID == "claude" {
-                    mode.addItems(withTitles: ["Existing Keychain item", "Credential file"])
-                    mode.selectItem(at: profile.source == .claudeDefaultDiscovery ? 0 : 1)
-                } else { mode.addItem(withTitle: profile.providerID == "cursor" ? "cursor-agent sign-in" : "Credential file") }
-                mode.setAccessibilityLabel("Credential source")
-                let path: String
-                switch profile.source {
-                case .codexFile(let p), .claudeFile(let p): path = p
-                case .claudeDefaultDiscovery, .cursorDefaultDiscovery: path = ""
-                }
-                let source = NSTextField(string: path)
-                source.isEnabled = profile.providerID != "cursor"
-                source.placeholderString = "Absolute file path, if selected"
-                source.setAccessibilityLabel("Credential file path")
-                let remove = NSButton(checkboxWithTitle: "Remove", target: nil, action: nil)
-                let fields: [NSView] = [enabled, label, mode, source, remove]
-                for view in fields { container.addArrangedSubview(view) }
-                controls.append((profile.id, enabled, label, mode, source, remove))
-            }
-            let scroll = NSScrollView(frame: NSRect(x: 0, y: 0, width: 340, height: min(360, max(115, CGFloat(draft.count) * 124))))
-            scroll.hasVerticalScroller = true
-            scroll.documentView = container
-            container.frame = NSRect(x: 0, y: 0, width: 320, height: max(scroll.contentSize.height, ceil(container.fittingSize.height)))
-            alert.accessoryView = scroll
-            alert.addButton(withTitle: "Save")
-            alert.addButton(withTitle: "Cancel")
-            alert.addButton(withTitle: "Add Codex")
-            alert.addButton(withTitle: "Add Claude")
-            alert.addButton(withTitle: "Add Cursor")
-            let result = alert.runModal()
-            if result == .alertSecondButtonReturn { return }
-            var invalid = false
-            var removed = Set<String>()
-            for (id, enabled, label, mode, source, remove) in controls {
-                if remove.state == .on { removed.insert(id); continue }
-                guard let index = draft.firstIndex(where: { $0.id == id }) else { continue }
-                let value = source.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-                draft[index].enabled = enabled.state == .on
-                draft[index].label = label.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-                if draft[index].providerID == "cursor" {
-                    draft[index].source = .cursorDefaultDiscovery
-                } else if draft[index].providerID == "claude" && mode.indexOfSelectedItem == 0 {
-                    draft[index].source = .claudeDefaultDiscovery
-                } else {
-                    if !value.hasPrefix("/") { invalid = true }
-                    draft[index].source = draft[index].providerID == "codex" ? .codexFile(value) : .claudeFile(value)
-                }
-            }
-            draft.removeAll { removed.contains($0.id) }
-            if result == .alertFirstButtonReturn {
-                if invalid { NSSound.beep(); continue }
-                profiles = draft
-                saveProfiles()
-                return
-            }
-            if let added = addedAccountProfile(for: result, id: UUID().uuidString) { draft.append(added) }
-        }
     }
     private func installDemo() {
         let now = presentationClock.wallNow()
@@ -966,8 +746,12 @@ extension UserDefaults: PollingStorage {}
             guard let generation = identity[key] else { return nil }
             return PresentationCandidate(metric: metric, freshnessDeadline: freshUntil, snapshotGeneration: generation)
         }
+        // The read-only Settings model shows the demo's own profiles; apply feeds it these rows.
+        profiles = rows.map(\.profile)
+        settings = makeSettings()
+        lastStatusRows = []
         let display = MonitorDisplay(profiles: rows, candidates: candidates, revision: 1, nextDisplayDeadline: nil, polling: demoPolling)
         apply(display)
-        if let lastProjection { dropdown.renderNow = now; updateDropdown(lastProjection.profiles) }
+        if let lastProjection { dropdownModel.now = now; updateDropdown(lastProjection.profiles) }
     }
 }

@@ -1150,7 +1150,7 @@ public actor Monitor {
         return result
     }
     private func defaultWorkloadEligible(wall: Date, mono: TimeInterval) -> Bool {
-        guard awake, configuredProfiles.count == 2,
+        guard awake, configuredProfiles.values.filter(\.enabled).count == 2,
               let codex = configuredProfiles["codex-default"],
               let claude = configuredProfiles["claude-default"],
               codex.enabled, claude.enabled,

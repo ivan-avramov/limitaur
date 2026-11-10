@@ -26,24 +26,23 @@ import Testing
     func saveCount(_ count: Int) { writes.append(count); value = count }
 }
 
-@MainActor @Test func actualCountMenuUsesOnlyPresentationStore() {
+@MainActor @Test func actualCountSettingUsesOnlyPresentationStore() {
     _ = NSApplication.shared
     let probe = ActionProbe(), store = CountStoreProbe(3)
     let controller = AppController(countStore: store, actionRouter: probe.router(demo: false))
     controller.configureDropdownActions()
-    let menu = controller.settingsMenu()
-    let options = menu.item(at: 0)!.submenu!
-    #expect(options.numberOfItems == 8)
-    #expect(options.item(at: 2)?.state == .on)
-    let five = options.item(at: 4)!
-    #expect(NSApp.sendAction(five.action!, to: five.target, from: five))
+    #expect(controller.settings.indicatorCount == 3)
+    controller.settings.setIndicatorCount(5)
+    #expect(controller.settings.indicatorCount == 5)
     #expect(controller.presentedCount == 5)
     #expect(controller.statusWidth == RingView.statusWidth(for: 5))
     #expect(store.writes == [5])
     #expect(probe.refreshes == 0 && probe.connections == 0 && probe.accounts == 0)
-    controller.selectCount(8)
-    controller.selectCount(1)
-    #expect(controller.presentedCount == 1)
+    controller.settings.setIndicatorCount(8)
+    controller.settings.setIndicatorCount(1)
+    controller.settings.setIndicatorCount(0)   // outside 1...8: ignored, as the menu only offered 1...8
+    controller.settings.setIndicatorCount(9)
+    #expect(controller.presentedCount == 1 && controller.settings.indicatorCount == 1)
     #expect(store.writes == [5, 8, 1])
     #expect(probe.refreshes == 0)
 }
@@ -62,12 +61,19 @@ import Testing
     #expect(!controller.hasDropdownButton("Connect / Authorize Synthetic"))
     controller.routeConnect("demo-unauthenticated")
     #expect(probe.refreshes == 0 && probe.connections == 0)
-    let menu = controller.settingsMenu()
-    #expect(menu.item(at: 2)?.isEnabled == false)
-    let five = menu.item(at: 0)!.submenu!.item(at: 4)!
-    #expect(NSApp.sendAction(five.action!, to: five.target, from: five))
+    var presented = 0
+    controller.settingsPresenter = { _ in presented += 1 }   // no real window in tests
+    controller.pressDropdownButton("Settings")   // F5: demo presents Settings through the presenter, never the router
+    #expect(presented == 1 && probe.accounts == 0)
+    #expect(controller.settings.editable == false)
+    controller.settings.setNudge(false); controller.settings.connect("demo-unauthenticated")
+    controller.settings.setProviderEnabled("cursor", true)
+    #expect(controller.settings.profiles.allSatisfy { $0.providerID != "cursor" })
+    controller.selectCount(5)
     #expect(controller.presentedCount == 5)
-    #expect(store.reads == 0 && store.writes.isEmpty)
+    controller.settings.setIndicatorCount(8)   // F5: the count works whatever `editable` says
+    #expect(controller.presentedCount == 8 && controller.settings.indicatorCount == 8)
+    #expect(store.reads == 0 && store.writes.isEmpty)   // demo uses the in-memory store
     controller.pressDropdownButton("Quit")
     #expect(probe.quits == 1)
     #expect(probe.accounts == 0 && probe.refreshes == 0 && probe.connections == 0)
@@ -89,8 +95,7 @@ import Testing
     view.cacheDisplay(in: view.bounds, to: bitmap)
     #expect(controller.currentPresentation?.selected.count == 3)
     #expect(controller.currentPresentation?.profiles.allSatisfy { $0.health == .healthy } == true)
-    let five = controller.settingsMenu().item(at: 0)!.submenu!.item(at: 4)!
-    #expect(NSApp.sendAction(five.action!, to: five.target, from: five))
+    controller.selectCount(5)
     #expect(controller.currentPresentation?.selected.count == 5)
     #expect(controller.currentPresentation?.profiles.allSatisfy { $0.health == .healthy } == true)
     controller.pressDropdownButton("Refresh")
@@ -112,8 +117,7 @@ import Testing
     #expect(probe.connections == 1 && probe.refreshes == 1)
     controller.selectCount(5)
     #expect(probe.connections == 1 && probe.refreshes == 1)
-    let accounts = controller.settingsMenu().item(at: 2)!
-    #expect(NSApp.sendAction(accounts.action!, to: accounts.target, from: accounts))
+    controller.pressDropdownButton("Settings")
     #expect(probe.accounts == 1)
 }
 
@@ -290,8 +294,7 @@ private final class PresentationClock: MonitorClock, @unchecked Sendable {
         let controller = AppController(monitor: monitor, presentationClock: clock,
                                        countStore: store, actionRouter: probe.router(demo: false))
         controller.receiveDisplay(beforeDisplay)
-        let five = controller.settingsMenu().item(at: 0)!.submenu!.item(at: 4)!
-        #expect(NSApp.sendAction(five.action!, to: five.target, from: five))
+        controller.settings.setIndicatorCount(5)
         controller.selectCount(8)
         controller.selectCount(1)
         for _ in 0..<100 { await Task.yield() }
@@ -328,14 +331,12 @@ private final class NudgeOrderProbe: SessionNudging, @unchecked Sendable {
     let controller = AppController(monitor: monitor, presentationClock: clock, countStore: CountStoreProbe(3), defaults: defaults, nudger: probe)
     var toggles: [Bool] = []
     controller.nudgeToggled = { toggles.append($0) }
-    var item = controller.settingsMenu().item(at: 4)!
-    #expect(item.title == "Run claude when the Claude session has expired" && item.state == .on && item.isEnabled)   // r15: an absent key means on
-    #expect(NSApp.sendAction(item.action!, to: item.target, from: item))
+    #expect(controller.settings.nudgeEnabled && controller.settings.editable)   // r15: an absent key means on
+    controller.settings.setNudge(false)
     #expect(toggles == [false] && defaults.object(forKey: "claudeNudgeEnabled") as? Bool == false)
-    item = controller.settingsMenu().item(at: 4)!
-    #expect(item.state == .off)
-    #expect(NSApp.sendAction(item.action!, to: item.target, from: item))
-    #expect(toggles == [false, true] && defaults.bool(forKey: "claudeNudgeEnabled"))
+    #expect(!controller.settings.nudgeEnabled)
+    controller.settings.setNudge(true)
+    #expect(toggles == [false, true] && defaults.bool(forKey: "claudeNudgeEnabled") && controller.settings.nudgeEnabled)
     await controller.restoreNudge()   // a stored future attempt is clamped to the clock's now
     #expect(await monitor.display().nudgeAttempts == ["claude-default": clock.wallNow()])
     let before = defaults.data(forKey: "nudge.lastAttempts")   // only the monitor's attemptStore writes this key
@@ -347,7 +348,7 @@ private final class NudgeOrderProbe: SessionNudging, @unchecked Sendable {
     controller.applicationWillTerminate(Notification(name: NSApplication.willTerminateNotification))
     #expect(order == ["wait 5", "terminate"])
     let demo = AppController(demo: true, countStore: CountStoreProbe(3), defaults: defaults, nudger: probe)
-    #expect(demo.settingsMenu().item(at: 4)?.isEnabled == false)
+    #expect(demo.settings.editable == false)
     demo.terminateProcesses = {}
     demo.applicationWillTerminate(Notification(name: NSApplication.willTerminateNotification))
     #expect(probe.log.withLock { $0 } == ["wait 5"])
@@ -375,12 +376,9 @@ private final class NudgeOrderProbe: SessionNudging, @unchecked Sendable {
     let demo = AppController(demo: true, countStore: CountStoreProbe(3), defaults: defaults, nudger: nil)
     var toggles: [Bool] = []
     demo.nudgeToggled = { toggles.append($0) }
-    let menu = demo.settingsMenu()
-    menu.update()   // automatic enabling must not re-enable the item
-    let item = menu.item(at: 4)!
-    #expect(!menu.autoenablesItems && !item.isEnabled)
-    #expect(NSApp.sendAction(item.action!, to: item.target, from: item))
-    #expect(toggles.isEmpty && defaults.object(forKey: "claudeNudgeEnabled") == nil && item.state == .on)
+    #expect(!demo.settings.editable)
+    demo.settings.setNudge(false)
+    #expect(toggles.isEmpty && defaults.object(forKey: "claudeNudgeEnabled") == nil && demo.settings.nudgeEnabled)
 }
 
 private final class CountingNudger: SessionNudging, @unchecked Sendable {
@@ -404,7 +402,7 @@ func nudgeDefaultsToOnAndAStoredValueWins(_ stored: Bool?) async throws {
     let monitor = Monitor(clock: clock, credentials: CredentialStore(files: CountingFiles(), keychain: UnexpiredKeychain(expiry: clock.wallNow().addingTimeInterval(-10))),
                           transport: CountingTransport(.healthy), reactiveRecheck: true, nudger: nudger)
     let controller = AppController(monitor: monitor, presentationClock: clock, countStore: CountStoreProbe(3), defaults: defaults, nudger: nil)
-    #expect(controller.settingsMenu().item(at: 4)?.state == (expected ? .on : .off))
+    #expect(controller.settings.nudgeEnabled == expected)
     await controller.restoreNudge()
     await monitor.setProfiles([AccountProfile(id: "a", providerID: "claude", label: "Synthetic", source: .claudeDefaultDiscovery)])
     #expect(await monitor.settle())

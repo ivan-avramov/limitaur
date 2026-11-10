@@ -1,4 +1,5 @@
 import AppKit
+import SwiftUI
 import LimitaurCore
 import Darwin
 import CoreFoundation
@@ -180,25 +181,83 @@ private func checkLive() {
             zero.count = count; zero.selected = [RankedMetric(snapshot: zeroSnapshot, metric: zeroSnapshot.metrics[0])]
             try png(zero, path: directory + "/bars-\(count)-zero-\(theme).png", appearance: appearance)
         }
-        let dropdown = DropdownView(frame: NSRect(x: 0, y: 0, width: 340, height: 420))
-        dropdown.renderNow = now
-        let groupedRows = rows.sorted {
+        let cursor = UsageSnapshot(providerID: "cursor", accountID: "demo-c", accountLabel: "Demo", fetchedAt: now,
+                                   metrics: [UsageMetric(id: "spend", label: "Monthly spend", usedPercent: 2,
+                                                         resetsAt: now.addingTimeInterval(12 * 86400))],
+                                   informationalAmounts: [InformationalAmount(label: "Spent this cycle", amount: Decimal(string: "86.14")!, currency: "USD"),
+                                                          InformationalAmount(label: "Spend limit", amount: Decimal(5000), currency: "USD")])
+        let cursorRow = ProfileDisplay(profile: AccountProfile(id: "demo-c", providerID: "cursor", label: "Demo", source: .cursorDefaultDiscovery),
+                                       snapshot: cursor, health: .healthy, message: nil, fetchedAge: 0)
+        // Few and short enough cards that the Cursor card fits the visible height; the stale render
+        // keeps the earned-reset lines.
+        let codex = UsageSnapshot(providerID: "codex", accountID: "demo-a", accountLabel: "Demo", fetchedAt: now,
+                                  metrics: sample[0].metrics, balances: sample[0].balances)
+        let codexRow = ProfileDisplay(profile: rows[0].profile, snapshot: codex, health: .healthy, message: nil, fetchedAge: 0)
+        let groupedRows = [codexRow, rows[1], cursorRow].sorted {
             ($0.profile.providerID.rawValue, $0.profile.id) <
             ($1.profile.providerID.rawValue, $1.profile.id)
         }
-        dropdown.update(groupedRows, demo: true)
-        try png(dropdown, path: directory + "/dropdown-\(theme).png", appearance: appearance)
+        try renderDropdown(groupedRows, now: now, path: directory + "/dropdown-\(theme).png", appearance: appearance)
         let staleRow = ProfileDisplay(profile: AccountProfile(id: "codex-stale", providerID: "codex", label: "Demo",
                                                             source: .codexFile("/demo")),
                                       snapshot: sample[0], health: .stale, message: "Connection unavailable", fetchedAge: 120)
         let unavailableRow = ProfileDisplay(profile: AccountProfile(id: "claude-unavailable", providerID: "claude", label: "Demo",
                                                                   source: .claudeFile("/demo")),
                                             snapshot: nil, health: .unavailable, message: "Provider unavailable", fetchedAge: nil)
-        let emptyDropdown = DropdownView(frame: NSRect(x: 0, y: 0, width: 340, height: 420))
-        emptyDropdown.renderNow = now
-        emptyDropdown.update([staleRow, unavailableRow], demo: true)
-        try png(emptyDropdown, path: directory + "/dropdown-empty-stale-\(theme).png", appearance: appearance)
+        try renderDropdown([staleRow, unavailableRow], now: now, path: directory + "/dropdown-empty-stale-\(theme).png", appearance: appearance)
+        try renderDropdown([], now: now, demo: false, path: directory + "/dropdown-empty-\(theme).png", appearance: appearance)
+        let settings = demoSettings()
+        try hostedPNG(ProvidersSettingsView(model: settings), width: 560,
+                      path: directory + "/settings-providers-\(theme).png", appearance: appearance)
+        try hostedPNG(GeneralSettingsView(model: settings), width: 560,
+                      path: directory + "/settings-general-\(theme).png", appearance: appearance)
     }
+}
+
+/// The empty state renders outside demo so it shows its "Open Settings" button.
+@MainActor private func renderDropdown(_ rows: [ProfileDisplay], now: Date, demo: Bool = true, path: String,
+                                       appearance: NSAppearance) throws {
+    let model = DropdownModel()
+    model.demo = demo; model.now = now; model.polling = demoPolling; model.rows = rows
+    try hostedPNG(DropdownPanel(model: model), width: 360, path: path, appearance: appearance, popoverMaterial: true)
+}
+
+/// Claude on with Keychain and healthy, Codex on and needing sign-in with one other account, Cursor off.
+/// Editable with inert callbacks, so the controls render enabled and without the demo footnote.
+@MainActor private func demoSettings() -> SettingsModel {
+    let profiles = [
+        AccountProfile(id: "claude-default", providerID: "claude", label: "Default", source: .claudeDefaultDiscovery),
+        AccountProfile(id: "codex-default", providerID: "codex", label: "Default", source: .codexFile("/Users/demo/.codex/auth.json")),
+        AccountProfile(id: "codex-work", providerID: "codex", label: "Account 2", source: .codexFile("/Users/demo/work/auth.json"), enabled: false)
+    ]
+    let model = SettingsModel(profiles: profiles, indicatorCount: 3, nudgeEnabled: true, editable: true,
+                              onProfiles: { _ in }, onIndicatorCount: { _ in }, onNudge: { _ in },
+                              onConnect: { _ in }, onAbout: {})
+    model.updateStatuses([
+        ProfileDisplay(profile: profiles[0], snapshot: nil, health: .healthy, message: nil, fetchedAge: 0),
+        ProfileDisplay(profile: profiles[1], snapshot: nil, health: .unauthenticated,
+                       message: "Session expired or rejected; resumes automatically after the provider app signs in again", fetchedAge: nil)
+    ])
+    return model
+}
+
+/// Lays a SwiftUI view out at `width` and its fitted height, letting state-driven sizing settle first.
+/// The dropdown draws on the popover material, so its render puts that material behind it.
+@MainActor private func hostedPNG<Content: View>(_ content: Content, width: CGFloat, path: String, appearance: NSAppearance,
+                                                 popoverMaterial: Bool = false) throws {
+    let host = NSHostingView(rootView: content)
+    host.appearance = appearance
+    host.frame = NSRect(x: 0, y: 0, width: width, height: 200)
+    for _ in 0..<4 {
+        host.layoutSubtreeIfNeeded()
+        host.setFrameSize(NSSize(width: width, height: max(1, ceil(host.fittingSize.height))))
+        RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+    }
+    guard popoverMaterial else { return try png(host, path: path, appearance: appearance) }
+    let backdrop = NSVisualEffectView(frame: host.frame)
+    backdrop.material = .popover; backdrop.state = .active; backdrop.blendingMode = .behindWindow
+    backdrop.addSubview(host)
+    try png(backdrop, path: path, appearance: appearance)
 }
 
 @main struct Main {

@@ -5,7 +5,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 ## [Unreleased]
 
 ### Added
-- Cursor provider: Settings → "Add Cursor" reads the existing cursor-agent sign-in from the Keychain (read-only, through `/usr/bin/security`) and shows one `CU` / `$` bar of the caller's own billing-cycle spend against the effective per-user spend limit, with spent and limit amounts (labelled USD) in the dropdown; `--check-live` includes `cursor`.
+- Cursor provider: the Cursor switch under Settings → Providers reads the existing cursor-agent sign-in from the Keychain (read-only, through `/usr/bin/security`) and shows one `CU` / `$` bar of the caller's own billing-cycle spend against the effective per-user spend limit, with spent and limit amounts (labelled USD) in the dropdown; `--check-live` includes `cursor`.
+
+### Changed
+- A native Settings window with General and Providers tabs replaces the Accounts dialog and the Settings pop-up menu. Each provider section has an on/off switch, its source, its live status and its options; extra Codex and Claude accounts live under "Other accounts". Changes apply immediately.
+- The dropdown shows one card per account with a usage bar per metric in the threshold colours; percentages show as whole numbers with the exact value in the tooltip.
+- Default-workload eligibility counts only enabled profiles.
 
 ## [0.2.3] - 2026-11-07
 

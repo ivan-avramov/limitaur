@@ -4,42 +4,45 @@ import Testing
 @testable import Limitaur
 @testable import LimitaurCore
 
-// Classes: R = reproduces a failure the specification fixes (baseline has no Add Cursor result mapping),
-// I = preserves an invariant, N = exercises new behaviour.
-
-private func cpResponse(offset: Int) -> NSApplication.ModalResponse {
-    NSApplication.ModalResponse(rawValue: NSApplication.ModalResponse.alertThirdButtonReturn.rawValue + offset)
-}
+// Classes: R = reproduces a failure the specification fixes, I = preserves an invariant, N = exercises new behaviour.
+// Ported from the Accounts dialog's "Add" button mapping (addedAccountProfile) to SettingsModel.addAccount: the button
+// mapping is gone by specification (S1, S3); the surviving invariants are that adding appends a disabled profile and that
+// only Codex and Claude can be added.
 
 @Suite @MainActor struct CPAddedAccountProfileTests {
-    // R, I7: the third button + 2 appends a disabled Cursor profile on the cursor-agent source.
-    @Test func addCursorMapsToTheCursorProfile() {
-        let profile = addedAccountProfile(for: cpResponse(offset: 2), id: "id-cursor")
-        #expect(profile == AccountProfile(id: "id-cursor", providerID: "cursor", label: "New account",
-                                          source: .cursorDefaultDiscovery, expectedAccountID: nil, enabled: false))
+    // I: adding a Codex or Claude account appends a disabled profile (no expected account id) on the provider's file source.
+    // The label ("Account <n>") and the Claude source (a file, not Keychain discovery) changed by specification I1.
+    @Test func addCodexAndAddClaudeAreUnchanged() throws {
+        let probe = RDSettingsProbe()
+        let model = probe.model([])
+        let codexID = try #require(model.addAccount("codex")), claudeID = try #require(model.addAccount("claude"))
+        #expect(model.profiles == [
+            AccountProfile(id: codexID, providerID: "codex", label: "Account 2", source: .codexFile(CredentialStore.defaultCodexPath),
+                           expectedAccountID: nil, enabled: false),
+            AccountProfile(id: claudeID, providerID: "claude", label: "Account 2", source: .claudeFile(CredentialStore.defaultClaudePath),
+                           expectedAccountID: nil, enabled: false)])
+        #expect(probe.lists.count == 2)
     }
-    // I, I7: the existing Codex and Claude results keep their profiles, now with explicit mapping.
-    @Test func addCodexAndAddClaudeAreUnchanged() {
-        let codex = addedAccountProfile(for: .alertThirdButtonReturn, id: "id-codex")
-        #expect(codex == AccountProfile(id: "id-codex", providerID: "codex", label: "New account",
-                                        source: .codexFile(CredentialStore.defaultCodexPath), expectedAccountID: nil, enabled: false))
-        let claude = addedAccountProfile(for: cpResponse(offset: 1), id: "id-claude")
-        #expect(claude == AccountProfile(id: "id-claude", providerID: "claude", label: "New account",
-                                         source: .claudeDefaultDiscovery, expectedAccountID: nil, enabled: false))
+    // N (replaces otherResponsesAddNothing): no other provider adds anything; Cursor is refused by specification S3.
+    @Test func otherProvidersAddNothing() {
+        let probe = RDSettingsProbe()
+        let model = probe.model()
+        for provider in ["cursor", "unknown", "Codex", "CLAUDE", ""] as [ProviderID] { #expect(model.addAccount(provider) == nil) }
+        #expect(model.profiles == rdFreshInstall && probe.callbacks == 0)
     }
-    // N, I7: any other result changes nothing, including Save, Cancel and results beyond the Cursor button.
-    @Test func otherResponsesAddNothing() {
-        let others: [NSApplication.ModalResponse] = [.alertFirstButtonReturn, .alertSecondButtonReturn, cpResponse(offset: 3), cpResponse(offset: 4),
-                                                     cpResponse(offset: -1), .OK, .cancel, .stop, .abort, .continue,
-                                                     NSApplication.ModalResponse(rawValue: 0), NSApplication.ModalResponse(rawValue: Int.max),
-                                                     NSApplication.ModalResponse(rawValue: Int.min)]
-        for response in others { #expect(addedAccountProfile(for: response, id: "x") == nil) }
+    // N (replaces idIsUsedVerbatim): each added account gets its own fresh identifier, distinct from every existing id.
+    @Test func addedAccountsGetDistinctIdentifiers() throws {
+        let model = RDSettingsProbe().model()
+        let ids = try (0..<4).map { try #require(model.addAccount($0.isMultiple(of: 2) ? "codex" : "claude")) }
+        #expect(Set(ids).count == 4 && Set(ids).isDisjoint(with: rdFreshInstall.map(\.id)))
+        #expect(model.profiles.suffix(4).map(\.id) == ids && model.profiles.suffix(4).allSatisfy { !$0.enabled })
     }
-    // N, I7: the given ID is used verbatim and the three results produce three distinct providers.
-    @Test func idIsUsedVerbatim() {
-        let ids = (0...2).compactMap { addedAccountProfile(for: cpResponse(offset: $0), id: "fixed-\($0)") }
-        #expect(ids.map(\.id) == ["fixed-0", "fixed-1", "fixed-2"])
-        #expect(ids.map(\.providerID.rawValue) == ["codex", "claude", "cursor"])
-        #expect(Set(ids.map(\.source.stableID)).count == 3 && ids.allSatisfy { !$0.enabled && $0.label == "New account" })
+    // R (replaces addCursorMapsToTheCursorProfile): a Cursor profile is created by the section switch, not an Add button:
+    // it is the main account on the cursor-agent source, enabled, with label "Default".
+    @Test func cursorProfileComesFromTheSectionSwitch() {
+        let model = RDSettingsProbe().model()
+        model.setProviderEnabled("cursor", true)
+        #expect(model.profiles.last == AccountProfile(id: "cursor-default", providerID: "cursor", label: "Default",
+                                                      source: .cursorDefaultDiscovery, expectedAccountID: nil, enabled: true))
     }
 }

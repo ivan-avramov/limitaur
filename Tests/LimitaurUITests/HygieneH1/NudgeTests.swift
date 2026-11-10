@@ -13,7 +13,7 @@ import Testing
         if let value = values[index] { defaults.set(value, forKey: "claudeNudgeEnabled") }
         let expected = [true, true, false, false, true, false, true, false, false, true][index]
         let monitor = Monitor(), controller = AppController(monitor: monitor, countStore: MemoryIndicatorStore(), defaults: defaults, nudger: nil)
-        #expect(try h1MenuItem(controller).state == (expected ? .on : .off))
+        #expect(controller.settings.nudgeEnabled == expected)
         await controller.restoreNudge(); #expect(await monitor.isNudgeEnabled() == expected); await monitor.stop()
     }
     // AC5: invariant in production action routing, new accessor proves delivery to the actor both ways.
@@ -24,10 +24,10 @@ import Testing
         let monitor = Monitor(), controller = AppController(monitor: monitor, countStore: MemoryIndicatorStore(), defaults: defaults, nudger: nil)
         await controller.restoreNudge(); try #require(await monitor.isNudgeEnabled())
         for expected in [false, true] {
-            let item = try h1MenuItem(controller); #expect(item.state == (expected ? .off : .on)); #expect(item.isEnabled)
-            #expect(NSApp.sendAction(try #require(item.action), to: item.target, from: item))
+            #expect(controller.settings.nudgeEnabled == !expected); #expect(controller.settings.editable)
+            controller.settings.setNudge(expected)
             #expect(await h1NudgeEventually(monitor, expected)); #expect(defaults.bool(forKey: "claudeNudgeEnabled") == expected)
-            #expect(try h1MenuItem(controller).state == (expected ? .on : .off))
+            #expect(controller.settings.nudgeEnabled == expected)
         }
         await monitor.stop()
     }

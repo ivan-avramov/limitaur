@@ -89,22 +89,14 @@ func executableVersionDispatch(arguments: [String], status: Int32, stdout: Strin
     func saveCount(_ count: Int) { writes += 1 }
 }
 
-@MainActor @Test(arguments: [false, true]) func aboutMenuItemPresentsOptionsWithoutOtherActions(demo: Bool) {
+@MainActor @Test(arguments: [false, true]) func aboutActionPresentsOptionsWithoutOtherActions(demo: Bool) {
     _ = NSApplication.shared
     let probe = RouterProbe(), store = StoreProbe()
     let controller = AppController(demo: demo, countStore: store, actionRouter: probe.router(demo: demo))
     var presented: [[NSApplication.AboutPanelOptionKey: Any]] = []
     controller.aboutPresenter = { presented.append($0) }
-    let menu = controller.settingsMenu()
-    #expect(menu.item(at: 0)?.title == "Indicators")
-    #expect(menu.item(at: 1)?.isSeparatorItem == true)
-    #expect(menu.item(at: 2)?.title == "Accounts…")
-    let about = menu.item(at: 3)!
-    #expect(about.title == "About Limitaur…")
-    #expect(about.isEnabled)
-    #expect(menu.numberOfItems == 5)
-    #expect(NSApp.sendAction(about.action!, to: about.target, from: about))
-    #expect(presented.count == 1)
+    controller.settings.showAbout()
+    #expect(presented.count == 1)   // About stays available in demo, as the menu item was
     #expect(presented.first?[.applicationVersion] as? String == AppVersion.string)
     #expect(probe.refreshes == 0 && probe.connections == 0 && probe.accounts == 0 && probe.quits == 0)
     #expect(store.writes == 0)
