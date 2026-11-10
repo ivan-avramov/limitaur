@@ -4,6 +4,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 
 ## [Unreleased]
 
+### Added
+- Cursor provider: Settings → "Add Cursor" reads the existing cursor-agent sign-in from the Keychain (read-only, through `/usr/bin/security`) and shows one `CU` / `$` bar of the caller's own billing-cycle spend against the effective per-user spend limit, with spent and limit amounts (labelled USD) in the dropdown; `--check-live` includes `cursor`.
 
 ## [0.2.3] - 2026-11-07
 

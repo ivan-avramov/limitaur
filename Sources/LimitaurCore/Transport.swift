@@ -4,8 +4,9 @@ public struct HTTPRequest: Sendable, CustomStringConvertible, CustomDebugStringC
     public let providerID: ProviderID
     public let bearer: String
     public let accountID: AccountID?
-    public init(providerID: ProviderID, bearer: String, accountID: AccountID?) {
-        self.providerID = providerID; self.bearer = bearer; self.accountID = accountID
+    public let cursorOperation: CursorOperation?
+    public init(providerID: ProviderID, bearer: String, accountID: AccountID?, cursorOperation: CursorOperation? = nil) {
+        self.providerID = providerID; self.bearer = bearer; self.accountID = accountID; self.cursorOperation = cursorOperation
     }
     public var description: String { "HTTPRequest(<redacted>)" }
     public var debugDescription: String { description }
@@ -44,9 +45,14 @@ public enum RequestPolicy {
     }
     public static func allowsRedirect(_ response: HTTPURLResponse, to request: URLRequest) -> Bool { false }
     public static func makeRequest(_ input: HTTPRequest) throws -> URLRequest {
-        var request = URLRequest(url: try url(for: input.providerID), cachePolicy: .reloadIgnoringLocalCacheData,
+        let cursor = input.providerID.rawValue == "cursor" ? try cursorEndpoint(input.cursorOperation) : nil
+        var request = URLRequest(url: try cursor?.0 ?? url(for: input.providerID), cachePolicy: .reloadIgnoringLocalCacheData,
                                  timeoutInterval: 15)
-        request.httpMethod = "GET"
+        request.httpMethod = cursor == nil ? "GET" : "POST"
+        if let cursor {
+            request.httpBody = cursor.1
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
         request.setValue("Bearer " + input.bearer, forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("Limitaur/1", forHTTPHeaderField: "User-Agent")

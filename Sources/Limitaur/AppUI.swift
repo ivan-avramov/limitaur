@@ -36,6 +36,19 @@ private struct DemoTransport: HTTPTransport {
     func send(_ request: HTTPRequest) async throws -> HTTPResponse { throw TransportFailure.network }
 }
 
+/// The profile an Accounts "Add" button appends, in button order Codex, Claude, Cursor; nil for any other result.
+func addedAccountProfile(for response: NSApplication.ModalResponse, id: String) -> AccountProfile? {
+    let source: (ProviderID, CredentialSource)
+    let third = NSApplication.ModalResponse.alertThirdButtonReturn.rawValue
+    switch response.rawValue {
+    case third: source = ("codex", .codexFile(CredentialStore.defaultCodexPath))
+    case third + 1: source = ("claude", .claudeDefaultDiscovery)
+    case third + 2: source = ("cursor", .cursorDefaultDiscovery)
+    default: return nil
+    }
+    return AccountProfile(id: id, providerID: source.0, label: "New account", source: source.1, enabled: false)
+}
+
 /// Demo presentation remains at one synthetic instant for its real 300-second lifetime.
 /// Explicitly supplied presentation clocks still advance in redraw tests.
 private struct FrozenDemoClock: MonitorClock {
@@ -517,7 +530,8 @@ extension UserDefaults: PollingStorage {}
         self.statisticsPath = statisticsPath
         self.defaults = defaults; self.nudger = demo ? nil : nudger
         storedAttempts = defaults.data(forKey: "nudge.lastAttempts").flatMap { try? JSONDecoder().decode([String: Date].self, from: $0) } ?? [:]
-        self.monitor = demo ? Monitor(credentials: CredentialStore(files: DemoCredentialFiles(), keychain: DemoKeychain()),
+        self.monitor = demo ? Monitor(credentials: CredentialStore(files: DemoCredentialFiles(), keychain: DemoKeychain(),
+                                                                         cursorKeychain: DemoKeychain()),
                                       transport: DemoTransport())
             : (monitor ?? Monitor(reactiveRecheck: true, terminateChildren: { ProcessRegistry.shared.terminateAll() }, nudger: nudger,
                                   attemptStore: Self.attemptWriter(defaults)))
@@ -568,7 +582,7 @@ extension UserDefaults: PollingStorage {}
                 for profile in profiles {
                     switch profile.source {
                     case .codexFile(let path), .claudeFile(let path): protectedPaths.append(path)
-                    case .claudeDefaultDiscovery: break
+                    case .claudeDefaultDiscovery, .cursorDefaultDiscovery: break
                     }
                 }
                 do {
@@ -595,7 +609,7 @@ extension UserDefaults: PollingStorage {}
             }
             let persistence = PollingPersistence(UserDefaults.standard)
             pollingPersistence = persistence
-            let initial = persistence.load(["claude", "codex"])
+            let initial = persistence.load(["claude", "codex", "cursor"])
             Task { await monitor.setPolling(initial); await restoreNudge(); await monitor.setProfiles(profiles) }
             scheduleCadence()
             NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(sleep), name: NSWorkspace.willSleepNotification, object: nil)
@@ -830,7 +844,7 @@ extension UserDefaults: PollingStorage {}
         while true {
             let alert = NSAlert()
             alert.messageText = "Accounts"
-            alert.informativeText = "Paths and labels are saved locally. Connect authorizes an existing Claude Keychain item. When the Claude session has expired, Limitaur runs claude (at most hourly) so Claude Code renews it; turn this off in Settings if unwanted."
+            alert.informativeText = "Paths and labels are saved locally. Connect authorizes an existing Claude Keychain item. When the Claude session has expired, Limitaur runs claude (at most hourly) so Claude Code renews it; turn this off in Settings if unwanted. Cursor reads the cursor-agent sign-in; run cursor-agent login when it expires."
             let container = NSStackView()
             container.orientation = .vertical; container.spacing = 7
             var controls: [(String, NSButton, NSTextField, NSPopUpButton, NSTextField, NSButton)] = []
@@ -844,14 +858,15 @@ extension UserDefaults: PollingStorage {}
                 if profile.providerID == "claude" {
                     mode.addItems(withTitles: ["Existing Keychain item", "Credential file"])
                     mode.selectItem(at: profile.source == .claudeDefaultDiscovery ? 0 : 1)
-                } else { mode.addItem(withTitle: "Credential file") }
+                } else { mode.addItem(withTitle: profile.providerID == "cursor" ? "cursor-agent sign-in" : "Credential file") }
                 mode.setAccessibilityLabel("Credential source")
                 let path: String
                 switch profile.source {
                 case .codexFile(let p), .claudeFile(let p): path = p
-                case .claudeDefaultDiscovery: path = ""
+                case .claudeDefaultDiscovery, .cursorDefaultDiscovery: path = ""
                 }
                 let source = NSTextField(string: path)
+                source.isEnabled = profile.providerID != "cursor"
                 source.placeholderString = "Absolute file path, if selected"
                 source.setAccessibilityLabel("Credential file path")
                 let remove = NSButton(checkboxWithTitle: "Remove", target: nil, action: nil)
@@ -868,6 +883,7 @@ extension UserDefaults: PollingStorage {}
             alert.addButton(withTitle: "Cancel")
             alert.addButton(withTitle: "Add Codex")
             alert.addButton(withTitle: "Add Claude")
+            alert.addButton(withTitle: "Add Cursor")
             let result = alert.runModal()
             if result == .alertSecondButtonReturn { return }
             var invalid = false
@@ -878,7 +894,9 @@ extension UserDefaults: PollingStorage {}
                 let value = source.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
                 draft[index].enabled = enabled.state == .on
                 draft[index].label = label.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-                if draft[index].providerID == "claude" && mode.indexOfSelectedItem == 0 {
+                if draft[index].providerID == "cursor" {
+                    draft[index].source = .cursorDefaultDiscovery
+                } else if draft[index].providerID == "claude" && mode.indexOfSelectedItem == 0 {
                     draft[index].source = .claudeDefaultDiscovery
                 } else {
                     if !value.hasPrefix("/") { invalid = true }
@@ -892,10 +910,7 @@ extension UserDefaults: PollingStorage {}
                 saveProfiles()
                 return
             }
-            let provider: ProviderID = result == .alertThirdButtonReturn ? "codex" : "claude"
-            draft.append(AccountProfile(id: UUID().uuidString, providerID: provider, label: "New account",
-                                        source: provider == "codex" ? .codexFile(CredentialStore.defaultCodexPath) : .claudeDefaultDiscovery,
-                                        enabled: false))
+            if let added = addedAccountProfile(for: result, id: UUID().uuidString) { draft.append(added) }
         }
     }
     private func installDemo() {

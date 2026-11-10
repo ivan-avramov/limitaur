@@ -57,8 +57,10 @@ private func checkLive() {
     let store = CredentialStore(), transport = NativeHTTPTransport()
     let profiles: [(ProviderID, CredentialSource)] = [
         ("codex", .codexFile(CredentialStore.defaultCodexPath)),
-        ("claude", .claudeDefaultDiscovery)
+        ("claude", .claudeDefaultDiscovery),
+        ("cursor", .cursorDefaultDiscovery)
     ]
+    let registry = ProviderRegistry()
     let group = DispatchGroup()
     let results = LiveResults()
     for (provider, source) in profiles {
@@ -67,11 +69,11 @@ private func checkLive() {
             defer { group.leave() }
             do {
                 let credential = try store.load(source, now: Date())
-                let response = try await transport.send(HTTPRequest(providerID: provider,
-                                                                    bearer: credential.accessToken,
-                                                                    accountID: credential.selectedAccountID))
+                guard let adapter = registry.adapter(for: provider) else { throw TransportFailure.unsupportedProvider }
+                let response = try await adapter.request(credential: credential, transport: transport)
                 if response.status == 200 {
-                    let snapshot = try UsageDecoder.decode(provider: provider, data: response.body)
+                    let snapshot = try UsageDecoder.decode(provider: provider, data: response.body,
+                                                           accountID: credential.selectedAccountID ?? "local")
                     results.put(provider, ["providerID": provider.rawValue,
                                            "status": snapshot.partial ? "partial" : "success",
                                            "metricCount": snapshot.metrics.count,
@@ -89,7 +91,7 @@ private func checkLive() {
             }
         }
     }
-    _ = group.wait(timeout: .now() + 20)
+    _ = group.wait(timeout: .now() + 35)
     output(profiles.map { results.get($0.0) ?? unavailable($0.0) })
 }
 

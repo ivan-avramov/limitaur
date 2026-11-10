@@ -806,7 +806,7 @@ public actor Monitor {
             pending.2.cancel()
             loading[profileID] = nil
         }
-        beginLoad(profile, interactive: profile.source == .claudeDefaultDiscovery, clearPause: true)
+        beginLoad(profile, interactive: [.claudeDefaultDiscovery, .cursorDefaultDiscovery].contains(profile.source), clearPause: true)
         publish()
     }
 
@@ -1458,7 +1458,8 @@ public actor Monitor {
     private func configuredProfile(_ id: String) -> AccountProfile? { configuredProfiles[id] }
     private func sourceMatches(_ profile: AccountProfile) -> Bool {
         switch (profile.providerID.rawValue, profile.source) {
-        case ("codex", .codexFile(_)), ("claude", .claudeFile(_)), ("claude", .claudeDefaultDiscovery): return true
+        case ("codex", .codexFile(_)), ("claude", .claudeFile(_)), ("claude", .claudeDefaultDiscovery),
+             ("cursor", .cursorDefaultDiscovery): return true
         default: return false
         }
     }

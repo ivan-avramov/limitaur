@@ -1,6 +1,6 @@
 # Approved compact-bars and safety addendum
 
-Approved at P119 by the operator: “approved. proceed”. This addendum supersedes the original specification only for the UI/count, presentation timing and required safety fixes specified below. API/hybrid/SemVer remain separate pending work. Cursor remains deferred.
+Approved at P119 by the operator: “approved. proceed”. This addendum supersedes the original specification only for the UI/count, presentation timing and required safety fixes specified below. API/hybrid/SemVer remain separate pending work. Cursor remains deferred (since added by docs/proposals/cursor-provider.md).
 
 The contract below is preserved verbatim from the approved proposal (SHA256 cdc804741657d1608266b9e08059dfb713bbeecb5e2d414d9867c0b63c0a9b44). Its historical “proposed”, “not approved” and “not re-reviewed” status descriptions are superseded by this approval record. Count 1–8/default 3 is now approved. The focused read-only check of the final two clauses returned NOTHING OF SUBSTANCE from gpt-6-astra, fresh session 01a157bd-fd94-7eb0-9c01-6e66c6517699, execution BV4. No contract changes followed that check. This does not assert whole-design convergence or source acceptance.
 
@@ -14,7 +14,7 @@ Status: proposed next UI change; no write-phase approval or implementation yet. 
 
 ## Settled behavior
 
-Native Swift/AppKit, macOS26+, zero third-party runtime dependencies. No Dock icon: preserve LSUIElement=true and NSApplication activation policy accessory. Do not enable login items, install helpers or publish. Keep provider/authentication/HTTP/backoff/caches unchanged and read-only. Cursor deferred; API/hybrid/SemVer contract remains independently pending.
+Native Swift/AppKit, macOS26+, zero third-party runtime dependencies. No Dock icon: preserve LSUIElement=true and NSApplication activation policy accessory. Do not enable login items, install helpers or publish. Keep provider/authentication/HTTP/backoff/caches unchanged and read-only. Cursor deferred (since added by docs/proposals/cursor-provider.md); API/hybrid/SemVer contract remains independently pending.
 
 Replace the main status drawing with N narrow vertical tracks, filling bottom to top by each metric's current used percentage. Preserve top-N highest-used fresh valid unique quota metrics across providers/accounts, including several limits from one account. Preserve lexical tie-break, raw percentage labels, >100% full fill, strictly>80yellow/strictly>95red, system menu-bar foreground normal fill, dark neutral tracks, unknown/stale/provider failure semantics and no prediction. No continuous animation. A known0% bar is empty without an unknown marker; an unavailable slot has a neutral dash/other distinct unavailable mark. Snapshot age >=90 seconds is stale and excludes its metrics. Separately, a known metric reset time <= current wall time excludes only that metric; its dropdown retains the old raw value with an explicit "reset due" label until a successful fetch. Do not label the whole account stale solely because one window reached reset, or optimistically zero it. Other valid windows remain usable. Provider-health marker remains even when other providers fill allN slots.
 

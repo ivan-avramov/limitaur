@@ -168,7 +168,7 @@ P73 procedure: `AppVersion.swift` and Info.plist 0.2.1, CHANGELOG `[0.2.1] - 202
 
 1. Keyboard navigation, scrolling and the accessibility tree. App-bundle access is informally cleared by live use; anchoring, clicking and both appearances have been exercised. The resource gate was closed by the operator on the build 51 smoke (corrected CPU about 0.034%, RSS 53.4 MiB; docs/performance.md), not a new sustained qualification.
 2. L2 reduction observation and second-machine validation. Relaunch persistence on this machine is complete (C10). File-source recovery remains unverified; check the accepted R-C1 settings caveat before relying on the nudge on another machine.
-3. API-metered and hybrid accounts remain deferred: `docs/backlog/api-metered-accounts.md`. Cursor remains deferred.
+3. API-metered and hybrid accounts remain deferred: `docs/backlog/api-metered-accounts.md`. Cursor was added on 2026-11-10 (`docs/proposals/cursor-provider.md`); its live check C7 is pending.
 4. Existing residual backlogs remain subject to operator selection. Experimental jar and logo layouts remain retained by request. Consolidate durable review evidence and pending designs into the repository; replace local links before removing the old folder. Keep temporary process files separate from durable repository docs. This is a proposal, not authorization to move or delete evidence.
 
 Remote: `origin` is `git@github.com:ivan-avramov/limitaur.git`, public, MIT; tags `v0.2.0` and `v0.2.1` were pushed on explicit instruction. Push only on explicit instruction in that turn.

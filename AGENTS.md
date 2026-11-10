@@ -1,7 +1,7 @@
 # Limitaur
 
 - Build native Swift/AppKit for macOS 26+. Keep runtime dependencies empty.
-- Follow docs/specification.md and its approved addenda docs/compact-bars.md and docs/labelled-bars.md.
+- Follow docs/specification.md and its approved addenda docs/compact-bars.md, docs/labelled-bars.md and docs/proposals/cursor-provider.md.
 - Use four-eyes for non-trivial work and every credential/data-boundary change; dispatched phase workers perform only their assigned phase.
 - Never print, persist, commit or transmit credentials or raw account responses. Keep provider authentication read-only.
 - Distinguish unknown, unavailable, stale, unlimited and zero. Do not infer plan-specific limits.

@@ -24,6 +24,14 @@ public struct DirectUsageAdapter: ProviderAdapter {
     }
     public func fetch(credential: Credential, accountID: AccountID, accountLabel: String,
                       transport: any HTTPTransport, now: Date) async -> ProviderFetchResult {
+        await mappedFetch(credential: credential, accountID: accountID, accountLabel: accountLabel, transport: transport, now: now)
+    }
+}
+
+extension ProviderAdapter {
+    /// Sends `request` and maps its outcome; shared by the built-in adapters.
+    func mappedFetch(credential: Credential, accountID: AccountID, accountLabel: String,
+                     transport: any HTTPTransport, now: Date) async -> ProviderFetchResult {
         do {
             let response = try await request(credential: credential, transport: transport)
             switch response.status {
@@ -41,7 +49,8 @@ public struct DirectUsageAdapter: ProviderAdapter {
 
 public struct ProviderRegistry: Sendable {
     public let adapters: [ProviderID: any ProviderAdapter]
-    public init(_ providers: [any ProviderAdapter] = [DirectUsageAdapter(id: "codex"), DirectUsageAdapter(id: "claude")]) {
+    public init(_ providers: [any ProviderAdapter] = [DirectUsageAdapter(id: "codex"), DirectUsageAdapter(id: "claude"),
+                                                                    CursorUsageAdapter()]) {
         self.adapters = Dictionary(uniqueKeysWithValues: providers.map { ($0.id, $0) })
     }
     public func adapter(for id: ProviderID) -> (any ProviderAdapter)? { adapters[id] }

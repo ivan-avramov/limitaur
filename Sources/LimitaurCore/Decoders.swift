@@ -86,6 +86,7 @@ public enum UsageDecoder {
         switch provider.rawValue {
         case "codex": return try codex(root, accountID: accountID, accountLabel: accountLabel, now: now)
         case "claude": return try claude(root, accountID: accountID, accountLabel: accountLabel, now: now)
+        case "cursor": return try cursor(root, accountID: accountID, accountLabel: accountLabel, now: now)
         default: throw DecodeFailure.invalidEnvelope
         }
     }

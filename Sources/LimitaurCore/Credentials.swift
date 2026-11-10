@@ -7,11 +7,13 @@ public enum CredentialSource: Hashable, Codable, Sendable {
     case codexFile(String)
     case claudeFile(String)
     case claudeDefaultDiscovery
+    case cursorDefaultDiscovery
     public var stableID: String {
         switch self {
         case .codexFile(let path): return "codex:" + path
         case .claudeFile(let path): return "claude:" + path
         case .claudeDefaultDiscovery: return "claude:default"
+        case .cursorDefaultDiscovery: return "cursor:default"
         }
     }
 }
@@ -221,8 +223,10 @@ public struct SecurityToolKeychainReader: KeychainReading {
 public struct CredentialStore: Sendable {
     public let files: any CredentialFileReading
     public let keychain: any KeychainReading
-    public init(files: any CredentialFileReading = SecureFileReader(), keychain: any KeychainReading = SecurityToolKeychainReader()) {
-        self.files = files; self.keychain = keychain
+    public let cursorKeychain: any KeychainReading
+    public init(files: any CredentialFileReading = SecureFileReader(), keychain: any KeychainReading = SecurityToolKeychainReader(),
+                cursorKeychain: any KeychainReading = SecurityToolKeychainReader(service: "cursor-access-token", account: "cursor-user")) {
+        self.files = files; self.keychain = keychain; self.cursorKeychain = cursorKeychain
     }
     public func load(_ source: CredentialSource, now: Date, interactive: Bool = false) throws -> Credential {
         try loadDetailed(source, now: now, interactive: interactive).result.get()
@@ -230,20 +234,26 @@ public struct CredentialStore: Sendable {
     public func loadDetailed(_ source: CredentialSource, now: Date, interactive: Bool = false)
         -> (result: Result<Credential, CredentialFailure>, viaKeychain: Bool, suspended: Bool, busy: Bool) {
         var viaKeychain = false, suspended = false, busy = false
+        func read(_ reader: any KeychainReading) throws -> Data? {
+            let outcome = reader.claudeCredentialDetailed(interactive: interactive)
+            switch outcome.result {
+            case .found(let value): viaKeychain = true; return value
+            case .notFound: return nil
+            case .denied:
+                suspended = outcome.reason == .suspended || outcome.suspendedNow
+                busy = outcome.reason == .busy
+                throw CredentialFailure.keychainDenied
+            }
+        }
         do {
             let data: Data
             switch source {
             case .codexFile(let path), .claudeFile(let path): data = try files.read(path: path)
-            case .claudeDefaultDiscovery:
-                let outcome = keychain.claudeCredentialDetailed(interactive: interactive)
-                switch outcome.result {
-                case .found(let value): data = value; viaKeychain = true
-                case .notFound: data = try files.read(path: Self.defaultClaudePath)
-                case .denied:
-                    suspended = outcome.reason == .suspended || outcome.suspendedNow
-                    busy = outcome.reason == .busy
-                    throw CredentialFailure.keychainDenied
-                }
+            case .claudeDefaultDiscovery: data = try read(keychain) ?? files.read(path: Self.defaultClaudePath)
+            case .cursorDefaultDiscovery:
+                // No file fallback: cursor-agent keeps its session only in the Keychain.
+                guard let value = try read(cursorKeychain) else { throw CredentialFailure.missing }
+                return (.success(try Self.cursorCredential(value, now: now)), viaKeychain, suspended, busy)
             }
             return (.success(try parse(data, source: source, now: now)), viaKeychain, suspended, busy)
         } catch {
@@ -274,6 +284,7 @@ public struct CredentialStore: Sendable {
             }
             if let expiry, expiry <= now { throw CredentialFailure.expired }
             return Credential(accessToken: token, selectedAccountID: nil, expiresAt: expiry)
+        case .cursorDefaultDiscovery: return try Self.cursorCredential(data, now: now)
         }
     }
     public static var defaultCodexPath: String { NSHomeDirectory() + "/.codex/auth.json" }
