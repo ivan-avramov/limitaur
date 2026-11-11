@@ -25,11 +25,18 @@ import traceback
 
 ROOT = Path(__file__).resolve().parent.parent
 DOMAIN = 'local.limitaur.app'
-RESET_KEYS = ('sharedBudget', 'claudeSpendResetDay', 'settingsWindowTopLeft', 'NSWindow Frame LimitaurSettings')
+RESET_KEYS = ('sharedBudget', 'claudeSpendResetDay', 'settingsWindowTopLeft', 'NSWindow Frame LimitaurSettings', 'providerCodes')
 
 
 class GateFailure(Exception):
     pass
+
+
+class GateBlocked(GateFailure):
+    """The environment, not the product, stopped the pass: a provider is rate limited for longer than the gate waits."""
+
+
+RATE_LIMIT_WAIT = 300   # seconds the gate waits for a provider's Retry-After before stopping as blocked
 
 
 def sh(*args, check=True, timeout=None, **kw):
@@ -312,7 +319,7 @@ class UIPass:
         self.check('menu bar shows Claude and Cursor', [p for p, _ in slots(nodes)] and 'budget' not in dict(slots(nodes)),
                    str(slots(nodes)))
 
-        nodes = self.open_popover()
+        nodes = self.wait_out_rate_limits()
         pop = within(nodes, popover(nodes))
         texts = [n.get('value', '') for n in pop if n.get('role') == 'AXStaticText']
         descs = [n.get('desc', '') for n in pop if n.get('role') == 'AXUnknown']
@@ -341,7 +348,46 @@ class UIPass:
         self.check('Claude Spend resets defaults to 1st', resets.get('value') == '1st', repr(resets.get('value')))
         self.settings_shot('settings-providers')
         self.label_commit()
+        self.provider_codes()
         self.close_and_position()
+
+    def rate_limits(self):
+        """Provider name -> Retry-After time (or None) for each dropdown card whose chip reads "Rate limited"."""
+        nodes = self.open_popover()
+        pop = [n for n in within(nodes, popover(nodes)) if n.get('role') in ('AXStaticText', 'AXUnknown')]
+        limited, card = {}, None
+        for n in pop:
+            text = n.get('value') or n.get('desc') or ''
+            name = next((p for p in ('Claude', 'Codex', 'Cursor') if text == p or text.startswith(p + ' · ')), None)
+            if name:
+                card = name
+            elif card and text == 'Rate limited':
+                limited[card] = None
+            elif card in limited and text.startswith('Retry after '):
+                try:
+                    limited[card] = datetime.datetime.strptime(text[len('Retry after '):], '%m/%d/%y, %H:%M')
+                except ValueError:
+                    pass
+        return limited, nodes
+
+    def wait_out_rate_limits(self):
+        """Wait up to RATE_LIMIT_WAIT for a rate-limited provider to recover; otherwise stop as blocked."""
+        limited, nodes = self.rate_limits()
+        if not limited:
+            return nodes
+        now = datetime.datetime.now()
+        until = max((t or now) for t in limited.values())
+        wait = max(0.0, (until - now).total_seconds()) + 90   # one poll cycle after the Retry-After, even if it has passed
+        names = ', '.join(sorted(limited))
+        if wait > RATE_LIMIT_WAIT:
+            raise GateBlocked(f'{names} rate limited until {until:%H:%M}; rerun after that')
+        print(f'  wait {names} rate limited; waiting {int(wait)}s for the Retry-After', flush=True)
+        self.close_popover()
+        time.sleep(wait)
+        limited, nodes = self.rate_limits()
+        if limited:
+            raise GateBlocked(f"{', '.join(sorted(limited))} still rate limited after waiting; rerun later")
+        return nodes
 
     def refresh_shortcut(self):
         stats = Path(self.record['stats'])
@@ -351,16 +397,34 @@ class UIPass:
             except (OSError, ValueError):
                 return None
             return {p: sum(v.values()) for p, v in data.items() if isinstance(v, dict)}
+        # A provider inside a Retry-After window must not be fetched (throttle respected); the others must be.
+        limited = {name.lower() for name in self.rate_limits()[0]}
+        expected = [p for p in ('claude', 'cursor') if p not in limited]
+        if not expected:
+            raise GateBlocked('every provider is rate limited; rerun later')
         before = self.ui.wait('statistics file', counts, timeout=30)
         self.ui.keystroke('r', command=True)
         def advanced():
             now = counts() or {}
-            return all(now.get(p, 0) > before.get(p, 0) for p in ('claude', 'cursor')) and now
+            return all(now.get(p, 0) > before.get(p, 0) for p in expected) and now
+        note = f" (throttled, not fetched: {', '.join(sorted(limited))})" if limited else ''
         try:
             after = self.ui.wait('⌘R refresh', advanced, timeout=15)
         except GateFailure:
-            after = counts()
-        self.check('⌘R refreshes Claude and Cursor', after and advanced(), f'{before} -> {after}')
+            # One retry with the popover reopened, in case the first keystroke missed it; the record says so.
+            self.close_popover(); self.open_popover(); time.sleep(0.5)
+            self.ui.keystroke('r', command=True)
+            note += ' (second attempt)'
+            try:
+                after = self.ui.wait('⌘R refresh', advanced, timeout=15)
+            except GateFailure:
+                after = counts()
+        if limited and after:
+            self.check('⌘R respects a rate limit', all(after.get(p, 0) == before.get(p, 0) for p in limited),
+                       ', '.join(sorted(limited)))
+        shown = {p: after.get(p) for p in ('claude', 'cursor')} if after else after
+        self.check('⌘R refreshes Claude and Cursor', after and advanced(),
+                   f"{ {p: before.get(p) for p in ('claude', 'cursor')} } -> {shown}{note}")
 
     def budget(self):
         window, inside = self.window_nodes()
@@ -464,26 +528,99 @@ class UIPass:
             remove = next((n for n in self.codex() if n.get('role') == 'AXButton' and label(n).startswith('Remove ')), None)
             if remove:
                 self.ui.press(remove)
-            self.ui.wait('account removal', lambda: len(profiles()) == len(before), timeout=5)
+            try:   # a failure here must not hide the original one; preferences are restored afterwards anyway
+                self.ui.wait('account removal', lambda: len(profiles()) == len(before), timeout=5)
+            except GateFailure:
+                pass
         self.check('temporary account removed', len(profiles()) == len(before))
 
     def expand_others(self, account_label):
+        """P44: the "Other accounts" label expands the group by accessibility press, not only its chevron."""
         def field():
             return next((n for n in self.codex() if n.get('role') == 'AXTextField'
                          and n.get('desc', '').endswith(f'Label for Codex {account_label}')), None)
-        self.activate(self.settings())
-        triangle = first(self.codex(), '"Other accounts" disclosure', role='AXDisclosureTriangle')
-        attempts = [lambda: self.ui.press(triangle)] + [lambda dx=dx: self.ui.click_node(triangle, dx) for dx in (27, 12, 40)]
-        for attempt in attempts:
-            try:
-                attempt()
-            except GateFailure:
-                pass
-            time.sleep(0.8)
-            if field():
-                return field()
+        toggle = next((n for n in self.codex() if (label(n) or str(n.get('value', ''))).startswith('Other accounts')
+                       and 'AXPress' in n.get('actions', [])), None)
+        self.check('"Other accounts" is pressable', toggle is not None)
+        self.ui.press(toggle)
+        expanded = self.ui.wait('"Other accounts" to expand', field, timeout=5)
+        self.check('"Other accounts" expands by press', expanded is not None)
+        return expanded
 
-        raise GateFailure('"Other accounts" does not expand')
+    def provider_codes(self):
+        """P42: edit Claude's code in Settings; the menu bar, the stored value and the badge follow."""
+        ui = self.ui
+        self.tab('Providers')
+        def claude_glyph(name):
+            nodes = ui.tree()
+            shown = [p for p, _ in slots(nodes)]
+            if 'claude' not in shown:
+                raise GateFailure(f'Claude is not in the menu bar: {shown}')
+            x, y, w, h = status_item(nodes)['frame']
+            left = x + 4 + shown.index('claude') * 24 + 6
+            path = ui.shots / f'{name}.bmp'
+            sh('screencapture', '-x', '-t', 'bmp', '-R', f'{left},{y + h / 2 - 9},13,9', str(path), check=False)
+            return path.read_bytes()
+        def editor():
+            _, inside = self.window_nodes()
+            return next((n for n in inside if n.get('role') == 'AXTextField' and label(n).endswith('Code for Claude')), None)
+        def open_editor():
+            _, inside = self.window_nodes()
+            ui.press(first(inside, 'Claude code badge', role='AXButton', label='Edit code for Claude'))
+            return ui.wait('code field', editor, timeout=5)
+        def stored():
+            return dict(prefs().get('providerCodes') or {})
+        def badge_pixels(name):
+            _, inside = self.window_nodes()
+            x, y, w, h = first(inside, 'Claude code badge', role='AXButton', label='Edit code for Claude')['frame']
+            path = ui.shots / f'{name}.bmp'
+            sh('screencapture', '-x', '-t', 'bmp', '-R', f'{x},{y},{w},{h}', str(path), check=False)
+            return path.read_bytes()
+        before = claude_glyph('code-claude-default')
+        self.activate(self.settings())
+        badge_before = badge_pixels('badge-claude-default')
+
+        open_editor()
+        ui.keystroke('a', command=True); ui.keystroke('CU'); ui.keycode(36)
+        time.sleep(0.8)
+        _, inside = self.window_nodes()
+        self.check('duplicate code refused', editor() is not None and stored() == {} and
+                   any(str(n.get('value', '')).startswith('Cursor already uses CU') for n in inside), str(stored()))
+        ui.keycode(53)
+        time.sleep(0.8)
+        self.check('Escape cancels the edit and keeps Settings open',
+                   settings_window(ui.tree()) is not None and editor() is None and stored() == {})
+
+        open_editor()
+        ui.keystroke('a', command=True); ui.keystroke('an'); ui.keycode(36)
+        self.ui.wait('stored code', lambda: stored() == {'claude': 'AN'}, timeout=5)
+        self.check('code saved uppercased and stored', stored() == {'claude': 'AN'}, str(stored()))
+        time.sleep(0.6)
+        self.check('Settings badge shows the new code', badge_pixels('badge-claude-AN') != badge_before)
+        changed = claude_glyph('code-claude-AN')
+        self.check('menu bar draws the new code', changed != before)
+        self.settings_shot('settings-code-AN')
+        nodes = self.open_popover()
+        self.popover_shot('dropdown-code-AN')
+        self.close_popover()
+
+        window = self.settings()
+        self.activate(window)
+        open_editor()
+        ui.keystroke('a', command=True); ui.keystroke('ZQ')
+        close = first(within(ui.tree(), settings_window(ui.tree())), 'close button', subrole='AXCloseButton')
+        ui.press(close)
+        ui.wait('close', lambda: not settings_window(ui.tree()), timeout=5)
+        self.check('closing Settings commits the draft', stored() == {'claude': 'ZQ'}, str(stored()))
+        window = self.open_settings()
+        self.tab('Providers')
+        self.check('reopened Settings shows badges, not the field', editor() is None)
+        self.activate(self.settings())
+        open_editor()
+        ui.keystroke('a', command=True); ui.keycode(51); ui.keycode(36)
+        self.ui.wait('reset', lambda: stored() == {}, timeout=5)
+        time.sleep(0.6)
+        self.check('clearing restores the default everywhere', stored() == {} and claude_glyph('code-claude-reset') == before)
 
     def close_and_position(self):
         window = self.settings()
@@ -569,10 +706,9 @@ def ui_pass(record, out, helper_source):
     finally:
         if child:
             stop(child.pid)
+        sh('defaults', 'delete', DOMAIN, check=False)   # import merges; keys added during the pass must go
         if had_prefs:
             sh('defaults', 'import', DOMAIN, str(backup), check=False)
-        else:
-            sh('defaults', 'delete', DOMAIN, check=False)
         for _, args in previous:
             bundle = re.match(r'(.+?\.app)/Contents/MacOS/Limitaur$', args)
             if bundle:
@@ -611,9 +747,11 @@ def main():
             record['steps'].append({'name': 'ui', 'ok': True})
         except Exception as failure:   # any error, not only a failed check, fails the gate
             ok = False
-            record['steps'].append({'name': 'ui', 'ok': False, 'detail': f'{type(failure).__name__}: {failure}'})
+            blocked = isinstance(failure, GateBlocked)
+            record['steps'].append({'name': 'ui', 'ok': False, 'environment': blocked,
+                                    'detail': f'{type(failure).__name__}: {failure}'})
             (out / 'logs' / 'ui-error.log').write_text(traceback.format_exc())
-            print(f'FAIL  ui: {failure}', flush=True)
+            print(f"{'BLOCKED (environment)' if blocked else 'FAIL'}  ui: {failure}", flush=True)
     except BaseException as failure:
         ok = False
         record['steps'].append({'name': 'gate', 'ok': False, 'detail': f'{type(failure).__name__}: {failure}'})
