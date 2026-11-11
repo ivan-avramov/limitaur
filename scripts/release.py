@@ -2,6 +2,7 @@
 import argparse
 import datetime
 import hashlib
+import json
 import os
 from pathlib import Path
 import plistlib
@@ -74,6 +75,16 @@ def validate(app, version, revision, count, license_bytes):
     require(info.get('CFBundleIconFile') == 'AppIcon.icns' and (resources / 'AppIcon.icns').is_file(), 'missing registered icon')
     run('codesign', '--verify', '--strict', str(app))
 
+def check_gate(revision):
+    """A complete, passing scripts/release-gate.py record from a clean tree at this revision."""
+    path = ROOT / '.build' / 'release-gate' / revision / 'result.json'
+    try:
+        record = json.loads(path.read_text())
+    except (OSError, ValueError):
+        record = {}
+    require(record.get('revision') == revision and record.get('passed') is True and record.get('complete') is True
+            and record.get('dirty') is False, 'no passing release gate for HEAD; run python3 scripts/release-gate.py')
+
 def check_build_dir(out):
     require(not out.is_symlink(), 'build output is a symlink')
     if out.exists():
@@ -83,7 +94,7 @@ def check_build_dir(out):
                     or re.fullmatch(allowed, p.name) for p in out.iterdir()),
                 'build output contains unrecognized items')
 
-def package(output):
+def package(output, require_gate=False):
     version = preflight()
     log = (ROOT / LOG).read_text()
     require(bool(re.search(r'^## \[' + re.escape(version) + r'\] - \d{4}-\d{2}-\d{2}\s*$', log, re.M)), 'missing dated changelog entry')
@@ -102,6 +113,8 @@ def package(output):
         require(not os.path.lexists(dest) and not os.path.lexists(checksum), 'release output already exists')
     else:
         check_build_dir(out)
+    if require_gate:
+        check_gate(revision)
     with tempfile.TemporaryDirectory(prefix='limitaur-release-', dir=ROOT if not output else None) as tmp:
         temp = Path(tmp)
         clone = temp / 'source'
@@ -169,7 +182,7 @@ def main():
         if args.command == 'prepare':
             prepare(args.increment)
         else:
-            package(args.output_dir)
+            package(args.output_dir, require_gate=True)
     except (ValueError, OSError, subprocess.CalledProcessError, plistlib.InvalidFileException, zipfile.BadZipFile) as error:
         print('release: ' + str(error), file=sys.stderr)
         return 1
