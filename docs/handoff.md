@@ -171,6 +171,8 @@ P73 procedure: `AppVersion.swift` and Info.plist 0.2.1, CHANGELOG `[0.2.1] - 202
 - Shared monthly budget: record [shared-budget](reviews/shared-budget/review.md), residuals `docs/backlog/shared-budget-residuals.md`. Tests at Accept: 166 UI + 603 core parallel and serial, 49 frozen Python. Acceptance ran by UI scripting (screencapture, System Events) against live data; Escape/⌘W, saved position, per-tab sizing and label commit now observed.
 - P39 Settings window title fixed (8578a71). Release gate `scripts/release-gate.py` (2bc3d60): native, frozen Python, release-tooling and collector suites plus a live UI pass; `release.py package` requires a complete, passing record from a clean tree at HEAD.
 - Customizable provider codes, P41 account label, P44 disclosure: record [provider-codes](reviews/provider-codes/review.md), residuals `docs/backlog/provider-codes-residuals.md`.
+- Release 0.3.0 prepared at fed48d5. Full release gate passed there: 8 test steps and 41 UI checks, complete and clean. `release.py package` built `Limitaur-0.3.0-macos-arm64.zip`, sha256 e8e38aa05c4c58d55bd30d272edf752632e402ab60df8ad1a1aae8714e08afd3. Not tagged, pushed or published; that needs explicit operator instruction.
+- Open decision (operator): RSS. The 0.3.0 smoke measured 83.0 MiB against the 56 MiB budget; the same smoke on 0.2.3 measured 72.6 MiB on this OS (see `docs/performance.md`). Options: revise the budget, or reduce the footprint first. The SwiftUI redesign accounts for 8.7 MiB.
 
 ## Still pending, in order
 
