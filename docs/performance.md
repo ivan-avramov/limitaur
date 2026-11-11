@@ -72,3 +72,5 @@ Each bundle was built ad-hoc from its revision, launched with `--stats` on this 
 | 2f8b4ef (+ shared budget, provider codes, release gate; 0.3.0 source) | 83.0 MiB | 82.8 MiB | 0.041 % |
 
 CPU meets the 0.1 % target. RSS misses the 56 MiB budget (P487) for every build, including the released 0.2.3, which measured 53.4 MiB as build 51 on 2026-10-24. That 19 MiB rise for unchanged code points to the environment: a newer OS, and a 5-second warmup instead of 60 seconds. It is not attributed to Limitaur. Within this release, the SwiftUI redesign adds 8.7 MiB, as settings-and-dropdown residual R1 anticipated. Cursor adds 1.1 MiB, and the shared budget and provider codes add 0.6 MiB. Whether to revise the budget or reduce the footprint is the operator's decision.
+
+Operator decision, 2026-11-11 (P50): "memory budget is fine - let's ship". 0.3.0 ships at 83 MiB. The RSS budget is revised to about 90 MiB on this OS, and later growth is measured against the previous release with the same smoke. Creating the SwiftUI views only when first opened remains a possible reduction (settings-and-dropdown residual R1).
