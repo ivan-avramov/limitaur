@@ -8,6 +8,9 @@ See [evidence and omissions](../evidence/README.md), [retired P73 design](../arc
 
 - [Release 0.2.3 publication](release-0.2.3/readiness.md)
 - [Local build layout cleanup](local-build-layout/review.md)
+- [Cursor provider](cursor-provider/review.md)
+- [Settings window and dropdown redesign](settings-and-dropdown/review.md)
+- [Shared monthly budget](shared-budget/review.md)
 
 - [app-icon-review](app-icon-review.md)
 - [beside-layout-review](beside-layout-review.md)

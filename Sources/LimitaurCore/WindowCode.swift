@@ -47,8 +47,18 @@ public let providerCodes: [String: String] = [
     "grok": "XA", "mistral": "MS", "perplexity": "PX", "deepseek": "DS", "meta": "MA",
     "microsoft": "MC", "cohere": "CE", "windsurf": "WI", "replit": "RP", "amazon": "AQ",
     "huggingface": "HF", "together": "TG", "groq": "GQ", "openrouter": "OR", "kimi": "KM",
-    "qwen": "AL", "fireworks": "FW"
+    "qwen": "AL", "fireworks": "FW", "budget": "SB"
 ]
+
+public func providerName(_ id: ProviderID) -> String {
+    switch id.rawValue {
+    case "claude": "Claude"
+    case "codex": "Codex"
+    case "cursor": "Cursor"
+    case "budget": "Shared budget"
+    default: id.rawValue.capitalized
+    }
+}
 
 /// Unknown providers fall back to their first two letters; a fallback that is not
 /// distinguishable from a reserved code degrades to its first letter plus `?`.

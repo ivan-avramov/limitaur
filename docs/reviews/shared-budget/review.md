@@ -1,0 +1,19 @@
+# Shared monthly budget
+
+Completed 2026-11-10. Specification: [shared-budget.md](../../proposals/shared-budget.md) with Revision 2 (H1–H8). Operator approvals: Go "build it and let's see how that looks"; fix round "go with your recs above - approve on p35/p36 and decline p37"; accept after the acceptance test "Proceed with your recs as you decide for commititng. this is looking great so far!" (P38 "very much as designed", P39 before release, P40 operator interference).
+
+Result: an optional, user-configured monthly budget across Claude and Cursor. Settings → General "Track a shared monthly budget" with amount (pre-filled from a common reported limit), members and reset day; Settings → Providers → Claude "Spend resets" (default 1st, UTC). Claude spend is decoded from the usage response with the configured reset day. The budget card comes first in the dropdown with one row per member, and its `SB` candidate joins the menu-bar ranking by percent. A partial or mismatched total is never shown as complete: a stale, failing or period-mismatched member names itself in "Total unavailable: …" and there is no bar.
+
+Tests: frozen independent suites (core `Tests/LimitaurCoreTests/SharedBudget`, UI `Tests/LimitaurUITests/SharedBudget`, one Adversarial line removed for H8; frozen 13:46:58 PST, revealed 13:53:27, amended 13:58:14 and for Revision 2 at 17:45:57; [test-freeze.json](test-freeze.json)) plus 16 implementer tests. Final in the operator tree: 166 UI and 603 core tests in parallel and serial, release build, Adversarial, AdversarialBars and AdversarialClaude suites.
+
+Acceptance (2026-11-10, designer-driven via screencapture and System Events against the candidate bundle, live data): dropdown Claude card Healthy, "Monthly spend", spent and limit, resets in …d; Cursor unchanged. Budget on: amount pre-filled to the common reported limit, includes Claude and Cursor, resets 1st; card total equal to the sum of the member rows to the cent, percent equal to the sum of the members' percents of that limit; menu bar `SB CL` at two indicators, `SB` alone at one, `SB CL CU` at three, five empty slots at eight. Providers → Claude "Spend resets" 1st. Carried-over redesign checks: ⌘, from the open popover opens Settings; Settings opens at the saved top-left, remembers a moved position and resizes per tab (448, 602, 677 pt); Escape and ⌘W close it; Choose… does not commit a draft label (cancelled panel, stored label unchanged) while Return does. Not observable: ⌘R (the "Fetched … ago" label is frozen while the popover is open). Found outside this change: the Settings window title reads "Untitled" (P39, to fix before release); `NSApp.activate()` does not bring Settings forward when the request comes from synthetic input; "Other accounts" expands only from its chevron and not by AX press.
+
+Findings: change opinions from Opus and Sol became Revision 2 (H1 stable candidate time, H2 alias main rows, H3 validated settings and duplicate members, H4 refresh at reset, H5 card without rows, H6 nominal deadline, H7 throttled members, H8 Adversarial assertion), all adopted (P35, P36); P37 previous-month lag declined as R4. Verify: Opus NOTHING OF SUBSTANCE; Sol two minor items declined as R5 and R6. Residuals: [shared-budget-residuals](../../backlog/shared-budget-residuals.md).
+
+Budget: about 450 product lines estimated; actual +624/−82, reported to the operator before acceptance.
+
+[four-eyes 0.7.0] outcome: completed; mode: light
+Designer: claude-code claude-opus-5-5; implementer: claude claude-opus-5-5 a22b8744; fix: claude claude-opus-5-5 3cce23d6.
+Test-writer: claude claude-sonnet-5-5 6c6f0906, continued; frozen 13:46:58 PST, revealed 13:53:27 PST.
+Panel: opinion claude claude-opus-5-5 717dd41c and cursor-agent gpt-5.6-sol-high; verify Opus resumed, Sol fresh.
+Push: none.

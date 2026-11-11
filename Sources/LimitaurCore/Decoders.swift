@@ -81,11 +81,12 @@ private func windowLabel(_ seconds: TimeInterval?, fallback: String) -> String {
 
 public enum UsageDecoder {
     public static func decode(provider: ProviderID, data: Data, accountID: AccountID = "local",
-                              accountLabel: String = "Default", now: Date = Date()) throws -> UsageSnapshot {
+                              accountLabel: String = "Default", now: Date = Date(),
+                              spendResetDay: MonthlyResetDay = .default) throws -> UsageSnapshot {
         guard let root = try? JSONSerialization.jsonObject(with: data) as? Object else { throw DecodeFailure.invalidEnvelope }
         switch provider.rawValue {
         case "codex": return try codex(root, accountID: accountID, accountLabel: accountLabel, now: now)
-        case "claude": return try claude(root, accountID: accountID, accountLabel: accountLabel, now: now)
+        case "claude": return try claude(root, accountID: accountID, accountLabel: accountLabel, now: now, spendResetDay: spendResetDay)
         case "cursor": return try cursor(root, accountID: accountID, accountLabel: accountLabel, now: now)
         default: throw DecodeFailure.invalidEnvelope
         }
@@ -206,7 +207,8 @@ public enum UsageDecoder {
                              capabilities: capabilities, partial: !warnings.isEmpty, warnings: warnings)
     }
 
-    private static func claude(_ root: Object, accountID: AccountID, accountLabel: String, now: Date) throws -> UsageSnapshot {
+    private static func claude(_ root: Object, accountID: AccountID, accountLabel: String, now: Date,
+                               spendResetDay: MonthlyResetDay) throws -> UsageSnapshot {
         let modern = root["limits"]
         if let modern, !(modern is NSNull), array(modern) == nil { throw DecodeFailure.invalidEnvelope }
         let scopedKeys = root.keys.filter {
@@ -226,6 +228,7 @@ public enum UsageDecoder {
         }
         var metrics: [UsageMetric] = [], warnings: [String] = []
         var amounts: [InformationalAmount] = []
+        var spendSummary: SpendSummary?
         var candidate = 0, bad = 0
         var metricIndex: [String: Int] = [:]
         if let rows = array(modern) {
@@ -277,19 +280,26 @@ public enum UsageDecoder {
         }
         if let spendValue = root["spend"], !(spendValue is NSNull) {
             if let spend = object(root["spend"]), boolean(spend["enabled"]) == true {
-                if let percent = validatedPercent(number(spend["percent"])) {
-                    metrics.append(UsageMetric(id: "spend", label: "Spend", usedPercent: percent))
+                // The response has no period; the reset is the configured monthly day. cap, balance
+                // and auto_reload are not used.
+                let reset = spendResetDay.nextReset(after: now)
+                let used = money(spend["used"]), limit = money(spend["limit"])
+                if let percent = claudeSpendUtilization(spend, object(root["extra_usage"])) ?? validatedPercent(number(spend["percent"])) {
+                    metrics.append(UsageMetric(id: "spend", label: "Monthly spend", usedPercent: percent, resetsAt: reset))
                 } else {
                     warnings.append("Spend usage unavailable")
                 }
-                // Non-null limit and balance semantics are not verified for this direct endpoint.
-                if ["limit", "balance", "cap"].contains(where: { spend[$0] != nil && !(spend[$0] is NSNull) }) {
-                    warnings.append("Spend limit or balance metadata unavailable")
-                }
-                if let used = money(spend["used"]) {
-                    amounts.append(InformationalAmount(label: "Spend used", amount: used.0, currency: used.1))
+                if let used {
+                    amounts.append(InformationalAmount(label: "Spent this cycle", amount: used.0, currency: used.1))
+                    spendSummary = SpendSummary(spent: used.0, limit: limit?.1 == used.1 ? limit?.0 : nil,
+                                                currency: used.1, periodEnd: reset)
                 } else if spend["used"] != nil && !(spend["used"] is NSNull) {
                     warnings.append("Spend units unavailable")
+                }
+                if let limit {
+                    amounts.append(InformationalAmount(label: "Spend limit", amount: limit.0, currency: limit.1))
+                } else if spend["limit"] != nil && !(spend["limit"] is NSNull) {
+                    warnings.append("Spend limit unavailable")
                 }
             } else if let spend = object(root["spend"]), let enabled = spend["enabled"],
                       !(enabled is NSNull), boolean(enabled) == nil {
@@ -313,7 +323,18 @@ public enum UsageDecoder {
         if metrics.count > 128 { metrics = Array(metrics.prefix(128)); warnings.append("Incomplete quota data") }
         return UsageSnapshot(providerID: "claude", accountID: accountID, accountLabel: accountLabel,
                              fetchedAt: now, metrics: metrics, informationalAmounts: amounts,
-                             partial: !warnings.isEmpty, warnings: warnings)
+                             partial: !warnings.isEmpty, warnings: warnings, spend: spendSummary)
+    }
+
+    /// `extra_usage.utilization` is more precise than `spend.percent`, but only when it describes the same
+    /// limit, spend and currency as `spend`.
+    private static func claudeSpendUtilization(_ spend: Object, _ extra: Object?) -> Double? {
+        guard let extra, boolean(extra["is_enabled"]) == true,
+              let used = object(spend["used"]), let limit = object(spend["limit"]),
+              let limitMinor = integer(limit["amount_minor"]), let usedMinor = integer(used["amount_minor"]),
+              decimal(extra["monthly_limit"]) == Decimal(limitMinor), decimal(extra["used_credits"]) == Decimal(usedMinor),
+              let currency = string(extra["currency"]), currency == string(used["currency"]) else { return nil }
+        return validatedPercent(number(extra["utilization"]))
     }
 
     private static func money(_ value: Any?) -> (Decimal, String)? {

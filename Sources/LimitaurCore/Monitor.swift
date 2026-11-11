@@ -48,12 +48,48 @@ public struct ProfileDisplay: Sendable {
     public let snapshotGeneration: Int?
     public let expirations: SnapshotExpirations
     public let fetchedInstant: TimeInterval?
+    /// The owning profile's id when this row is an alias of it.
+    public let aliasOf: String?
     public init(profile: AccountProfile, snapshot: UsageSnapshot?, health: Health, message: String?, fetchedAge: TimeInterval?,
                 freshnessDeadline: TimeInterval? = nil, snapshotGeneration: Int? = nil,
-                expirations: SnapshotExpirations = SnapshotExpirations(), fetchedInstant: TimeInterval? = nil) {
+                expirations: SnapshotExpirations = SnapshotExpirations(), fetchedInstant: TimeInterval? = nil,
+                aliasOf: String? = nil) {
         self.profile = profile; self.snapshot = snapshot; self.health = health; self.message = message; self.fetchedAge = fetchedAge
         self.freshnessDeadline = freshnessDeadline; self.snapshotGeneration = snapshotGeneration
-        self.expirations = expirations; self.fetchedInstant = fetchedInstant
+        self.expirations = expirations; self.fetchedInstant = fetchedInstant; self.aliasOf = aliasOf
+    }
+}
+
+/// Account state as Settings and the dropdown show it; `.off` appears in Settings only.
+public enum AccountStatus: Equatable, Sendable {
+    case healthy, partial, throttled, stale, unavailable, failed, signIn, off, connecting
+    public init(_ health: Health) {
+        switch health {
+        case .healthy: self = .healthy
+        case .partial: self = .partial
+        case .throttled: self = .throttled
+        case .stale: self = .stale
+        case .unavailable: self = .unavailable
+        case .failed: self = .failed
+        case .unauthenticated: self = .signIn
+        }
+    }
+    /// The monitor reports a not-yet-fetched account as unavailable with this message.
+    public init(row: ProfileDisplay) {
+        self = row.health == .unavailable && row.message == "Connecting account" ? .connecting : AccountStatus(row.health)
+    }
+    public var label: String {
+        switch self {
+        case .healthy: "Healthy"
+        case .partial: "Partial data"
+        case .throttled: "Rate limited"
+        case .stale: "Stale"
+        case .unavailable: "Unavailable"
+        case .failed: "Connection failed"
+        case .signIn: "Needs sign-in"
+        case .off: "Off"
+        case .connecting: "Connecting…"
+        }
     }
 }
 
@@ -123,7 +159,8 @@ public struct PresentationState: Sendable {
 /// retains observations immediately while the actor receives their local-only handoff.
 public func projectDisplay(_ display: MonitorDisplay, count requestedCount: Int, wallNow: Date,
                            monotonicNow: TimeInterval,
-                           observations: inout [Int: SnapshotExpirations]) -> PresentationState {
+                           observations: inout [Int: SnapshotExpirations],
+                           budget: SharedBudgetState? = nil) -> PresentationState {
     let count = indicatorCount(requestedCount)
     let active = Set(display.profiles.compactMap(\.snapshotGeneration))
     observations = observations.filter { active.contains($0.key) }
@@ -155,15 +192,19 @@ public func projectDisplay(_ display: MonitorDisplay, count requestedCount: Int,
                                    message: message, fetchedAge: age,
                                    freshnessDeadline: row.freshnessDeadline,
                                    snapshotGeneration: row.snapshotGeneration, expirations: expired,
-                                   fetchedInstant: row.fetchedInstant))
+                                   fetchedInstant: row.fetchedInstant, aliasOf: row.aliasOf))
     }
-    let selectedCandidates = display.candidates.compactMap { candidate -> PresentationCandidate? in
+    var eligible = display.candidates.compactMap { candidate -> PresentationCandidate? in
         guard let deadline = candidate.freshnessDeadline, monotonicNow < deadline,
               let generation = candidate.snapshotGeneration,
               !((observations[generation] ?? SnapshotExpirations()).metrics.contains(candidate.metric.metric.id)),
               candidate.metric.metric.resetsAt.map({ wallNow < $0 }) ?? true else { return nil }
         return candidate
-    }.prefix(count)
+    }
+    if let shared = budgetCandidate(budget, candidates: display.candidates, wallNow: wallNow, monotonicNow: monotonicNow) {
+        eligible.insert(shared, at: eligible.firstIndex { ranksBefore(shared.metric, $0.metric) } ?? eligible.endIndex)
+    }
+    let selectedCandidates = eligible.prefix(count)
     let chosen = selectedCandidates.map(\.metric)
     let warning = rows.contains { $0.health != .healthy }
     var unavailable: [ProviderID] = []
@@ -349,6 +390,7 @@ public actor Monitor {
     private var policies: [String: PollingPolicy] = [:]
     private let nudger: (any SessionNudging)?, attemptStore: (@Sendable ([String: Date]) -> Void)?
     private var nudgeEnabled = false, nudgeRunning: String?
+    private var spendResetDays: [ProviderID: MonthlyResetDay] = [:]
     private var lastNudgeWall: [String: Date] = [:], lastNudgeMono: [String: TimeInterval] = [:]
     public init(clock: any MonitorClock = SystemMonitorClock(), credentials: CredentialStore = CredentialStore(),
                 transport: any HTTPTransport = NativeHTTPTransport(), registry: ProviderRegistry = ProviderRegistry(),
@@ -363,6 +405,8 @@ public actor Monitor {
     }
 
     public func setNudgeEnabled(_ enabled: Bool) { nudgeEnabled = enabled }
+    /// Applies from the provider's next successful fetch.
+    public func setSpendResetDay(_ day: MonthlyResetDay, for provider: ProviderID) { spendResetDays[provider] = day }
     func isNudgeEnabled() -> Bool { nudgeEnabled }
     /// Applies persisted attempts only while none is held in memory; a future date counts as now.
     public func restoreNudgeAttempts(_ attempts: [String: Date]) {
@@ -973,7 +1017,8 @@ public actor Monitor {
                 do {
                     let account = binding.credential.selectedAccountID ?? AccountID("source:" + binding.profile.source.stableID)
                     let snapshot = try UsageDecoder.decode(provider: entity.provider, data: response.body,
-                                                           accountID: account, accountLabel: binding.profile.label, now: wall)
+                                                           accountID: account, accountLabel: binding.profile.label, now: wall,
+                                                           spendResetDay: spendResetDays[entity.provider] ?? .default)
                     if let verified = verifiedAccount(response.body) {
                         if let expected = binding.profile.expectedAccountID, verified != expected {
                             throw CredentialFailure.accountMismatch
@@ -1390,7 +1435,8 @@ public actor Monitor {
                                            message: aliasMessage, fetchedAge: age,
                                            freshnessDeadline: deadline,
                                            snapshotGeneration: entity.snapshotGeneration,
-                                           expirations: entity.expirations, fetchedInstant: entity.successfulInstant))
+                                           expirations: entity.expirations, fetchedInstant: entity.successfulInstant,
+                                           aliasOf: owner.profile.id))
                 continue
             }
             if var snapshot = entity.snapshot {

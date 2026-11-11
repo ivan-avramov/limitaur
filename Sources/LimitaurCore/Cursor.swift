@@ -109,13 +109,15 @@ extension UsageDecoder {
         var amounts = [InformationalAmount(label: "Spent this cycle", amount: Decimal(cents) / 100, currency: "USD")]
         // Without a positive limit, an absent dailySpend means spend is unknown, not zero.
         let unknownSpend = spend["dailySpend"] == nil
+        let reset = Date(timeIntervalSince1970: TimeInterval(period.end) / 1000)
+        var limitCents: UInt64?
         if let value = spend["effectiveLimitCents"] {
             guard let limit = integral(value, maximum: UInt64(Int64.max)) else { throw DecodeFailure.invalidEnvelope }
+            limitCents = limit
             if limit == 0 {
                 warnings.append("Spend limit is zero")
                 if unknownSpend { amounts = [] }
             } else {
-                let reset = Date(timeIntervalSince1970: TimeInterval(period.end) / 1000)
                 metrics.append(UsageMetric(id: "spend", label: "Monthly spend",
                                            usedPercent: Double(cents) * 100 / Double(limit), resetsAt: reset))
                 amounts.append(InformationalAmount(label: "Spend limit", amount: Decimal(limit) / 100, currency: "USD"))
@@ -124,7 +126,11 @@ extension UsageDecoder {
             warnings.append("Spend limit unavailable")
             if unknownSpend { amounts = [] }
         }
+        let summary = amounts.contains { $0.label == "Spent this cycle" }
+            ? SpendSummary(spent: Decimal(cents) / 100, limit: limitCents.map { Decimal($0) / 100 }, currency: "USD", periodEnd: reset)
+            : nil
         return UsageSnapshot(providerID: "cursor", accountID: accountID, accountLabel: accountLabel, fetchedAt: now,
-                             metrics: metrics, informationalAmounts: amounts, partial: !warnings.isEmpty, warnings: warnings)
+                             metrics: metrics, informationalAmounts: amounts, partial: !warnings.isEmpty, warnings: warnings,
+                             spend: summary)
     }
 }

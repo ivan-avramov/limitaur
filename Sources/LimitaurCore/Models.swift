@@ -82,6 +82,15 @@ public struct ResetCreditSummary: Codable, Sendable, Equatable {
     }
 }
 
+/// Reported spend for the provider's current monthly period, in one currency. `limit` is nil when
+/// unreported or in another currency; `periodEnd` is the period's end as decoded.
+public struct SpendSummary: Codable, Sendable, Equatable {
+    public var spent: Decimal; public var limit: Decimal?; public var currency: String; public var periodEnd: Date?
+    public init(spent: Decimal, limit: Decimal?, currency: String, periodEnd: Date?) {
+        self.spent = spent; self.limit = limit; self.currency = currency; self.periodEnd = periodEnd
+    }
+}
+
 public struct UsageSnapshot: Codable, Sendable, Equatable {
     public var providerID: ProviderID
     public var accountID: AccountID
@@ -94,14 +103,15 @@ public struct UsageSnapshot: Codable, Sendable, Equatable {
     public var capabilities: [String]
     public var partial: Bool
     public var warnings: [String]
+    public var spend: SpendSummary?
     public init(providerID: ProviderID, accountID: AccountID, accountLabel: String, fetchedAt: Date,
                 metrics: [UsageMetric], balances: [CreditBalance] = [], informationalAmounts: [InformationalAmount] = [], resetCredits: ResetCreditSummary? = nil,
-                capabilities: [String] = [], partial: Bool = false, warnings: [String] = []) {
+                capabilities: [String] = [], partial: Bool = false, warnings: [String] = [], spend: SpendSummary? = nil) {
         self.providerID = providerID; self.accountID = accountID; self.accountLabel = accountLabel
         self.fetchedAt = fetchedAt; self.metrics = metrics; self.balances = balances
         self.informationalAmounts = informationalAmounts
         self.resetCredits = resetCredits; self.capabilities = capabilities
-        self.partial = partial; self.warnings = warnings
+        self.partial = partial; self.warnings = warnings; self.spend = spend
     }
 }
 
@@ -189,11 +199,14 @@ public func rankMetrics(_ snapshots: [UsageSnapshot], wallNow: Date,
             if seen.insert(identity).inserted { all.append(RankedMetric(snapshot: snapshot, metric: metric)) }
         }
     }
-    return Array(all.sorted {
-        let left = $0.metric.usedPercent ?? 0, right = $1.metric.usedPercent ?? 0
-        if left != right { return left > right }
-        let a = [$0.providerID.rawValue, $0.accountID.rawValue, $0.metric.id]
-        let b = [$1.providerID.rawValue, $1.accountID.rawValue, $1.metric.id]
-        return a.lexicographicallyPrecedes(b)
-    }.prefix(indicatorCount(maximumCount)))
+    return Array(all.sorted(by: ranksBefore).prefix(indicatorCount(maximumCount)))
+}
+
+/// The ranking order: percent descending, then provider, account and metric ID.
+func ranksBefore(_ x: RankedMetric, _ y: RankedMetric) -> Bool {
+    let left = x.metric.usedPercent ?? 0, right = y.metric.usedPercent ?? 0
+    if left != right { return left > right }
+    let a = [x.providerID.rawValue, x.accountID.rawValue, x.metric.id]
+    let b = [y.providerID.rawValue, y.accountID.rawValue, y.metric.id]
+    return a.lexicographicallyPrecedes(b)
 }

@@ -28,5 +28,6 @@ Rule: letters that look alike in a small bold sans face form a class: {C G O Q D
 | Kimi (Moonshot) | KM | |
 | Qwen (Alibaba) | AL | QW would collide with GM |
 | Fireworks | FW | |
+| Shared budget (`budget`) | SB | Not a provider: the user's own budget bar across providers |
 
 Unknown provider IDs fall back to their first two uppercase letters. A fallback that is not distinguishable from a reserved code degrades to its first letter plus `?` (for example `chatgpt` → `C?`, since CH collides with GH).

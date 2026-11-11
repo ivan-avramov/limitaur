@@ -1,37 +1,7 @@
 import SwiftUI
 import LimitaurCore
 
-/// Account state as Settings and the dropdown show it; `.off` appears in Settings only.
-enum AccountStatus: Equatable {
-    case healthy, partial, throttled, stale, unavailable, failed, signIn, off, connecting
-    init(_ health: Health) {
-        switch health {
-        case .healthy: self = .healthy
-        case .partial: self = .partial
-        case .throttled: self = .throttled
-        case .stale: self = .stale
-        case .unavailable: self = .unavailable
-        case .failed: self = .failed
-        case .unauthenticated: self = .signIn
-        }
-    }
-    /// The monitor reports a not-yet-fetched account as unavailable with this message.
-    init(row: ProfileDisplay) {
-        self = row.health == .unavailable && row.message == "Connecting account" ? .connecting : AccountStatus(row.health)
-    }
-    var label: String {
-        switch self {
-        case .healthy: "Healthy"
-        case .partial: "Partial data"
-        case .throttled: "Rate limited"
-        case .stale: "Stale"
-        case .unavailable: "Unavailable"
-        case .failed: "Connection failed"
-        case .signIn: "Needs sign-in"
-        case .off: "Off"
-        case .connecting: "Connecting…"
-        }
-    }
+extension AccountStatus {
     var color: Color {
         switch self {
         case .healthy: .green
@@ -73,15 +43,6 @@ func resetLabel(_ metric: UsageMetric, expired: Bool, now: Date) -> String {
     return text == "reset due" || text == "reset time unavailable" ? text : "resets " + text
 }
 
-func providerName(_ id: ProviderID) -> String {
-    switch id.rawValue {
-    case "claude": "Claude"
-    case "codex": "Codex"
-    case "cursor": "Cursor"
-    default: id.rawValue.capitalized
-    }
-}
-
 /// Warning text: system yellow in dark appearance, a darker amber that stays legible in light appearance.
 let warningTextColor = Color(nsColor: NSColor(name: nil) { appearance in
     appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
@@ -116,14 +77,17 @@ struct ProviderBadge: View {
 }
 
 struct StatusChip: View {
-    let status: AccountStatus
+    let label: String
+    let color: Color
+    init(status: AccountStatus) { label = status.label; color = status.color }
+    init(label: String, color: Color) { self.label = label; self.color = color }
     var body: some View {
         HStack(spacing: 4) {
-            Circle().fill(status.color).frame(width: 7, height: 7)
-            Text(status.label).font(.system(size: 11)).foregroundStyle(.secondary)
+            Circle().fill(color).frame(width: 7, height: 7)
+            Text(label).font(.system(size: 11)).foregroundStyle(.secondary)
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(status.label)
+        .accessibilityLabel(label)
     }
 }
 

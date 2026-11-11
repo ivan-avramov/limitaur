@@ -206,6 +206,7 @@ private func checkLive() {
                                             snapshot: nil, health: .unavailable, message: "Provider unavailable", fetchedAge: nil)
         try renderDropdown([staleRow, unavailableRow], now: now, path: directory + "/dropdown-empty-stale-\(theme).png", appearance: appearance)
         try renderDropdown([], now: now, demo: false, path: directory + "/dropdown-empty-\(theme).png", appearance: appearance)
+        try renderBudgetDropdown(now: now, path: directory + "/dropdown-budget-\(theme).png", appearance: appearance)
         let settings = demoSettings()
         try hostedPNG(ProvidersSettingsView(model: settings), width: 560,
                       path: directory + "/settings-providers-\(theme).png", appearance: appearance)
@@ -222,7 +223,36 @@ private func checkLive() {
     try hostedPNG(DropdownPanel(model: model), width: 360, path: path, appearance: appearance, popoverMaterial: true)
 }
 
+/// A shared budget of $5,000.00 at $833.20 (Claude $410.00, Cursor $423.20) above the two member cards.
+@MainActor private func renderBudgetDropdown(now: Date, path: String, appearance: NSAppearance) throws {
+    let reset = MonthlyResetDay.default.nextReset(after: now), limit = Decimal(5000)
+    func amounts(_ spent: Decimal) -> [InformationalAmount] {
+        [InformationalAmount(label: "Spent this cycle", amount: spent, currency: "USD"),
+         InformationalAmount(label: "Spend limit", amount: limit, currency: "USD")]
+    }
+    let claudeSpent = Decimal(410), cursorSpent = Decimal(string: "423.20")!
+    let claude = UsageSnapshot(providerID: "claude", accountID: "demo-b", accountLabel: "Demo", fetchedAt: now,
+                               metrics: [UsageMetric(id: "spend", label: "Monthly spend", usedPercent: 8.2, resetsAt: reset)],
+                               informationalAmounts: amounts(claudeSpent),
+                               spend: SpendSummary(spent: claudeSpent, limit: limit, currency: "USD", periodEnd: reset))
+    let cursor = UsageSnapshot(providerID: "cursor", accountID: "demo-c", accountLabel: "Demo", fetchedAt: now,
+                               metrics: [UsageMetric(id: "spend", label: "Monthly spend", usedPercent: 8.464, resetsAt: reset)],
+                               informationalAmounts: amounts(cursorSpent),
+                               spend: SpendSummary(spent: cursorSpent, limit: limit, currency: "USD", periodEnd: reset))
+    let rows = [ProfileDisplay(profile: AccountProfile(id: "claude-default", providerID: "claude", label: "Demo", source: .claudeDefaultDiscovery),
+                               snapshot: claude, health: .healthy, message: nil, fetchedAge: 0, freshnessDeadline: 190),
+                ProfileDisplay(profile: AccountProfile(id: "cursor-default", providerID: "cursor", label: "Demo", source: .cursorDefaultDiscovery),
+                               snapshot: cursor, health: .healthy, message: nil, fetchedAge: 0, freshnessDeadline: 190)]
+    let config = SharedBudgetConfig(enabled: true, amount: limit, currency: "USD", members: ["claude", "cursor"], resetDay: .default)
+    let model = DropdownModel()
+    model.demo = true; model.now = now; model.polling = demoPolling; model.rows = rows
+    model.budget = sharedBudget(config, rows: rows, mainProfileIDs: ["claude": "claude-default", "cursor": "cursor-default"],
+                                wallNow: now, monotonicNow: 100)
+    try hostedPNG(DropdownPanel(model: model), width: 360, path: path, appearance: appearance, popoverMaterial: true)
+}
+
 /// Claude on with Keychain and healthy, Codex on and needing sign-in with one other account, Cursor off.
+/// The shared budget is on at $5,000.00.
 /// Editable with inert callbacks, so the controls render enabled and without the demo footnote.
 @MainActor private func demoSettings() -> SettingsModel {
     let profiles = [
@@ -231,6 +261,8 @@ private func checkLive() {
         AccountProfile(id: "codex-work", providerID: "codex", label: "Account 2", source: .codexFile("/Users/demo/work/auth.json"), enabled: false)
     ]
     let model = SettingsModel(profiles: profiles, indicatorCount: 3, nudgeEnabled: true, editable: true,
+                              budget: SharedBudgetConfig(enabled: true, amount: Decimal(5000), currency: "USD",
+                                                         members: ["claude", "cursor"], resetDay: .default),
                               onProfiles: { _ in }, onIndicatorCount: { _ in }, onNudge: { _ in },
                               onConnect: { _ in }, onAbout: {})
     model.updateStatuses([

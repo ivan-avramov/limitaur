@@ -2,7 +2,7 @@
 
 Historical evidence consolidation (2026-11-07): [retained records and omissions](evidence/README.md). References marked historical/omitted are not available in the curated repository; historical commands and approvals are not current instructions.
 
-Updated 2026-11-07. Historical sections below preserve decisions and observations at their dates; their commands, process IDs, running-state claims and next steps are retired. The current summary and pending list control current work. Historical pre-2026-10-25 CPU figures require the mach-timebase correction in [performance notes](performance.md).
+Updated 2026-11-10. Historical sections below preserve decisions and observations at their dates; their commands, process IDs, running-state claims and next steps are retired. The current summary and pending list control current work. Historical pre-2026-10-25 CPU figures require the mach-timebase correction in [performance notes](performance.md).
 
 ## Current summary
 
@@ -164,11 +164,18 @@ Live: build 90 (0.2.0, 35bbee4) relaunched 21:21:48Z detached with `--stats` (PI
 
 P73 procedure: `AppVersion.swift` and Info.plist 0.2.1, CHANGELOG `[0.2.1] - 2026-10-25`, release commit 9eda796, annotated tag `v0.2.1`, `main` and the tag pushed to `origin`. Tests at release: 35 UI + 436 core, 49 Python, 13 collector. Live: build 92 (0.2.1, 9eda796) relaunched 21:26:22Z detached with `--stats` (PID 54567), holds the instance lock; build 90 quit 21:26:13Z (`live/stats-build90-final.json`). Next: other machine (build from `v0.2.1`, R-C1 settings check, L2 second machine, L3, API-metered backlog); first L2 reduction here after 2026-10-26T18:27:40Z.
 
+## C13 Cursor, Settings redesign and shared budget (2026-11-10)
+
+- Cursor provider (c088dee): record [cursor-provider](reviews/cursor-provider/review.md), residuals `docs/backlog/cursor-provider-residuals.md`. Live C7 done: `--check-live` cursor success; dropdown matched Cursor's dashboard.
+- Settings window and dropdown redesign (12f12d6): record [settings-and-dropdown](reviews/settings-and-dropdown/review.md), residuals `docs/backlog/settings-and-dropdown-residuals.md`.
+- Shared monthly budget: record [shared-budget](reviews/shared-budget/review.md), residuals `docs/backlog/shared-budget-residuals.md`. Tests at Accept: 166 UI + 603 core parallel and serial, 49 frozen Python. Acceptance ran by UI scripting (screencapture, System Events) against live data; Escape/⌘W, saved position, per-tab sizing and label commit now observed.
+- Before release (operator): P39 Settings window title "Untitled"; customizable provider codes; an automated UI release gate.
+
 ## Still pending, in order
 
 1. Keyboard navigation, scrolling and the accessibility tree. App-bundle access is informally cleared by live use; anchoring, clicking and both appearances have been exercised. The resource gate was closed by the operator on the build 51 smoke (corrected CPU about 0.034%, RSS 53.4 MiB; docs/performance.md), not a new sustained qualification.
 2. L2 reduction observation and second-machine validation. Relaunch persistence on this machine is complete (C10). File-source recovery remains unverified; check the accepted R-C1 settings caveat before relying on the nudge on another machine.
-3. API-metered and hybrid accounts remain deferred: `docs/backlog/api-metered-accounts.md`. Cursor was added on 2026-11-10 (`docs/proposals/cursor-provider.md`); its live check C7 is pending.
+3. API-metered and hybrid accounts remain deferred: `docs/backlog/api-metered-accounts.md`. Cursor was added on 2026-11-10 (`docs/proposals/cursor-provider.md`); its live check C7 is done (dropdown matched the Cursor dashboard).
 4. Existing residual backlogs remain subject to operator selection. Experimental jar and logo layouts remain retained by request. Consolidate durable review evidence and pending designs into the repository; replace local links before removing the old folder. Keep temporary process files separate from durable repository docs. This is a proposal, not authorization to move or delete evidence.
 
 Remote: `origin` is `git@github.com:ivan-avramov/limitaur.git`, public, MIT; tags `v0.2.0` and `v0.2.1` were pushed on explicit instruction. Push only on explicit instruction in that turn.

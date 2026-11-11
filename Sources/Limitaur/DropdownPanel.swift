@@ -3,6 +3,7 @@ import LimitaurCore
 
 @MainActor final class DropdownModel: ObservableObject {
     @Published var rows: [ProfileDisplay] = []
+    @Published var budget: SharedBudgetState?
     @Published var now = Date()
     @Published var polling: [String: PollingPolicy] = [:]
     @Published var demo = false
@@ -48,7 +49,10 @@ struct DropdownPanel: View {
         VStack(alignment: .leading, spacing: 10) {
             header
             Divider()
-            if model.rows.isEmpty { emptyState } else { cards }
+            if model.rows.isEmpty {
+                if let budget = model.budget { BudgetCard(budget: budget, now: model.now) }
+                emptyState
+            } else { cards }
             Divider()
             HStack {
                 Spacer()
@@ -99,6 +103,7 @@ struct DropdownPanel: View {
         CappedHeight(maximum: Self.maxListHeight) {
             ScrollView {
                 VStack(spacing: 10) {
+                    if let budget = model.budget { BudgetCard(budget: budget, now: model.now) }
                     ForEach(Array(model.rows.enumerated()), id: \.offset) { _, row in
                         AccountCard(row: row, now: model.now, interval: model.polling[row.profile.providerID.rawValue]?.interval,
                                     demo: model.demo) { model.connect(row.profile.id) }
@@ -142,6 +147,65 @@ private struct CappedHeight: Layout {
     }
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         subviews.first?.place(at: bounds.origin, proposal: ProposedViewSize(bounds.size))
+    }
+}
+
+/// The user's shared budget: the members' summed spend against the configured amount, or why it is unknown.
+private struct BudgetCard: View {
+    let budget: SharedBudgetState
+    let now: Date
+
+    var body: some View {
+        let currency = budget.config.currency
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                ProviderBadge(provider: "budget")
+                Text("Shared budget").font(.system(size: 13, weight: .semibold)).lineLimit(1)
+                Spacer(minLength: 6)
+                StatusChip(label: "Your budget", color: .gray)
+            }
+            let metric = UsageMetric(id: "spend:shared", label: "This month", usedPercent: budget.usedPercent, resetsAt: budget.resetsAt)
+            let reset = resetLabel(metric, expired: now >= budget.resetsAt, now: now)
+            VStack(alignment: .leading, spacing: 5) {
+                HStack(alignment: .firstTextBaseline, spacing: 0) {
+                    Text(metric.label).font(.system(size: 12)).lineLimit(1).layoutPriority(1)
+                    Spacer(minLength: 8)
+                    Text(reset).font(.system(size: 10)).foregroundStyle(.tertiary).lineLimit(1)
+                        .help(absoluteDateText(budget.resetsAt))
+                    Text(percentText(budget.usedPercent))
+                        .font(.system(size: 12, weight: .semibold).monospacedDigit())
+                        .foregroundStyle(severityColor(budget.usedPercent))
+                        .help(exactPercentText(budget.usedPercent))
+                        .padding(.leading, 8)
+                        .layoutPriority(2)
+                }
+                UsageBar(percent: budget.usedPercent)
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Shared budget this month, \(percentText(budget.usedPercent)), \(reset)")
+            if let warning = budget.warning {
+                Label(warning, systemImage: "exclamationmark.triangle").font(.system(size: 11)).foregroundStyle(.orange)
+            } else if let total = budget.total, let amount = budget.config.amount {
+                Text("\(amountText(total, currency: currency)) of \(amountText(amount, currency: currency))")
+                    .font(.system(size: 12, weight: .medium).monospacedDigit())
+            }
+            VStack(alignment: .leading, spacing: 4) {
+                ForEach(Array(budget.members.enumerated()), id: \.offset) { _, member in
+                    HStack(spacing: 6) {
+                        ProviderBadge(provider: member.provider)
+                        Text(providerName(member.provider))
+                        Spacer(minLength: 6)
+                        Text(member.spent.map { amountText($0, currency: currency) } ?? member.problem ?? "")
+                            .foregroundStyle(.secondary).monospacedDigit()
+                    }
+                    .font(.system(size: 11))
+                    .accessibilityElement(children: .combine)
+                }
+            }
+            Text("Your budget across providers, not a provider limit. Reported spend can lag.")
+                .font(.system(size: 10)).foregroundStyle(.tertiary).fixedSize(horizontal: false, vertical: true)
+        }
+        .cardStyle()
     }
 }
 

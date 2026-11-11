@@ -12,19 +12,40 @@ struct SettingsSection: Identifiable, Equatable { let provider: ProviderID; var 
     @Published private(set) var sections: [SettingsSection] = []
     @Published private(set) var indicatorCount: Int
     @Published private(set) var nudgeEnabled: Bool
+    @Published private(set) var claudeResetDay: MonthlyResetDay
+    @Published private(set) var budget: SharedBudgetConfig
     let editable: Bool
     private(set) var profiles: [AccountProfile]
     private var statuses: [String: (AccountStatus, String?)] = [:]
+    /// Each provider main account's last reported spend limit and currency, for the budget pre-fill.
+    private var reportedLimits: [ProviderID: (Decimal, String)] = [:]
     private let onProfiles: ([AccountProfile]) -> Void, onIndicatorCount: (Int) -> Void, onNudge: (Bool) -> Void
     private let onConnect: (String) -> Void, onAbout: () -> Void
+    private let onClaudeResetDay: (MonthlyResetDay) -> Void, onBudget: (SharedBudgetConfig) -> Void
+
+    static let budgetProviders: [ProviderID] = ["claude", "cursor"]
+    static let defaultBudget = SharedBudgetConfig(enabled: false, amount: nil, currency: "USD",
+                                                  members: budgetProviders, resetDay: .default)
 
     init(profiles: [AccountProfile], indicatorCount: Int, nudgeEnabled: Bool, editable: Bool,
+         claudeResetDay: MonthlyResetDay = .default, budget: SharedBudgetConfig = SettingsModel.defaultBudget,
          onProfiles: @escaping ([AccountProfile]) -> Void, onIndicatorCount: @escaping (Int) -> Void,
-         onNudge: @escaping (Bool) -> Void, onConnect: @escaping (String) -> Void, onAbout: @escaping () -> Void) {
+         onNudge: @escaping (Bool) -> Void, onConnect: @escaping (String) -> Void, onAbout: @escaping () -> Void,
+         onClaudeResetDay: @escaping (MonthlyResetDay) -> Void = { _ in },
+         onBudget: @escaping (SharedBudgetConfig) -> Void = { _ in }) {
         self.profiles = profiles; self.indicatorCount = indicatorCount; self.nudgeEnabled = nudgeEnabled
+        self.claudeResetDay = claudeResetDay; self.budget = budget.validated
         self.editable = editable; self.onProfiles = onProfiles; self.onIndicatorCount = onIndicatorCount
         self.onNudge = onNudge; self.onConnect = onConnect; self.onAbout = onAbout
+        self.onClaudeResetDay = onClaudeResetDay; self.onBudget = onBudget
         rebuild()
+    }
+
+    /// Enabled main accounts by provider, as the shared budget reads them.
+    var mainProfileIDs: [ProviderID: String] {
+        Dictionary(uniqueKeysWithValues: sections.compactMap { section in
+            section.main.flatMap { $0.enabled ? (section.provider, $0.id) : nil }
+        })
     }
 
     /// `<provider>-default`, else the provider's first profile in saved order.
@@ -143,6 +164,71 @@ struct SettingsSection: Identifiable, Equatable { let provider: ProviderID; var 
         guard editable, enabled != nudgeEnabled else { return }
         nudgeEnabled = enabled
         onNudge(enabled)
+    }
+
+    // The reset day and the shared budget are local display settings: they apply in demo too.
+    func setClaudeResetDay(_ day: MonthlyResetDay) {
+        guard day != claudeResetDay else { return }
+        claudeResetDay = day
+        onClaudeResetDay(day)
+    }
+
+    /// Turning on with no amount pre-fills the members' reported limit when they all report the same one.
+    func setBudgetEnabled(_ enabled: Bool) {
+        var next = budget
+        next.enabled = enabled
+        if enabled, next.amount == nil {
+            let limits = next.members.map { reportedLimits[$0] }
+            if let first = limits.first ?? nil, limits.allSatisfy({ $0?.0 == first.0 && $0?.1 == first.1 }) {
+                next.amount = first.0
+            }
+        }
+        changeBudget(next)
+    }
+
+    /// A positive decimal in the current locale, with or without its currency symbol.
+    func setBudgetAmount(_ text: String) -> Bool {
+        let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let parsed = [NumberFormatter.Style.currency, .decimal].lazy.compactMap { style -> Decimal? in
+            let formatter = NumberFormatter()
+            formatter.numberStyle = style; formatter.locale = .current; formatter.generatesDecimalNumbers = true
+            if style == .currency { formatter.currencyCode = self.budget.currency }
+            return (formatter.number(from: text) as? NSDecimalNumber)?.decimalValue
+        }.first
+        guard let amount = parsed, amount > 0, amount.isFinite else { return false }
+        var next = budget
+        next.amount = amount
+        changeBudget(next)
+        return true
+    }
+
+    func setBudgetMember(_ provider: ProviderID, _ included: Bool) {
+        guard Self.budgetProviders.contains(provider) else { return }
+        var next = budget
+        if included { if !next.members.contains(provider) { next.members.append(provider) } }
+        else { next.members.removeAll { $0 == provider } }
+        changeBudget(next)
+    }
+
+    func setBudgetResetDay(_ day: MonthlyResetDay) {
+        var next = budget
+        next.resetDay = day
+        changeBudget(next)
+    }
+
+    private func changeBudget(_ next: SharedBudgetConfig) {
+        let next = next.validated
+        guard next != budget else { return }
+        budget = next
+        onBudget(next)
+    }
+
+    func updateReportedLimits(_ rows: [ProfileDisplay]) {
+        for provider in Self.providers {
+            guard let main = mainIndex(provider) else { reportedLimits[provider] = nil; continue }
+            guard let snapshot = rows.first(where: { $0.profile.id == profiles[main].id })?.snapshot else { continue }
+            reportedLimits[provider] = snapshot.spend.flatMap { spend in spend.limit.map { ($0, spend.currency) } }
+        }
     }
 
     func connect(_ accountID: String) { if editable { onConnect(accountID) } }
@@ -313,6 +399,10 @@ private struct ProviderSectionView: View {
                 Text("Renew an expired session by running claude")
                 Text("Runs claude at most once an hour so Claude Code renews its sign-in. Turn off if Claude Code authenticates with an API key.")
             }
+            ResetDayPicker(day: model.claudeResetDay, set: model.setClaudeResetDay) {
+                Text("Spend resets")
+                Text("Claude does not report this; the 1st matches the Claude app. Times are UTC.")
+            }
         }
         if section.provider == "cursor" {
             footnote("Run cursor-agent login when the session expires; Limitaur picks it up within five minutes.")
@@ -354,6 +444,53 @@ private struct OtherAccountRow: View {
     }
 }
 
+/// "1st" … "28th", or "Last day of the month".
+func resetDayTitle(_ day: MonthlyResetDay) -> String {
+    guard case .day(let n) = MonthlyResetDay(storage: day.storage) else { return "Last day of the month" }
+    let suffix = (11...13).contains(n) ? "th" : [1: "st", 2: "nd", 3: "rd"][n % 10] ?? "th"
+    return "\(n)\(suffix)"
+}
+
+/// A menu of the monthly reset days, labelled by `label`.
+private struct ResetDayPicker<Label: View>: View {
+    let day: MonthlyResetDay
+    let set: (MonthlyResetDay) -> Void
+    @ViewBuilder let label: Label
+    var body: some View {
+        Picker(selection: Binding(get: { day.storage }, set: { MonthlyResetDay(storage: $0).map(set) })) {
+            ForEach(1...28, id: \.self) { Text(resetDayTitle(.day($0))).tag(String($0)) }
+            Text(resetDayTitle(.lastDay)).tag(MonthlyResetDay.lastDay.storage)
+        } label: { label }
+        .pickerStyle(.menu)
+    }
+}
+
+/// The budget amount as currency; a refused entry reverts to the current amount.
+private struct BudgetAmountField: View {
+    @ObservedObject var model: SettingsModel
+    @State private var draft = ""
+    @FocusState private var focused: Bool
+    private var shown: String { model.budget.amount.map { amountText($0, currency: model.budget.currency) } ?? "" }
+
+    var body: some View {
+        LabeledContent("Amount") {
+            TextField("Amount", text: $draft, prompt: Text(amountText(0, currency: model.budget.currency)))
+                .labelsHidden().textFieldStyle(.roundedBorder).multilineTextAlignment(.trailing).frame(width: 140)
+                .focused($focused).onSubmit(commit)
+                .accessibilityLabel("Shared budget amount")
+        }
+        .onAppear { draft = shown }
+        .onChange(of: model.budget.amount) { _, _ in draft = shown }
+        .onChange(of: focused) { _, isFocused in if !isFocused { commit() } }
+        .onDisappear(perform: commit)
+    }
+
+    private func commit() {
+        if draft != shown { _ = model.setBudgetAmount(draft) }
+        draft = shown
+    }
+}
+
 struct GeneralSettingsView: View {
     @ObservedObject var model: SettingsModel
     var body: some View {
@@ -364,6 +501,27 @@ struct GeneralSettingsView: View {
                     ForEach(1...8, id: \.self) { Text("\($0)").tag($0) }
                 }.pickerStyle(.segmented)
             } header: { Text("Menu bar") } footer: { footnote("Number of usage bars shown in the menu bar.") }
+            Section {
+                Toggle("Track a shared monthly budget", isOn: Binding(get: { model.budget.enabled }, set: { model.setBudgetEnabled($0) }))
+                if model.budget.enabled {
+                    BudgetAmountField(model: model)
+                    LabeledContent("Includes") {
+                        HStack(spacing: 12) {
+                            ForEach(SettingsModel.budgetProviders, id: \.self) { provider in
+                                Toggle(providerName(provider), isOn: Binding(get: { model.budget.members.contains(provider) },
+                                                                             set: { model.setBudgetMember(provider, $0) }))
+                                    .toggleStyle(.checkbox)
+                                    .accessibilityLabel("Include \(providerName(provider)) in shared budget")
+                            }
+                        }
+                    }
+                    ResetDayPicker(day: model.budget.resetDay, set: model.setBudgetResetDay) { Text("Resets") }
+                }
+            } header: { Text("Shared budget") } footer: {
+                if model.budget.enabled {
+                    footnote("Limitaur adds each provider's reported spend for the month. This budget is yours; no provider enforces it.")
+                }
+            }
             Section("About") {
                 LabeledContent("Version", value: AppVersion.string)
                 Button("About Limitaur…") { model.showAbout() }

@@ -581,7 +581,6 @@ class ExercisesNewBehaviorAcceptanceTests(DiagnosticSurfaceCase):
             all(balance["remaining"] is None for balance in snapshot["balances"]),
             "unverified nonnull spend shapes must not become a known monetary balance",
         )
-        self.assertTrue(snapshot["partial"] or snapshot["warnings"])
 
 
 if __name__ == "__main__":

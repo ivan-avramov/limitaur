@@ -326,6 +326,9 @@ extension UserDefaults: PollingStorage {}
     private var lastStatusRows: [ProfileDisplay] = []
     private var profiles: [AccountProfile] = []
     private var cadence: Timer?
+    /// One-shot refresh at the shared budget's reset and freshness deadline, re-armed when either changes.
+    private var budgetRefresh: Timer?
+    private var budgetRefreshKey: (Date, TimeInterval?)?
     private var streamTask: Task<Void, Never>?
     private var lastDisplay: MonitorDisplay?
     private var lastProjection: PresentationState?
@@ -343,6 +346,9 @@ extension UserDefaults: PollingStorage {}
     private let defaults: UserDefaults
     private let nudger: (any SessionNudging)?
     private let storedAttempts: [String: Date]
+    /// Local display settings; demo neither loads nor stores them.
+    private var claudeResetDay: MonthlyResetDay = .default
+    private var budgetConfig = SettingsModel.defaultBudget
     /// Seams for tests: the process termination and the nudge toggle.
     var terminateProcesses: () -> Void = { ProcessRegistry.shared.terminateAll() }
     var nudgeToggled: ((Bool) -> Void)?
@@ -355,6 +361,11 @@ extension UserDefaults: PollingStorage {}
         self.statisticsPath = statisticsPath
         self.defaults = defaults; self.nudger = demo ? nil : nudger
         storedAttempts = defaults.data(forKey: "nudge.lastAttempts").flatMap { try? JSONDecoder().decode([String: Date].self, from: $0) } ?? [:]
+        if !demo {
+            claudeResetDay = defaults.string(forKey: "claudeSpendResetDay").flatMap(MonthlyResetDay.init(storage:)) ?? .default
+            budgetConfig = defaults.data(forKey: "sharedBudget")
+                .flatMap { try? JSONDecoder().decode(SharedBudgetConfig.self, from: $0) }?.validated ?? SettingsModel.defaultBudget
+        }
         self.monitor = demo ? Monitor(credentials: CredentialStore(files: DemoCredentialFiles(), keychain: DemoKeychain(),
                                                                          cursorKeychain: DemoKeychain()),
                                       transport: DemoTransport())
@@ -389,11 +400,24 @@ extension UserDefaults: PollingStorage {}
     /// The Settings model over the current profile list; every change goes through the save path.
     private func makeSettings() -> SettingsModel {
         SettingsModel(profiles: profiles, indicatorCount: count, nudgeEnabled: nudgeOn, editable: !demo,
+                      claudeResetDay: claudeResetDay, budget: budgetConfig,
                       onProfiles: { [weak self] list in self?.profiles = list; self?.saveProfiles() },
                       onIndicatorCount: { [weak self] in self?.selectCount($0) },
                       onNudge: { [weak self] in self?.setNudge($0) },
                       onConnect: { [weak self] in self?.router.connect($0) },
-                      onAbout: { [weak self] in self?.showAbout() })
+                      onAbout: { [weak self] in self?.showAbout() },
+                      onClaudeResetDay: { [weak self] in self?.setClaudeResetDay($0) },
+                      onBudget: { [weak self] in self?.setBudget($0) })
+    }
+    private func setClaudeResetDay(_ day: MonthlyResetDay) {
+        claudeResetDay = day
+        if !demo { defaults.set(day.storage, forKey: "claudeSpendResetDay") }
+        Task { await monitor.setSpendResetDay(day, for: "claude") }
+    }
+    private func setBudget(_ config: SharedBudgetConfig) {
+        budgetConfig = config
+        if !demo, let data = try? JSONEncoder().encode(config) { defaults.set(data, forKey: "sharedBudget") }
+        refreshProjection(rebuild: true)
     }
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -451,7 +475,11 @@ extension UserDefaults: PollingStorage {}
             let persistence = PollingPersistence(UserDefaults.standard)
             pollingPersistence = persistence
             let initial = persistence.load(["claude", "codex", "cursor"])
-            Task { await monitor.setPolling(initial); await restoreNudge(); await monitor.setProfiles(profiles) }
+            let resetDay = claudeResetDay
+            Task {
+                await monitor.setPolling(initial); await restoreNudge()
+                await monitor.setSpendResetDay(resetDay, for: "claude"); await monitor.setProfiles(profiles)
+            }
             scheduleCadence()
             NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(sleep), name: NSWorkspace.willSleepNotification, object: nil)
             NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(wake), name: NSWorkspace.didWakeNotification, object: nil)
@@ -530,7 +558,7 @@ extension UserDefaults: PollingStorage {}
         resizeStatusItem()
     }
     func applicationWillTerminate(_ notification: Notification) {
-        cadence?.invalidate(); streamTask?.cancel(); Task { await monitor.stop() }
+        cadence?.invalidate(); budgetRefresh?.invalidate(); streamTask?.cancel(); Task { await monitor.stop() }
         nudger?.waitForCompletion(upTo: 5)
         terminateProcesses()
     }
@@ -645,8 +673,18 @@ extension UserDefaults: PollingStorage {}
         guard let value = lastDisplay else { return }
         let wall = presentationClock.wallNow(), mono = presentationClock.monotonicNow()
         let before = observations
-        let projected = projectDisplay(value, count: count, wallNow: wall,
+        var projected = projectDisplay(value, count: count, wallNow: wall,
                                        monotonicNow: mono, observations: &observations)
+        // The budget reads the projected, stale-marked rows, then joins the ranking.
+        let budget = sharedBudget(budgetConfig, rows: projected.profiles, mainProfileIDs: settings.mainProfileIDs,
+                                  wallNow: wall, monotonicNow: mono)
+        if budget != nil {
+            projected = projectDisplay(value, count: count, wallNow: wall, monotonicNow: mono,
+                                       observations: &observations, budget: budget)
+        }
+        if dropdownModel.budget != budget { dropdownModel.budget = budget }
+        armBudgetRefresh(budget, wall: wall, mono: mono)
+        settings.updateReportedLimits(projected.profiles)
         lastPresentationWall = wall
         if observations != before {
             let seen = observations
@@ -668,6 +706,22 @@ extension UserDefaults: PollingStorage {}
             updateDropdown(projected.profiles)
             lastDropdownRows = projected.profiles
         } else { pushStatuses(projected.profiles) }
+    }
+    private func armBudgetRefresh(_ budget: SharedBudgetState?, wall: Date, mono: TimeInterval) {
+        let key = budget.map { ($0.resetsAt, $0.freshnessDeadline) }
+        guard !demo, key?.0 != budgetRefreshKey?.0 || key?.1 != budgetRefreshKey?.1 else { return }
+        budgetRefresh?.invalidate(); budgetRefresh = nil; budgetRefreshKey = key
+        guard let budget else { return }
+        let waits = [budget.resetsAt.timeIntervalSince(wall), budget.freshnessDeadline.map { $0 - mono }].compactMap { $0 }
+        guard let wait = waits.filter({ $0 > 0 && $0.isFinite }).min() else { return }
+        let timer = Timer(timeInterval: min(wait, 30 * 24 * 60 * 60), repeats: false) { [weak self] _ in
+            Task { @MainActor in
+                self?.budgetRefresh = nil; self?.budgetRefreshKey = nil
+                self?.refreshProjection(); self?.requestLocalDisplay()
+            }
+        }
+        budgetRefresh = timer
+        RunLoop.main.add(timer, forMode: .common)
     }
     private func sameDropdownRows(_ left: [ProfileDisplay], _ right: [ProfileDisplay]) -> Bool {
         guard left.count == right.count else { return false }
