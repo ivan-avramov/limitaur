@@ -59,3 +59,16 @@ Build 51 of `dist/Limitaur.app` (0.1.0, revision 4a76f6d, signed `Limitaur Dev`,
 | Classification | smoke or nonqualifying workload | qualifying |
 
 Nonqualifying because Claude was throttled twice in the window and completed only five polls (its learned interval had already grown from the 429s), and because the exited-children flag is set: under Part A every Claude 429 triggers a re-read of the Keychain item through a short-lived `/usr/bin/security` child, which the two-second sampler sees only in the process counters. That child is part of the accepted design, but A7 still says an unaccounted child disqualifies a run and the sampler cannot name an exited child, so under the current rule and the current Claude throttling no run on this machine can qualify: Claude's learned interval grows towards 120 s under the 429s, which yields at most five polls in 600 s. The operator closed the gate on 2026-10-24 (P492/P508): the sustained resource gate counts as passed on the basis of this smoke, CPU 0.0008 % and RSS 53.4 MiB against the P487 budgets, with the "qualifying" label unreachable on this machine for the reasons above; no further run is required for release. Codex reached the amended A7 count. The 10-second cycle tick added no measurable CPU (0.00081 % against 0.00063 % on build 41 with a 45-second timer).
+
+## Release 0.3.0 memory smoke, 2026-11-10 (America/Los_Angeles)
+
+Each bundle was built ad-hoc from its revision, launched with `--stats` on this machine (Darwin 27.2), and sampled by `scripts/measure-resources.py PID --warmup 5 --seconds 30` within a few minutes of the others. Live Claude and Cursor accounts were used; every run was a smoke, not a qualifying workload.
+
+| Build | Max RSS | Median RSS | CPU, one core |
+| --- | --- | --- | --- |
+| v0.2.3 (released) | 72.6 MiB | 72.4 MiB | 0.034 % |
+| 8d787e2 (+ Cursor provider) | 73.7 MiB | 73.5 MiB | 0.046 % |
+| 12f12d6 (+ SwiftUI Settings window and dropdown cards) | 82.4 MiB | 82.2 MiB | 0.037 % |
+| 2f8b4ef (+ shared budget, provider codes, release gate; 0.3.0 source) | 83.0 MiB | 82.8 MiB | 0.041 % |
+
+CPU meets the 0.1 % target. RSS misses the 56 MiB budget (P487) for every build, including the released 0.2.3, which measured 53.4 MiB as build 51 on 2026-10-24. That 19 MiB rise for unchanged code points to the environment: a newer OS, and a 5-second warmup instead of 60 seconds. It is not attributed to Limitaur. Within this release, the SwiftUI redesign adds 8.7 MiB, as settings-and-dropdown residual R1 anticipated. Cursor adds 1.1 MiB, and the shared budget and provider codes add 0.6 MiB. Whether to revise the budget or reduce the footprint is the operator's decision.
