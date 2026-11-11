@@ -36,6 +36,10 @@ class GateBlocked(GateFailure):
     """The environment, not the product, stopped the pass: a provider is rate limited for longer than the gate waits."""
 
 
+# The preferences backup lives outside the per-revision folder, which each run deletes, and is removed only
+# after a successful restore; a backup still here means an earlier pass was killed before restoring.
+PENDING = ROOT / '.build' / 'release-gate' / 'prefs-backup.plist'
+PENDING_ABSENT = ROOT / '.build' / 'release-gate' / 'prefs-backup.absent'
 RATE_LIMIT_WAIT = 300   # seconds the gate waits for a provider's Retry-After before stopping as blocked
 
 
@@ -683,8 +687,12 @@ def ui_pass(record, out, helper_source):
         raise GateFailure(f'unexpected bundle id {bundle_id}')
 
     previous = running_limitaur()
-    backup = out / 'prefs-backup.plist'
-    had_prefs = sh('defaults', 'export', DOMAIN, str(backup), check=False).returncode == 0
+    if pending_backup():
+        raise GateFailure(pending_message())
+    PENDING.parent.mkdir(parents=True, exist_ok=True)
+    if sh('defaults', 'export', DOMAIN, str(PENDING), check=False).returncode != 0:
+        PENDING.unlink(missing_ok=True)
+        PENDING_ABSENT.touch()
     stats = out / 'stats.json'
     record['stats'] = str(stats)
     child = None
@@ -706,15 +714,40 @@ def ui_pass(record, out, helper_source):
     finally:
         if child:
             stop(child.pid)
-        sh('defaults', 'delete', DOMAIN, check=False)   # import merges; keys added during the pass must go
-        if had_prefs:
-            sh('defaults', 'import', DOMAIN, str(backup), check=False)
+        if not restore_prefs():
+            record.setdefault('notes', []).append(f'preferences NOT restored; backup kept at {PENDING}')
         for _, args in previous:
             bundle = re.match(r'(.+?\.app)/Contents/MacOS/Limitaur$', args)
             if bundle:
                 sh('open', bundle.group(1), check=False)
             else:
                 record.setdefault('notes', []).append(f'not relaunched: {args}')
+
+
+def pending_backup():
+    return PENDING.exists() or PENDING_ABSENT.exists()
+
+
+def pending_message():
+    when = datetime.datetime.fromtimestamp((PENDING if PENDING.exists() else PENDING_ABSENT).stat().st_mtime)
+    return (f'an earlier gate run (started {when:%Y-%m-%d %H:%M}) did not restore your Limitaur preferences; '
+            'run python3 scripts/release-gate.py --restore-prefs to put that backup back, then rerun')
+
+
+def restore_prefs():
+    """Replace the domain with the pending backup (import merges, so delete first); keep the backup unless it worked."""
+    if not pending_backup():
+        return True
+    sh('defaults', 'delete', DOMAIN, check=False)
+    if PENDING.exists() and sh('defaults', 'import', DOMAIN, str(PENDING), check=False).returncode != 0:
+        return False
+    PENDING.unlink(missing_ok=True)
+    PENDING_ABSENT.unlink(missing_ok=True)
+    return True
+
+
+def interrupted(signum, _frame):
+    raise GateFailure(f'interrupted by {signal.Signals(signum).name}')
 
 
 def notify(text):
@@ -724,7 +757,24 @@ def notify(text):
 def main():
     parser = argparse.ArgumentParser(description='Run the Limitaur release gate')
     parser.add_argument('--ui-only', action='store_true', help='skip the test steps (record is not complete)')
+    parser.add_argument('--restore-prefs', action='store_true',
+                        help="restore the preferences backup an interrupted run left behind, then exit")
     args = parser.parse_args()
+    if args.restore_prefs:
+        if not pending_backup():
+            print('no pending preferences backup')
+            return 0
+        if running_limitaur():
+            print('quit Limitaur first, then rerun --restore-prefs', file=sys.stderr)
+            return 1
+        ok = restore_prefs()
+        print('preferences restored' if ok else f'restore failed; backup kept at {PENDING}')
+        return 0 if ok else 1
+    if pending_backup():
+        print(pending_message(), file=sys.stderr)
+        return 1
+    for sig in (signal.SIGTERM, signal.SIGHUP):   # closing the terminal or a plain kill still restores
+        signal.signal(sig, interrupted)
     revision = git('rev-parse', 'HEAD')
     dirty = bool(git('status', '--porcelain', '--untracked-files=normal'))
     out = ROOT / '.build' / 'release-gate' / revision
@@ -761,6 +811,8 @@ def main():
         record['passed'] = ok
         record['finished'] = datetime.datetime.now().astimezone().isoformat(timespec='seconds')
         (out / 'result.json').write_text(json.dumps(record, indent=2) + '\n')
+    if pending_backup():
+        print(f'WARNING: Limitaur preferences were not restored; run --restore-prefs (backup {PENDING})', file=sys.stderr)
     verdict = 'PASSED' if ok else 'FAILED'
     notes = '' if record['complete'] and not dirty else ' (not valid for release: ' + \
         ', '.join(x for x, y in (('UI only', not record['complete']), ('dirty tree', dirty)) if y) + ')'
