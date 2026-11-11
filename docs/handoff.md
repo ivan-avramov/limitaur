@@ -169,7 +169,8 @@ P73 procedure: `AppVersion.swift` and Info.plist 0.2.1, CHANGELOG `[0.2.1] - 202
 - Cursor provider (c088dee): record [cursor-provider](reviews/cursor-provider/review.md), residuals `docs/backlog/cursor-provider-residuals.md`. Live C7 done: `--check-live` cursor success; dropdown matched Cursor's dashboard.
 - Settings window and dropdown redesign (12f12d6): record [settings-and-dropdown](reviews/settings-and-dropdown/review.md), residuals `docs/backlog/settings-and-dropdown-residuals.md`.
 - Shared monthly budget: record [shared-budget](reviews/shared-budget/review.md), residuals `docs/backlog/shared-budget-residuals.md`. Tests at Accept: 166 UI + 603 core parallel and serial, 49 frozen Python. Acceptance ran by UI scripting (screencapture, System Events) against live data; Escape/⌘W, saved position, per-tab sizing and label commit now observed.
-- Before release (operator): P39 Settings window title "Untitled"; customizable provider codes; an automated UI release gate.
+- P39 Settings window title fixed (8578a71). Release gate `scripts/release-gate.py` (2bc3d60): native, frozen Python, release-tooling and collector suites plus a live UI pass; `release.py package` requires a complete, passing record from a clean tree at HEAD.
+- Customizable provider codes, P41 account label, P44 disclosure: record [provider-codes](reviews/provider-codes/review.md), residuals `docs/backlog/provider-codes-residuals.md`.
 
 ## Still pending, in order
 

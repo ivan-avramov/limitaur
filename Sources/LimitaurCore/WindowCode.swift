@@ -72,6 +72,44 @@ public func providerGlyph(for provider: ProviderID) -> String {
     return letters
 }
 
+/// Providers whose code the user may override in Settings.
+public let editableProviderCodes: [ProviderID] = ["claude", "codex", "cursor", "budget"]
+
+/// Trimmed and uppercased; nil unless one or two ASCII letters or digits. The input is checked
+/// too, so a non-ASCII letter whose uppercase is ASCII (ß → SS) is refused.
+public func normalizedProviderCode(_ raw: String) -> String? {
+    let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard (1...2).contains(trimmed.unicodeScalars.count),
+          trimmed.unicodeScalars.allSatisfy({ $0.isASCII && ($0.properties.isAlphabetic || ("0"..."9").contains($0)) })
+    else { return nil }
+    return trimmed.uppercased()
+}
+
+/// A valid user override for the provider, else its default code.
+public func providerGlyph(for provider: ProviderID, overrides: [String: String]) -> String {
+    normalizedProviderCode(overrides[provider.rawValue.lowercased()] ?? "") ?? providerGlyph(for: provider)
+}
+
+/// Editable keys with a valid, non-default value, normalized; an override whose effective
+/// code equals another editable provider's effective code is dropped on both sides.
+public func validatedProviderCodes(_ raw: [String: String]) -> [String: String] {
+    // Keys match case-insensitively; two raw keys for one provider are ambiguous and dropped.
+    let grouped = Dictionary(grouping: raw, by: { $0.key.lowercased() })
+    var kept: [String: String] = [:]
+    for provider in editableProviderCodes {
+        guard let entries = grouped[provider.rawValue], entries.count == 1,
+              let code = normalizedProviderCode(entries[0].value), code != providerGlyph(for: provider) else { continue }
+        kept[provider.rawValue] = code
+    }
+    // Repeated until stable: a dropped override restores a default that may collide anew.
+    while true {
+        let effective = Dictionary(uniqueKeysWithValues: editableProviderCodes.map { ($0, providerGlyph(for: $0, overrides: kept)) })
+        let next = kept.filter { key, code in !editableProviderCodes.contains { $0.rawValue != key && effective[$0] == code } }
+        if next == kept { return kept }
+        kept = next
+    }
+}
+
 /// Letters that read alike in a small bold sans face share a class. Two codes are
 /// distinguishable when at least one position holds letters from different classes.
 public func letterConfusionClass(_ character: Character) -> Int {

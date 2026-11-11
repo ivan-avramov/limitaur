@@ -4,6 +4,8 @@ import LimitaurCore
 @MainActor final class DropdownModel: ObservableObject {
     @Published var rows: [ProfileDisplay] = []
     @Published var budget: SharedBudgetState?
+    /// User code overrides, as Settings validated them.
+    @Published var providerCodes: [String: String] = [:]
     @Published var now = Date()
     @Published var polling: [String: PollingPolicy] = [:]
     @Published var demo = false
@@ -50,7 +52,7 @@ struct DropdownPanel: View {
             header
             Divider()
             if model.rows.isEmpty {
-                if let budget = model.budget { BudgetCard(budget: budget, now: model.now) }
+                if let budget = model.budget { BudgetCard(budget: budget, now: model.now, codes: model.providerCodes) }
                 emptyState
             } else { cards }
             Divider()
@@ -103,9 +105,11 @@ struct DropdownPanel: View {
         CappedHeight(maximum: Self.maxListHeight) {
             ScrollView {
                 VStack(spacing: 10) {
-                    if let budget = model.budget { BudgetCard(budget: budget, now: model.now) }
+                    if let budget = model.budget { BudgetCard(budget: budget, now: model.now, codes: model.providerCodes) }
                     ForEach(Array(model.rows.enumerated()), id: \.offset) { _, row in
-                        AccountCard(row: row, now: model.now, interval: model.polling[row.profile.providerID.rawValue]?.interval,
+                        AccountCard(row: row, codes: model.providerCodes,
+                                    showsLabel: model.rows.count { $0.profile.providerID == row.profile.providerID } > 1,
+                                    now: model.now, interval: model.polling[row.profile.providerID.rawValue]?.interval,
                                     demo: model.demo) { model.connect(row.profile.id) }
                     }
                 }
@@ -154,12 +158,13 @@ private struct CappedHeight: Layout {
 private struct BudgetCard: View {
     let budget: SharedBudgetState
     let now: Date
+    let codes: [String: String]
 
     var body: some View {
         let currency = budget.config.currency
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
-                ProviderBadge(provider: "budget")
+                ProviderBadge(code: providerGlyph(for: "budget", overrides: codes))
                 Text("Shared budget").font(.system(size: 13, weight: .semibold)).lineLimit(1)
                 Spacer(minLength: 6)
                 StatusChip(label: "Your budget", color: .gray)
@@ -192,7 +197,7 @@ private struct BudgetCard: View {
             VStack(alignment: .leading, spacing: 4) {
                 ForEach(Array(budget.members.enumerated()), id: \.offset) { _, member in
                     HStack(spacing: 6) {
-                        ProviderBadge(provider: member.provider)
+                        ProviderBadge(code: providerGlyph(for: member.provider, overrides: codes))
                         Text(providerName(member.provider))
                         Spacer(minLength: 6)
                         Text(member.spent.map { amountText($0, currency: currency) } ?? member.problem ?? "")
@@ -211,6 +216,9 @@ private struct BudgetCard: View {
 
 private struct AccountCard: View {
     let row: ProfileDisplay
+    let codes: [String: String]
+    /// False for the provider's only card: the header then leaves out the account label.
+    let showsLabel: Bool
     let now: Date
     let interval: TimeInterval?
     let demo: Bool
@@ -219,8 +227,11 @@ private struct AccountCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
-                ProviderBadge(provider: row.profile.providerID)
-                Text("\(providerName(row.profile.providerID)) · \(Text(row.profile.label).foregroundStyle(.secondary))")
+                ProviderBadge(code: providerGlyph(for: row.profile.providerID, overrides: codes))
+                Group {
+                    if showsLabel { Text("\(providerName(row.profile.providerID)) · \(Text(row.profile.label).foregroundStyle(.secondary))") }
+                    else { Text(providerName(row.profile.providerID)) }
+                }
                     .font(.system(size: 13, weight: .semibold)).lineLimit(1)
                 Spacer(minLength: 6)
                 StatusChip(status: AccountStatus(row: row))

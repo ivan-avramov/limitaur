@@ -7,6 +7,8 @@ struct SettingsAccount: Identifiable, Equatable { let id: String; var label: Str
 struct SettingsSection: Identifiable, Equatable { let provider: ProviderID; var main: SettingsAccount?
     var others: [SettingsAccount]; var id: String { provider.rawValue } }
 
+enum ProviderCodeChange: Equatable { case saved(String), reset, unchanged, invalid, duplicate(ProviderID), readOnly }
+
 @MainActor final class SettingsModel: ObservableObject {
     static let providers: [ProviderID] = ["claude", "codex", "cursor"]
     @Published private(set) var sections: [SettingsSection] = []
@@ -14,6 +16,8 @@ struct SettingsSection: Identifiable, Equatable { let provider: ProviderID; var 
     @Published private(set) var nudgeEnabled: Bool
     @Published private(set) var claudeResetDay: MonthlyResetDay
     @Published private(set) var budget: SharedBudgetConfig
+    /// User overrides only; `code(for:)` gives the effective code.
+    @Published private(set) var providerCodes: [String: String]
     let editable: Bool
     private(set) var profiles: [AccountProfile]
     private var statuses: [String: (AccountStatus, String?)] = [:]
@@ -22,6 +26,7 @@ struct SettingsSection: Identifiable, Equatable { let provider: ProviderID; var 
     private let onProfiles: ([AccountProfile]) -> Void, onIndicatorCount: (Int) -> Void, onNudge: (Bool) -> Void
     private let onConnect: (String) -> Void, onAbout: () -> Void
     private let onClaudeResetDay: (MonthlyResetDay) -> Void, onBudget: (SharedBudgetConfig) -> Void
+    private let onProviderCodes: ([String: String]) -> Void
 
     static let budgetProviders: [ProviderID] = ["claude", "cursor"]
     static let defaultBudget = SharedBudgetConfig(enabled: false, amount: nil, currency: "USD",
@@ -32,12 +37,14 @@ struct SettingsSection: Identifiable, Equatable { let provider: ProviderID; var 
          onProfiles: @escaping ([AccountProfile]) -> Void, onIndicatorCount: @escaping (Int) -> Void,
          onNudge: @escaping (Bool) -> Void, onConnect: @escaping (String) -> Void, onAbout: @escaping () -> Void,
          onClaudeResetDay: @escaping (MonthlyResetDay) -> Void = { _ in },
-         onBudget: @escaping (SharedBudgetConfig) -> Void = { _ in }) {
+         onBudget: @escaping (SharedBudgetConfig) -> Void = { _ in },
+         providerCodes: [String: String] = [:], onProviderCodes: @escaping ([String: String]) -> Void = { _ in }) {
         self.profiles = profiles; self.indicatorCount = indicatorCount; self.nudgeEnabled = nudgeEnabled
         self.claudeResetDay = claudeResetDay; self.budget = budget.validated
         self.editable = editable; self.onProfiles = onProfiles; self.onIndicatorCount = onIndicatorCount
         self.onNudge = onNudge; self.onConnect = onConnect; self.onAbout = onAbout
         self.onClaudeResetDay = onClaudeResetDay; self.onBudget = onBudget
+        self.providerCodes = validatedProviderCodes(providerCodes); self.onProviderCodes = onProviderCodes
         rebuild()
     }
 
@@ -231,6 +238,34 @@ struct SettingsSection: Identifiable, Equatable { let provider: ProviderID; var 
         }
     }
 
+    func code(for provider: ProviderID) -> String { providerGlyph(for: ProviderID(provider.rawValue.lowercased()), overrides: providerCodes) }
+
+    /// The first other editable provider whose code reads alike at menu-bar size.
+    func lookalike(for provider: ProviderID) -> ProviderID? {
+        let provider = ProviderID(provider.rawValue.lowercased()), mine = code(for: provider)
+        return editableProviderCodes.first { other in
+            let theirs = code(for: other)
+            return other != provider && theirs.count == mine.count && !providerCodesAreDistinguishable(mine, theirs)
+        }
+    }
+
+    /// A reset whose default another provider's override already uses is refused as a duplicate,
+    /// so the menu bar never shows the same code twice.
+    @discardableResult func setProviderCode(_ provider: ProviderID, _ raw: String) -> ProviderCodeChange {
+        guard editable else { return .readOnly }
+        let provider = ProviderID(provider.rawValue.lowercased())
+        guard editableProviderCodes.contains(provider) else { return .invalid }
+        let normalized = normalizedProviderCode(raw), fallback = providerGlyph(for: provider)
+        let reset = raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || normalized == fallback
+        guard let code = reset ? fallback : normalized else { return .invalid }
+        if let other = editableProviderCodes.first(where: { $0 != provider && self.code(for: $0) == code }) { return .duplicate(other) }
+        let next: String? = reset ? nil : code
+        guard providerCodes[provider.rawValue] != next else { return .unchanged }
+        providerCodes[provider.rawValue] = next
+        onProviderCodes(providerCodes)
+        return reset ? .reset : .saved(code)
+    }
+
     func connect(_ accountID: String) { if editable { onConnect(accountID) } }
     func showAbout() { onAbout() }
 
@@ -298,6 +333,64 @@ private struct PathRow: View {
         .accessibilityLabel("Remove \(account.label)")
 }
 
+/// A provider's badge, which an editable model turns into a code field on press; `content`
+/// lays the control out in its row, and the row's footnotes follow below it.
+private struct ProviderCodeRow<Content: View>: View {
+    @ObservedObject var model: SettingsModel
+    let provider: ProviderID
+    @ViewBuilder let content: (AnyView) -> Content
+    @State private var editing = false
+    @State private var draft = ""
+    @State private var problem: String?
+    @FocusState private var focused: Bool
+    private var name: String { providerName(provider) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            content(AnyView(control))
+            if editing { footnote(problem ?? "Clear to restore \(providerGlyph(for: provider)).") }
+            if let other = model.lookalike(for: provider) {
+                footnote("Looks like \(providerName(other))'s \(model.code(for: other)) in the menu bar.")
+            }
+        }
+        .onChange(of: editing) { _, isEditing in
+            if isEditing { SettingsPanel.codeEditor = (provider, cancel) }
+            else if SettingsPanel.codeEditor?.provider == provider { SettingsPanel.codeEditor = nil }
+        }
+        // Closing commits, then always ends editing, so a reopened window shows badges.
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.willCloseNotification)
+            .filter { $0.object is SettingsPanel }) { _ in commit(); cancel() }
+    }
+
+    private func cancel() { editing = false; problem = nil }
+
+    @ViewBuilder private var control: some View {
+        if editing {
+            TextField("Code", text: $draft).labelsHidden().textFieldStyle(.roundedBorder).frame(width: 44)
+                .focused($focused).onSubmit(commit)
+                .onChange(of: focused) { _, isFocused in if !isFocused { commit() } }
+                .onAppear { DispatchQueue.main.async { focused = true } }
+                .onDisappear(perform: commit)
+                .accessibilityLabel("Code for \(name)")
+        } else if model.editable {
+            Button { draft = model.code(for: provider); problem = nil; editing = true } label: {
+                ProviderBadge(code: model.code(for: provider))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Edit code for \(name)")
+        } else { ProviderBadge(code: model.code(for: provider)) }
+    }
+
+    private func commit() {
+        guard editing else { return }
+        switch model.setProviderCode(provider, draft) {
+        case .invalid: problem = "Use one or two letters or digits."
+        case .duplicate(let other): problem = "\(providerName(other)) already uses \(model.code(for: other))."
+        default: editing = false; problem = nil
+        }
+    }
+}
+
 struct ProvidersSettingsView: View {
     @ObservedObject var model: SettingsModel
     var body: some View {
@@ -315,18 +408,22 @@ struct ProvidersSettingsView: View {
 private struct ProviderSectionView: View {
     @ObservedObject var model: SettingsModel
     let section: SettingsSection
+    /// Kept by the section's stable identity across polls and model updates.
+    @State private var othersExpanded = false
     private var name: String { providerName(section.provider) }
     private var on: Bool { section.main?.enabled ?? false }
 
     var body: some View {
         Section {
-            HStack(spacing: 8) {
-                ProviderBadge(provider: section.provider)
-                Text(name).font(.headline).accessibilityAddTraits(.isHeader)
-                Spacer()
-                Toggle(name, isOn: Binding(get: { on }, set: { model.setProviderEnabled(section.provider, $0) }))
-                    .toggleStyle(.switch).labelsHidden()
-                    .accessibilityLabel("\(name) enabled")
+            ProviderCodeRow(model: model, provider: section.provider) { badge in
+                HStack(spacing: 8) {
+                    badge
+                    Text(name).font(.headline).accessibilityAddTraits(.isHeader)
+                    Spacer()
+                    Toggle(name, isOn: Binding(get: { on }, set: { model.setProviderEnabled(section.provider, $0) }))
+                        .toggleStyle(.switch).labelsHidden()
+                        .accessibilityLabel("\(name) enabled")
+                }
             }
             if on, let main = section.main { rows(main) }
             else { footnote(offLine) }
@@ -349,9 +446,15 @@ private struct ProviderSectionView: View {
         } else if section.others.isEmpty {
             addButton("Add another account")
         } else {
-            DisclosureGroup("Other accounts (\(section.others.count))") {
+            // The label is a button too, so a click on it or its AXPress toggles, not only the chevron.
+            DisclosureGroup(isExpanded: $othersExpanded) {
                 ForEach(section.others) { OtherAccountRow(model: model, provider: section.provider, account: $0) }
                 addButton("Add account")
+            } label: {
+                Button { othersExpanded.toggle() } label: {
+                    Text("Other accounts (\(section.others.count))").frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                }.buttonStyle(.plain)
             }
         }
     }
@@ -517,6 +620,10 @@ struct GeneralSettingsView: View {
                     }
                     ResetDayPicker(day: model.budget.resetDay, set: model.setBudgetResetDay) { Text("Resets") }
                 }
+                // Shown with the budget off too, so the code blocking a duplicate can always change.
+                ProviderCodeRow(model: model, provider: "budget") { badge in
+                    HStack { Text("Menu bar code"); Spacer(); badge }
+                }
             } header: { Text("Shared budget") } footer: {
                 if model.budget.enabled {
                     footnote("Limitaur adds each provider's reported spend for the month. This budget is yours; no provider enforces it.")
@@ -533,9 +640,13 @@ struct GeneralSettingsView: View {
     }
 }
 
-/// Escape closes the window, as in other Settings windows.
+/// Escape closes the window, as in other Settings windows, unless it first ends a code edit.
 private final class SettingsPanel: NSWindow {
-    override func cancelOperation(_ sender: Any?) { performClose(sender) }
+    /// Set while a provider code field is editing; Escape calls it instead of closing.
+    static var codeEditor: (provider: ProviderID, end: () -> Void)?
+    override func cancelOperation(_ sender: Any?) {
+        if let editor = Self.codeEditor { Self.codeEditor = nil; editor.end() } else { performClose(sender) }
+    }
 }
 
 /// The single Settings window: General and Providers toolbar tabs, created lazily and reused.

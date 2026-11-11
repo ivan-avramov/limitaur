@@ -30,4 +30,6 @@ Rule: letters that look alike in a small bold sans face form a class: {C G O Q D
 | Fireworks | FW | |
 | Shared budget (`budget`) | SB | Not a provider: the user's own budget bar across providers |
 
+User overrides: clicking a badge in Settings → Providers (or General → Shared budget → Menu bar code) replaces the code of Claude, Codex, Cursor or the shared budget with one or two letters or digits, stored uppercased under the `providerCodes` default and shown in the menu bar, the dropdown and Settings. A code another of these four already shows is refused, a look-alike under the rule above is accepted with a warning, and clearing the field restores the table's code. Overrides never change this table or the rule; an overridden provider is drawn as text, not with its bundle image.
+
 Unknown provider IDs fall back to their first two uppercase letters. A fallback that is not distinguishable from a reserved code degrades to its first letter plus `?` (for example `chatgpt` → `C?`, since CH collides with GH).

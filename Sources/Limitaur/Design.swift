@@ -65,10 +65,11 @@ func absoluteDateText(_ date: Date?) -> String {
     } ?? ""
 }
 
+/// Shows the effective code it is given, override or default.
 struct ProviderBadge: View {
-    let provider: ProviderID
+    let code: String
     var body: some View {
-        Text(providerGlyph(for: provider))
+        Text(code)
             .font(.system(size: 10, weight: .bold, design: .rounded))
             .frame(width: 26, height: 17)
             .background(RoundedRectangle(cornerRadius: 5).fill(Color.primary.opacity(0.09)))

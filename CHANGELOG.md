@@ -8,9 +8,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 - Cursor provider: the Cursor switch under Settings → Providers reads the existing cursor-agent sign-in from the Keychain (read-only, through `/usr/bin/security`) and shows one `CU` / `$` bar of the caller's own billing-cycle spend against the effective per-user spend limit, with spent and limit amounts (labelled USD) in the dropdown; `--check-live` includes `cursor`.
 - Claude spend shows as "Monthly spend" with "Spent this cycle", "Spend limit" and a monthly reset at 00:00 UTC on a configurable day (Settings → Providers → Claude → Spend resets; default the 1st).
 - Optional shared budget (Settings → General): adds Claude's and Cursor's reported spend against your own monthly amount, shown as an `SB` bar and a "Shared budget" dropdown card; a partial or mismatched total is never shown as complete.
+- Custom provider codes: click a provider's badge in Settings → Providers, or Menu bar code under the shared budget, to choose a one- or two-character code for the menu bar, the dropdown and Settings; duplicates are refused, look-alikes warned, and clearing restores the default.
 
 ### Fixed
 - Claude spend with a reported limit no longer shows as "Partial data".
+- The dropdown no longer shows "· Default" when a provider has only one account.
+- "Other accounts" in Settings expands from its label and from the accessibility press action, not only from its chevron.
 
 ### Changed
 - A native Settings window with General and Providers tabs replaces the Accounts dialog and the Settings pop-up menu. Each provider section has an on/off switch, its source, its live status and its options; extra Codex and Claude accounts live under "Other accounts". Changes apply immediately.

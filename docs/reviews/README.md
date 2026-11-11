@@ -11,6 +11,7 @@ See [evidence and omissions](../evidence/README.md), [retired P73 design](../arc
 - [Cursor provider](cursor-provider/review.md)
 - [Settings window and dropdown redesign](settings-and-dropdown/review.md)
 - [Shared monthly budget](shared-budget/review.md)
+- [Customizable provider codes](provider-codes/review.md)
 
 - [app-icon-review](app-icon-review.md)
 - [beside-layout-review](beside-layout-review.md)

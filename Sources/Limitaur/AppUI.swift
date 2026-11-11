@@ -121,6 +121,12 @@ private struct FrozenDemoClock: MonitorClock {
     var unavailableProviders: [ProviderID] = [] { didSet { needsDisplay = true } }
     /// Subset of `unavailableProviders` whose marker shows the authentication glyph.
     var signInProviders: Set<ProviderID> = [] { didSet { needsDisplay = true } }
+    /// User code overrides; an overridden provider draws its code as text, never its bundle image.
+    var providerCodes: [String: String] = [:] { didSet { needsDisplay = true } }
+    private func glyph(for provider: ProviderID) -> String { providerGlyph(for: provider, overrides: providerCodes) }
+    private func mask(for provider: ProviderID) -> CGImage? {
+        normalizedProviderCode(providerCodes[provider.rawValue.lowercased()] ?? "") == nil ? ProviderGlyphImages.mask(for: provider) : nil
+    }
     var appearanceChanged: (() -> Void)?
     var willDraw: (() -> Void)?
     override var isFlipped: Bool { false }
@@ -150,6 +156,14 @@ private struct FrozenDemoClock: MonitorClock {
         (NSRect(x: slot.minX, y: slot.midY, width: slot.width, height: slot.height / 2),
          NSRect(x: slot.minX, y: slot.minY, width: slot.width, height: slot.height / 2))
     }
+    /// The usual provider font, or for a code wider than `width` (say "WW") the largest smaller size that fits.
+    static func providerFont(_ text: String, width: CGFloat) -> NSFont {
+        var font = text.count > 1 ? pairGlyphFont : glyphFont
+        while font.pointSize > 4, (text as NSString).size(withAttributes: [.font: font]).width > width {
+            font = NSFont.systemFont(ofSize: font.pointSize - 0.25, weight: .bold)
+        }
+        return font
+    }
     private static func draw(text: String, font: NSFont, color: NSColor, centeredIn rect: NSRect) {
         let attributes: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: color]
         let size = (text as NSString).size(withAttributes: attributes)
@@ -167,15 +181,15 @@ private struct FrozenDemoClock: MonitorClock {
         cg.restoreGState()
     }
     /// `allowImage` is false for the beside layout, which is letters-only by contract.
-    private static func drawGlyphs(provider: ProviderID, code: String, in slot: NSRect, color: NSColor, allowImage: Bool) {
-        let rects = glyphRects(in: slot)
-        if allowImage, let mask = ProviderGlyphImages.mask(for: provider) {
-            draw(mask: mask, color: color, centeredIn: rects.provider)
+    private func drawGlyphs(provider: ProviderID, code: String, in slot: NSRect, color: NSColor, allowImage: Bool) {
+        let rects = Self.glyphRects(in: slot)
+        if allowImage, let mask = mask(for: provider) {
+            Self.draw(mask: mask, color: color, centeredIn: rects.provider)
         } else {
-            let glyph = providerGlyph(for: provider)
-            draw(text: glyph, font: glyph.count > 1 ? pairGlyphFont : glyphFont, color: color, centeredIn: rects.provider)
+            let text = glyph(for: provider)
+            Self.draw(text: text, font: Self.providerFont(text, width: rects.provider.width), color: color, centeredIn: rects.provider)
         }
-        draw(text: code, font: code.count > 1 ? pairFont : codeFont, color: color, centeredIn: rects.code)
+        Self.draw(text: code, font: code.count > 1 ? Self.pairFont : Self.codeFont, color: color, centeredIn: rects.code)
     }
     private var isDark: Bool { effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua }
     /// Near-black or near-white, whichever contrasts with the fill for this severity. The normal
@@ -233,7 +247,7 @@ private struct FrozenDemoClock: MonitorClock {
         for index in 0..<indicatorCount(count) {
             let slot = NSRect(x: Self.leftPad + CGFloat(index) * (Self.slotWidth + Self.gap),
                               y: bounds.midY - Self.slotHeight / 2, width: Self.slotWidth, height: Self.slotHeight)
-            if Self.layout == .logo, index < selected.count, let mask = ProviderGlyphImages.mask(for: selected[index].providerID) {
+            if Self.layout == .logo, index < selected.count, let mask = mask(for: selected[index].providerID) {
                 drawLogoGauge(selected[index], mask: mask, in: slot)
                 continue
             }
@@ -246,9 +260,9 @@ private struct FrozenDemoClock: MonitorClock {
             // "×" (authentication) or "…" (anything else), so it cannot read as a usage bar.
             let missing = index - selected.count
             if missing >= 0, missing < unavailableProviders.count {
-                let provider = unavailableProviders[missing], code = providerGlyph(for: provider)
+                let provider = unavailableProviders[missing], code = glyph(for: provider)
                 let rects = Self.glyphRects(in: glyphArea)
-                Self.draw(text: code, font: code.count > 1 ? Self.pairGlyphFont : Self.glyphFont,
+                Self.draw(text: code, font: Self.providerFont(code, width: rects.provider.width),
                           color: .secondaryLabelColor, centeredIn: rects.provider)
                 Self.draw(text: signInProviders.contains(provider) ? "×" : "…", font: Self.codeFont,
                           color: .secondaryLabelColor, centeredIn: rects.code)
@@ -283,20 +297,20 @@ private struct FrozenDemoClock: MonitorClock {
             }
             switch Self.layout {
             case .beside:
-                Self.drawGlyphs(provider: ranked.providerID, code: code, in: glyphArea, color: .labelColor, allowImage: false)
+                drawGlyphs(provider: ranked.providerID, code: code, in: glyphArea, color: .labelColor, allowImage: false)
             case .jar, .logo:
                 // Above the fill line the glyphs sit on the opaque track: light on the dark-mode
                 // track, dark on the light-mode track. Inside the fill they take the contrast
                 // colour for that severity. Neither depends on what is behind the status item.
                 NSGraphicsContext.saveGraphicsState()
                 NSRect(x: bar.minX, y: bar.minY + fillHeight, width: bar.width, height: bar.height - fillHeight).clip()
-                Self.drawGlyphs(provider: ranked.providerID, code: code, in: bar,
+                drawGlyphs(provider: ranked.providerID, code: code, in: bar,
                                 color: isDark ? NSColor(calibratedWhite: 0.93, alpha: 1) : NSColor(calibratedWhite: 0.1, alpha: 1), allowImage: true)
                 NSGraphicsContext.restoreGraphicsState()
                 if fillHeight > 0 {
                     NSGraphicsContext.saveGraphicsState()
                     fillRect.clip()
-                    Self.drawGlyphs(provider: ranked.providerID, code: code, in: bar, color: contrastColor(for: ranked.metric.usedPercent), allowImage: true)
+                    drawGlyphs(provider: ranked.providerID, code: code, in: bar, color: contrastColor(for: ranked.metric.usedPercent), allowImage: true)
                     NSGraphicsContext.restoreGraphicsState()
                 }
             }
@@ -349,6 +363,8 @@ extension UserDefaults: PollingStorage {}
     /// Local display settings; demo neither loads nor stores them.
     private var claudeResetDay: MonthlyResetDay = .default
     private var budgetConfig = SettingsModel.defaultBudget
+    /// The applied provider code overrides, stored as `providerCodes`.
+    private(set) var providerCodes: [String: String] = [:]
     /// Seams for tests: the process termination and the nudge toggle.
     var terminateProcesses: () -> Void = { ProcessRegistry.shared.terminateAll() }
     var nudgeToggled: ((Bool) -> Void)?
@@ -365,6 +381,7 @@ extension UserDefaults: PollingStorage {}
             claudeResetDay = defaults.string(forKey: "claudeSpendResetDay").flatMap(MonthlyResetDay.init(storage:)) ?? .default
             budgetConfig = defaults.data(forKey: "sharedBudget")
                 .flatMap { try? JSONDecoder().decode(SharedBudgetConfig.self, from: $0) }?.validated ?? SettingsModel.defaultBudget
+            providerCodes = validatedProviderCodes(defaults.dictionary(forKey: "providerCodes")?.compactMapValues { $0 as? String } ?? [:])
         }
         self.monitor = demo ? Monitor(credentials: CredentialStore(files: DemoCredentialFiles(), keychain: DemoKeychain(),
                                                                          cursorKeychain: DemoKeychain()),
@@ -395,6 +412,7 @@ extension UserDefaults: PollingStorage {}
         if let actionRouter, actionRouter.demo == demo { router = actionRouter }
         else { router = liveRouter }
         dropdownModel.demo = demo
+        rings.providerCodes = providerCodes; dropdownModel.providerCodes = providerCodes
         settings = makeSettings()
     }
     /// The Settings model over the current profile list; every change goes through the save path.
@@ -407,7 +425,16 @@ extension UserDefaults: PollingStorage {}
                       onConnect: { [weak self] in self?.router.connect($0) },
                       onAbout: { [weak self] in self?.showAbout() },
                       onClaudeResetDay: { [weak self] in self?.setClaudeResetDay($0) },
-                      onBudget: { [weak self] in self?.setBudget($0) })
+                      onBudget: { [weak self] in self?.setBudget($0) },
+                      providerCodes: providerCodes, onProviderCodes: { [weak self] in self?.setProviderCodes($0) })
+    }
+    /// Applies at once to the status item and the dropdown; the Settings model already holds it.
+    private func setProviderCodes(_ codes: [String: String]) {
+        providerCodes = validatedProviderCodes(codes)
+        if !demo { defaults.set(providerCodes, forKey: "providerCodes") }
+        rings.providerCodes = providerCodes
+        dropdownModel.providerCodes = providerCodes
+        item.button?.needsDisplay = true
     }
     private func setClaudeResetDay(_ day: MonthlyResetDay) {
         claudeResetDay = day
