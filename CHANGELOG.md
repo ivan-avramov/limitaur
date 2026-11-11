@@ -4,6 +4,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 
 ## [Unreleased]
 
+
+## [0.3.0] - 2026-11-10
+
 ### Added
 - Cursor provider: the Cursor switch under Settings → Providers reads the existing cursor-agent sign-in from the Keychain (read-only, through `/usr/bin/security`) and shows one `CU` / `$` bar of the caller's own billing-cycle spend against the effective per-user spend limit, with spent and limit amounts (labelled USD) in the dropdown; `--check-live` includes `cursor`.
 - Claude spend shows as "Monthly spend" with "Spent this cycle", "Spend limit" and a monthly reset at 00:00 UTC on a configurable day (Settings → Providers → Claude → Spend resets; default the 1st).
