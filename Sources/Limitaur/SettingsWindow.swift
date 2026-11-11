@@ -556,6 +556,7 @@ private final class SettingsPanel: NSWindow {
                                       ("Providers", "person.2", AnyView(ProvidersSettingsView(model: model)))] {
             let host = NSHostingController(rootView: view)
             host.sizingOptions = .preferredContentSize
+            host.title = title   // the tab controller propagates it as the window title
             let item = NSTabViewItem(viewController: host)
             item.label = title
             item.image = NSImage(systemSymbolName: symbol, accessibilityDescription: title)
