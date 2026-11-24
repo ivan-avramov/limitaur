@@ -4,6 +4,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-11-23
+
+### Changed
+- Added a release command that signs the Apple silicon app with Developer ID, notarizes it, and checks the downloaded ZIP layout and Gatekeeper assessment before producing a checksum.
 
 ## [0.3.0] - 2026-11-10
 

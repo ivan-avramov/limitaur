@@ -94,7 +94,22 @@ def check_build_dir(out):
                     or re.fullmatch(allowed, p.name) for p in out.iterdir()),
                 'build output contains unrecognized items')
 
-def package(output, require_gate=False):
+def sign_and_notarize(app, identity, profile, submission_zip):
+    require(bool(re.fullmatch(r'[a-fA-F0-9]{40}', identity)),
+            'provide the Developer ID Application certificate fingerprint from security find-identity')
+    run('codesign', '--force', '--options', 'runtime', '--timestamp', '--sign', identity, str(app))
+    # Pin the requested certificate and require Apple's Developer ID Application extension.
+    requirement = (f'=anchor apple generic and certificate leaf = H"{identity}" '
+                   'and certificate leaf[field.1.2.840.113635.100.6.1.13] exists')
+    run('codesign', '--verify', '--strict', '-R', requirement, str(app))
+    run('ditto', '-c', '-k', '--keepParent', str(app), str(submission_zip))
+    submission = json.loads(run('xcrun', 'notarytool', 'submit', str(submission_zip),
+                                '--keychain-profile', profile, '--wait', '--output-format', 'json'))
+    require(submission.get('status') == 'Accepted',
+            f"Apple notarization {submission.get('status')} (submission {submission.get('id')})")
+    run('xcrun', 'stapler', 'staple', str(app))
+
+def package(output, require_gate=False, signing_identity=None, notary_profile='Limitaur-Notary'):
     version = preflight()
     log = (ROOT / LOG).read_text()
     require(bool(re.search(r'^## \[' + re.escape(version) + r'\] - \d{4}-\d{2}-\d{2}\s*$', log, re.M)), 'missing dated changelog entry')
@@ -126,6 +141,8 @@ def package(output, require_gate=False):
         run('sh', 'scripts/build-app.sh', str(app), '--arch', 'arm64', '--build-system', 'native', cwd=clone, env=env)
         license_bytes = (clone / 'LICENSE').read_bytes()
         validate(app, version, revision, count, license_bytes)
+        if signing_identity is not None:
+            sign_and_notarize(app, signing_identity, notary_profile, temp / 'submission.zip')
         archive = temp / name
         run('ditto', '-c', '-k', '--norsrc', '--noextattr', '--keepParent', str(app), str(archive))
         with zipfile.ZipFile(archive) as z:
@@ -134,6 +151,10 @@ def package(output, require_gate=False):
         extracted.mkdir()
         run('ditto', '-x', '-k', str(archive), str(extracted))
         validate(extracted / 'Limitaur.app', version, revision, count, license_bytes)
+        if signing_identity is not None:
+            final_app = str(extracted / 'Limitaur.app')
+            run('xcrun', 'stapler', 'validate', final_app)
+            run('spctl', '--assess', '--type', 'execute', final_app)
         digest = hashlib.sha256(archive.read_bytes()).hexdigest()
         check = temp / (name + '.sha256')
         check.write_text(digest + '  ' + name + '\n')
@@ -177,10 +198,16 @@ def main():
     commands = parser.add_subparsers(dest='command', required=True)
     commands.add_parser('prepare').add_argument('increment', choices=('patch', 'minor', 'major'))
     commands.add_parser('package').add_argument('--output-dir')
+    signed = commands.add_parser('package-signed', help='sign, notarize, and verify a release ZIP')
+    signed.add_argument('--identity', required=True, help='Developer ID Application certificate fingerprint')
+    signed.add_argument('--notary-profile', default='Limitaur-Notary', help='notarytool Keychain profile')
+    signed.add_argument('--output-dir')
     args = parser.parse_args()
     try:
         if args.command == 'prepare':
             prepare(args.increment)
+        elif args.command == 'package-signed':
+            package(args.output_dir, require_gate=True, signing_identity=args.identity, notary_profile=args.notary_profile)
         else:
             package(args.output_dir, require_gate=True)
     except (ValueError, OSError, subprocess.CalledProcessError, plistlib.InvalidFileException, zipfile.BadZipFile) as error:
