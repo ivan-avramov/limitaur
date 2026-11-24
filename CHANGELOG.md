@@ -8,6 +8,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 
 ### Changed
 - Added a release command that signs the Apple silicon app with Developer ID, notarizes it, and checks the downloaded ZIP layout and Gatekeeper assessment before producing a checksum.
+- `package-signed --waive-ui-pass` accepts a gate record whose only failed step is the UI pass, for a machine without Cursor; the 0.3.1 release uses it because 0.3.1 changes only release packaging.
 
 ## [0.3.0] - 2026-11-10
 

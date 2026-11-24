@@ -75,15 +75,22 @@ def validate(app, version, revision, count, license_bytes):
     require(info.get('CFBundleIconFile') == 'AppIcon.icns' and (resources / 'AppIcon.icns').is_file(), 'missing registered icon')
     run('codesign', '--verify', '--strict', str(app))
 
-def check_gate(revision):
-    """A complete, passing scripts/release-gate.py record from a clean tree at this revision."""
+def check_gate(revision, waive_ui=False):
+    """A complete, passing scripts/release-gate.py record from a clean tree at this revision.
+
+    waive_ui accepts a record whose only failed step is the UI pass; every other step must have passed."""
     path = ROOT / '.build' / 'release-gate' / revision / 'result.json'
     try:
         record = json.loads(path.read_text())
     except (OSError, ValueError):
         record = {}
-    require(record.get('revision') == revision and record.get('passed') is True and record.get('complete') is True
-            and record.get('dirty') is False, 'no passing release gate for HEAD; run python3 scripts/release-gate.py')
+    steps = record.get('steps') or []
+    ui_only = bool(steps) and [s.get('name') for s in steps if s.get('ok') is not True] == ['ui']
+    require(record.get('revision') == revision and record.get('complete') is True and record.get('dirty') is False
+            and (record.get('passed') is True or (waive_ui and ui_only)),
+            'no passing release gate for HEAD; run python3 scripts/release-gate.py')
+    if waive_ui and record.get('passed') is not True:
+        print('release: WAIVED the UI pass of the release gate; every other gate step passed', file=sys.stderr)
 
 def check_build_dir(out):
     require(not out.is_symlink(), 'build output is a symlink')
@@ -109,7 +116,7 @@ def sign_and_notarize(app, identity, profile, submission_zip):
             f"Apple notarization {submission.get('status')} (submission {submission.get('id')})")
     run('xcrun', 'stapler', 'staple', str(app))
 
-def package(output, require_gate=False, signing_identity=None, notary_profile='Limitaur-Notary'):
+def package(output, require_gate=False, signing_identity=None, notary_profile='Limitaur-Notary', waive_ui=False):
     version = preflight()
     log = (ROOT / LOG).read_text()
     require(bool(re.search(r'^## \[' + re.escape(version) + r'\] - \d{4}-\d{2}-\d{2}\s*$', log, re.M)), 'missing dated changelog entry')
@@ -129,7 +136,7 @@ def package(output, require_gate=False, signing_identity=None, notary_profile='L
     else:
         check_build_dir(out)
     if require_gate:
-        check_gate(revision)
+        check_gate(revision, waive_ui)
     with tempfile.TemporaryDirectory(prefix='limitaur-release-', dir=ROOT if not output else None) as tmp:
         temp = Path(tmp)
         clone = temp / 'source'
@@ -202,12 +209,14 @@ def main():
     signed.add_argument('--identity', required=True, help='Developer ID Application certificate fingerprint')
     signed.add_argument('--notary-profile', default='Limitaur-Notary', help='notarytool Keychain profile')
     signed.add_argument('--output-dir')
+    signed.add_argument('--waive-ui-pass', action='store_true', help='accept a gate record whose only failure is the UI pass')
     args = parser.parse_args()
     try:
         if args.command == 'prepare':
             prepare(args.increment)
         elif args.command == 'package-signed':
-            package(args.output_dir, require_gate=True, signing_identity=args.identity, notary_profile=args.notary_profile)
+            package(args.output_dir, require_gate=True, signing_identity=args.identity, notary_profile=args.notary_profile,
+                    waive_ui=args.waive_ui_pass)
         else:
             package(args.output_dir, require_gate=True)
     except (ValueError, OSError, subprocess.CalledProcessError, plistlib.InvalidFileException, zipfile.BadZipFile) as error:
